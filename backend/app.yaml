@@ -1,0 +1,115 @@
+version: 1
+deploymentExtension: false
+name: kraftd-docs-backend
+description: Intelligent Procurement Document Processing Backend with AI Agent
+
+# Build configuration
+build:
+  context: .
+  dockerfile: Dockerfile
+  args:
+    PYTHON_VERSION: "3.13"
+
+# Container configuration
+container:
+  port: 8000
+  protocol: HTTP
+  
+# Health check configuration
+healthcheck:
+  path: /health
+  interval: 30
+  timeout: 10
+  retries: 3
+  startPeriod: 10
+
+# Environment variables for Azure
+environmentVariables:
+  # Server configuration
+  SERVER_HOST: "0.0.0.0"
+  SERVER_PORT: "8000"
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+  
+  # Timeout configuration
+  REQUEST_TIMEOUT: "30"
+  DOCUMENT_PROCESSING_TIMEOUT: "25"
+  FILE_PARSE_TIMEOUT: "20"
+  
+  # Retry configuration
+  MAX_RETRIES: "3"
+  RETRY_BACKOFF_FACTOR: "0.5"
+  
+  # Rate limiting
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_REQUESTS_PER_MINUTE: "60"
+  RATE_LIMIT_REQUESTS_PER_HOUR: "1000"
+  
+  # Metrics
+  METRICS_ENABLED: "true"
+  METRICS_EXPORT_INTERVAL: "60"
+  
+  # Logging
+  LOG_LEVEL: "INFO"
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+
+# Secret references (use Azure Key Vault)
+secrets:
+  - name: DOCUMENTINTELLIGENCE_ENDPOINT
+    source: keyvault
+    reference: documentintelligence-endpoint
+  - name: DOCUMENTINTELLIGENCE_API_KEY
+    source: keyvault
+    reference: documentintelligence-api-key
+  - name: AZURE_OPENAI_ENDPOINT
+    source: keyvault
+    reference: azure-openai-endpoint
+  - name: AZURE_OPENAI_API_KEY
+    source: keyvault
+    reference: azure-openai-api-key
+  - name: AZURE_OPENAI_DEPLOYMENT
+    source: keyvault
+    reference: azure-openai-deployment
+
+# Scaling configuration
+scaling:
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Resource limits
+resources:
+  requests:
+    cpu: 1
+    memory: 1.5Gi
+  limits:
+    cpu: 2
+    memory: 2Gi
+
+# Port mapping
+ports:
+  - containerPort: 8000
+    protocol: TCP
+
+# Probes for container health
+probes:
+  liveness:
+    httpGet:
+      path: /health
+      port: 8000
+      scheme: HTTP
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    httpGet:
+      path: /health
+      port: 8000
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 2

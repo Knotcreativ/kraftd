@@ -1,0 +1,246 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Azure Monitor Alert Rules for KraftdIntel Application"
+  },
+  "parameters": {
+    "appServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the App Service to monitor"
+      }
+    },
+    "appInsightsName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Application Insights resource"
+      }
+    },
+    "actionGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the action group for alerts"
+      }
+    },
+    "emailAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Email address for alert notifications"
+      }
+    }
+  },
+  "variables": {
+    "appServiceResourceId": "[resourceId('Microsoft.Web/sites', parameters('appServiceName'))]",
+    "appInsightsResourceId": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
+    "actionGroupResourceId": "[resourceId('Microsoft.Insights/actionGroups', parameters('actionGroupName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/actionGroups",
+      "apiVersion": "2021-09-01",
+      "name": "[parameters('actionGroupName')]",
+      "location": "global",
+      "properties": {
+        "groupShortName": "KraftdIntel",
+        "enabled": true,
+        "emailReceivers": [
+          {
+            "name": "Email Notification",
+            "emailAddress": "[parameters('emailAddress')]",
+            "useCommonAlertSchema": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/metricAlerts",
+      "apiVersion": "2018-03-01",
+      "name": "HighErrorRate",
+      "location": "global",
+      "dependsOn": [
+        "[variables('actionGroupResourceId')]"
+      ],
+      "properties": {
+        "description": "Alert when error rate exceeds 5%",
+        "severity": 2,
+        "enabled": true,
+        "scopes": [
+          "[variables('appServiceResourceId')]"
+        ],
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT15M",
+        "criteria": {
+          "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria",
+          "allOf": [
+            {
+              "name": "Http5xx",
+              "metricName": "Http5xx",
+              "operator": "GreaterThan",
+              "threshold": 50,
+              "timeAggregation": "Count"
+            }
+          ]
+        },
+        "actions": [
+          {
+            "actionGroupId": "[variables('actionGroupResourceId')]"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/metricAlerts",
+      "apiVersion": "2018-03-01",
+      "name": "HighResponseTime",
+      "location": "global",
+      "dependsOn": [
+        "[variables('actionGroupResourceId')]"
+      ],
+      "properties": {
+        "description": "Alert when average response time exceeds 2 seconds",
+        "severity": 2,
+        "enabled": true,
+        "scopes": [
+          "[variables('appServiceResourceId')]"
+        ],
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT15M",
+        "criteria": {
+          "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria",
+          "allOf": [
+            {
+              "name": "ResponseTime",
+              "metricName": "ResponseTime",
+              "operator": "GreaterThan",
+              "threshold": 2000,
+              "timeAggregation": "Average"
+            }
+          ]
+        },
+        "actions": [
+          {
+            "actionGroupId": "[variables('actionGroupResourceId')]"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/metricAlerts",
+      "apiVersion": "2018-03-01",
+      "name": "HighCpuUsage",
+      "location": "global",
+      "dependsOn": [
+        "[variables('actionGroupResourceId')]"
+      ],
+      "properties": {
+        "description": "Alert when CPU usage exceeds 80%",
+        "severity": 2,
+        "enabled": true,
+        "scopes": [
+          "[variables('appServiceResourceId')]"
+        ],
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT15M",
+        "criteria": {
+          "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria",
+          "allOf": [
+            {
+              "name": "CpuUsage",
+              "metricName": "CpuTime",
+              "operator": "GreaterThan",
+              "threshold": 80,
+              "timeAggregation": "Average"
+            }
+          ]
+        },
+        "actions": [
+          {
+            "actionGroupId": "[variables('actionGroupResourceId')]"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/metricAlerts",
+      "apiVersion": "2018-03-01",
+      "name": "HighMemoryUsage",
+      "location": "global",
+      "dependsOn": [
+        "[variables('actionGroupResourceId')]"
+      ],
+      "properties": {
+        "description": "Alert when memory usage exceeds 80%",
+        "severity": 2,
+        "enabled": true,
+        "scopes": [
+          "[variables('appServiceResourceId')]"
+        ],
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT15M",
+        "criteria": {
+          "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria",
+          "allOf": [
+            {
+              "name": "MemoryUsage",
+              "metricName": "MemoryPercentage",
+              "operator": "GreaterThan",
+              "threshold": 80,
+              "timeAggregation": "Average"
+            }
+          ]
+        },
+        "actions": [
+          {
+            "actionGroupId": "[variables('actionGroupResourceId')]"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/metricAlerts",
+      "apiVersion": "2018-03-01",
+      "name": "ApplicationOffline",
+      "location": "global",
+      "dependsOn": [
+        "[variables('actionGroupResourceId')]"
+      ],
+      "properties": {
+        "description": "Alert when application is offline",
+        "severity": 0,
+        "enabled": true,
+        "scopes": [
+          "[variables('appServiceResourceId')]"
+        ],
+        "evaluationFrequency": "PT1M",
+        "windowSize": "PT5M",
+        "criteria": {
+          "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria",
+          "allOf": [
+            {
+              "name": "HealthStatus",
+              "metricName": "HealthStatus",
+              "operator": "LessThan",
+              "threshold": 1,
+              "timeAggregation": "Average"
+            }
+          ]
+        },
+        "actions": [
+          {
+            "actionGroupId": "[variables('actionGroupResourceId')]"
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "actionGroupId": {
+      "type": "string",
+      "value": "[variables('actionGroupResourceId')]",
+      "metadata": {
+        "description": "ID of the created action group"
+      }
+    }
+  }
+}

@@ -1,0 +1,586 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Kraftd Intelligence API",
+    "description": "Document processing and procurement workflow automation API",
+    "version": "1.0.0-MVP",
+    "contact": {
+      "name": "API Support",
+      "email": "support@kraftdintel.com"
+    },
+    "license": {
+      "name": "Proprietary"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7071/api",
+      "description": "Local development server"
+    },
+    {
+      "url": "https://kraftdocs.azurewebsites.net/api",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "DocumentUploadResponse": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "example": "doc-abc123"
+          },
+          "filename": {
+            "type": "string",
+            "example": "invoice.pdf"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["uploaded", "processing", "extracted", "failed"],
+            "example": "uploaded"
+          },
+          "file_size_bytes": {
+            "type": "integer",
+            "example": 256432
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ExtractionResponse": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["extracted", "processing", "failed"]
+          },
+          "document_type": {
+            "type": "string",
+            "enum": ["INVOICE", "QUOTE", "RFQUOTATION", "PO"]
+          },
+          "processing_time_ms": {
+            "type": "integer"
+          },
+          "extraction_metrics": {
+            "type": "object",
+            "properties": {
+              "fields_mapped": {
+                "type": "integer"
+              },
+              "inferences_made": {
+                "type": "integer"
+              },
+              "line_items": {
+                "type": "integer"
+              }
+            }
+          },
+          "validation": {
+            "type": "object",
+            "properties": {
+              "completeness_score": {
+                "type": "number",
+                "format": "float"
+              },
+              "quality_score": {
+                "type": "number",
+                "format": "float"
+              },
+              "overall_score": {
+                "type": "number",
+                "format": "float"
+              },
+              "ready_for_processing": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "WorkflowResponse": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "step": {
+            "type": "string",
+            "enum": ["inquiry", "assessment", "estimation", "normalize_quotes", "comparison", "approval", "proforma_invoice"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["REVIEW_PENDING", "ASSESSMENT_COMPLETE", "ESTIMATION_IN_PROGRESS", "COMPARISON_DONE", "APPROVED_FOR_PO", "PROFORMA_GENERATED"]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status_code": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "security": [],
+        "summary": "Get API overview",
+        "operationId": "get_root",
+        "responses": {
+          "200": {
+            "description": "API overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "endpoints": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "security": [],
+        "summary": "Health check",
+        "operationId": "health_check",
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "API unavailable"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "security": [],
+        "summary": "Get API metrics",
+        "operationId": "get_metrics",
+        "responses": {
+          "200": {
+            "description": "API metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_requests": {
+                      "type": "integer"
+                    },
+                    "total_errors": {
+                      "type": "integer"
+                    },
+                    "average_response_time_ms": {
+                      "type": "number"
+                    },
+                    "error_rate": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/docs/upload": {
+      "post": {
+        "summary": "Upload document",
+        "operationId": "upload_document",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "doc_type": {
+                    "type": "string",
+                    "enum": ["INVOICE", "QUOTE", "RFQUOTATION", "PO"]
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/extract": {
+      "post": {
+        "summary": "Extract document data",
+        "operationId": "extract_document",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string",
+                    "example": "doc-abc123"
+                  },
+                  "extraction_type": {
+                    "type": "string",
+                    "enum": ["full", "metadata", "content"]
+                  }
+                },
+                "required": ["document_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Extraction successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found"
+          },
+          "408": {
+            "description": "Processing timeout"
+          }
+        }
+      }
+    },
+    "/v1/documents/{id}": {
+      "get": {
+        "summary": "Get document details",
+        "operationId": "get_document",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document details"
+          },
+          "404": {
+            "description": "Document not found"
+          }
+        }
+      }
+    },
+    "/v1/documents/{id}/status": {
+      "get": {
+        "summary": "Get document status",
+        "operationId": "get_document_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document status"
+          }
+        }
+      }
+    },
+    "/v1/workflow/inquiry": {
+      "post": {
+        "summary": "Review inquiry",
+        "operationId": "workflow_inquiry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inquiry reviewed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workflow/estimation": {
+      "post": {
+        "summary": "Request estimation",
+        "operationId": "workflow_estimation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estimation requested"
+          }
+        }
+      }
+    },
+    "/v1/workflow/normalize-quotes": {
+      "post": {
+        "summary": "Normalize quotes",
+        "operationId": "workflow_normalize_quotes",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quotes normalized"
+          }
+        }
+      }
+    },
+    "/v1/workflow/comparison": {
+      "post": {
+        "summary": "Compare quotes",
+        "operationId": "workflow_comparison",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comparison complete"
+          }
+        }
+      }
+    },
+    "/v1/workflow/approval": {
+      "post": {
+        "summary": "Approve supplier",
+        "operationId": "workflow_approval",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string"
+                  },
+                  "approved_supplier_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Supplier approved"
+          }
+        }
+      }
+    },
+    "/v1/workflow/proforma-invoice": {
+      "post": {
+        "summary": "Generate pro forma invoice",
+        "operationId": "workflow_proforma_invoice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pro forma invoice generated"
+          }
+        }
+      }
+    },
+    "/v1/generate-output": {
+      "post": {
+        "summary": "Generate output document",
+        "operationId": "generate_output",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string"
+                  },
+                  "output_format": {
+                    "type": "string",
+                    "enum": ["pdf", "json", "csv"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Output generated"
+          }
+        }
+      }
+    }
+  }
+}

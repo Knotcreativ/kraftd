@@ -1,0 +1,679 @@
+2026-01-15 06:57:50,753 - main - INFO - ==================================================
+2026-01-15 06:57:50,753 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 06:57:50,753 - main - INFO - ==================================================
+2026-01-15 06:57:51,200 - main - INFO - ==================================================
+2026-01-15 06:57:51,200 - main - INFO - Startup completed successfully
+2026-01-15 06:57:51,200 - main - INFO - ==================================================
+2026-01-15 06:58:14,965 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-15 06:58:32,397 - main - INFO - ==================================================
+2026-01-15 06:58:32,398 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 06:58:32,398 - main - INFO - ==================================================
+2026-01-15 06:58:32,398 - main - INFO - [OK] Azure Document Intelligence is configured
+2026-01-15 06:58:32,554 - main - INFO - [OK] Azure service initialized
+2026-01-15 06:58:32,554 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 06:58:32,554 - main - INFO - [OK] Upload directory is writable
+2026-01-15 06:58:32,555 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 06:58:32,555 - main - INFO - ==================================================
+2026-01-15 06:58:32,555 - main - INFO - Startup completed successfully
+2026-01-15 06:58:32,555 - main - INFO - ==================================================
+2026-01-15 06:58:57,739 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-15 06:59:12,306 - main - INFO - ==================================================
+2026-01-15 06:59:12,306 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 06:59:12,306 - main - INFO - ==================================================
+2026-01-15 06:59:12,306 - main - INFO - [OK] Azure Document Intelligence is configured
+2026-01-15 06:59:12,499 - main - INFO - [OK] Azure service initialized
+2026-01-15 06:59:12,500 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 06:59:12,500 - main - INFO - [OK] Upload directory is writable
+2026-01-15 06:59:12,500 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 06:59:12,500 - main - INFO - ==================================================
+2026-01-15 06:59:12,500 - main - INFO - Startup completed successfully
+2026-01-15 06:59:12,501 - main - INFO - ==================================================
+2026-01-15 06:59:41,593 - main - INFO - Uploading document: test_document.pdf
+2026-01-15 06:59:41,595 - main - INFO - Document saved: 3bd03293-8267-4c0f-90b5-1dc6a893dd2c, size: 2265 bytes, type: pdf
+2026-01-15 06:59:41,596 - main - INFO - Document registered: 3bd03293-8267-4c0f-90b5-1dc6a893dd2c
+2026-01-15 06:59:47,145 - main - INFO - Extracting intelligence for document: 3bd03293-8267-4c0f-90b5-1dc6a893dd2c
+2026-01-15 06:59:47,145 - main - INFO - Processing pdf document
+2026-01-15 06:59:47,244 - main - INFO - Starting extraction pipeline...
+2026-01-15 06:59:47,263 - main - INFO - Pipeline completed successfully
+2026-01-15 06:59:47,264 - main - INFO - Document 3bd03293-8267-4c0f-90b5-1dc6a893dd2c extraction complete in 118ms
+2026-01-15 06:59:47,264 - main - INFO -   - Type: RFQ
+2026-01-15 06:59:47,265 - main - INFO -   - Completeness: 66.66666666666666%
+2026-01-15 06:59:47,265 - main - INFO -   - Quality: 100%
+2026-01-15 06:59:47,267 - main - ERROR - Extraction failed for 3bd03293-8267-4c0f-90b5-1dc6a893dd2c: Object of type datetime is not JSON serializable
+Traceback (most recent call last):
+  File "C:\Users\1R6\OneDrive\Project Catalyst\KraftdIntel\backend\main.py", line 302, in extract_intelligence
+    return JSONResponse({
+        "document_id": document_id,
+    ...<16 lines>...
+        "document": kraftd_document.dict()
+    })
+  File "C:\Users\1R6\OneDrive\Project Catalyst\KraftdIntel\backend\.venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1R6\OneDrive\Project Catalyst\KraftdIntel\backend\.venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\1R6\OneDrive\Project Catalyst\KraftdIntel\backend\.venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Users\1R6\AppData\Local\Programs\Python\Python313\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Users\1R6\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Users\1R6\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+  File "C:\Users\1R6\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type datetime is not JSON serializable
+2026-01-15 07:00:39,667 - main - INFO - ==================================================
+2026-01-15 07:00:39,668 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:00:39,668 - main - INFO - ==================================================
+2026-01-15 07:00:39,668 - main - INFO - [OK] Azure Document Intelligence is configured
+2026-01-15 07:00:39,833 - main - INFO - [OK] Azure service initialized
+2026-01-15 07:00:39,833 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:00:39,833 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:00:39,834 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:00:39,834 - main - INFO - ==================================================
+2026-01-15 07:00:39,834 - main - INFO - Startup completed successfully
+2026-01-15 07:00:39,834 - main - INFO - ==================================================
+2026-01-15 07:00:48,241 - main - INFO - Uploading document: test_document.pdf
+2026-01-15 07:00:48,242 - main - INFO - Document saved: 30be539c-9a3c-4b2d-b13b-013b25f8fae6, size: 2265 bytes, type: pdf
+2026-01-15 07:00:48,242 - main - INFO - Document registered: 30be539c-9a3c-4b2d-b13b-013b25f8fae6
+2026-01-15 07:00:53,117 - main - INFO - Extracting intelligence for document: 30be539c-9a3c-4b2d-b13b-013b25f8fae6
+2026-01-15 07:00:53,118 - main - INFO - Processing pdf document
+2026-01-15 07:00:53,147 - main - INFO - Starting extraction pipeline...
+2026-01-15 07:00:53,156 - main - INFO - Pipeline completed successfully
+2026-01-15 07:00:53,156 - main - INFO - Document 30be539c-9a3c-4b2d-b13b-013b25f8fae6 extraction complete in 38ms
+2026-01-15 07:00:53,157 - main - INFO -   - Type: RFQ
+2026-01-15 07:00:53,157 - main - INFO -   - Completeness: 66.66666666666666%
+2026-01-15 07:00:53,157 - main - INFO -   - Quality: 100%
+2026-01-15 07:00:57,905 - main - INFO - Extracting intelligence for document: 30be539c-9a3c-4b2d-b13b-013b25f8fae6
+2026-01-15 07:00:57,905 - main - INFO - Processing pdf document
+2026-01-15 07:00:57,926 - main - INFO - Starting extraction pipeline...
+2026-01-15 07:00:57,929 - main - INFO - Pipeline completed successfully
+2026-01-15 07:00:57,930 - main - INFO - Document 30be539c-9a3c-4b2d-b13b-013b25f8fae6 extraction complete in 24ms
+2026-01-15 07:00:57,930 - main - INFO -   - Type: RFQ
+2026-01-15 07:00:57,930 - main - INFO -   - Completeness: 66.66666666666666%
+2026-01-15 07:00:57,930 - main - INFO -   - Quality: 100%
+2026-01-15 07:04:22,013 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:04:22,041 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:04:22,041 - main - INFO - ============================================================
+2026-01-15 07:04:22,041 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:04:22,042 - main - INFO - ============================================================
+2026-01-15 07:04:22,042 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:04:22,042 - main - INFO - [OK] Azure Document Intelligence is configured
+2026-01-15 07:04:22,262 - main - INFO - [OK] Azure service initialized
+2026-01-15 07:04:22,262 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:04:22,262 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:04:22,262 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:04:22,262 - main - INFO - ============================================================
+2026-01-15 07:04:22,262 - main - INFO - Startup Configuration:
+2026-01-15 07:04:22,263 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:04:22,263 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:04:22,263 - main - INFO -   Max Retries: 3
+2026-01-15 07:04:22,263 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:04:22,263 - main - INFO -   Metrics: Enabled
+2026-01-15 07:04:22,263 - main - INFO - ============================================================
+2026-01-15 07:04:22,263 - main - INFO - Startup completed successfully
+2026-01-15 07:04:22,263 - main - INFO - ============================================================
+2026-01-15 07:05:59,909 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:05:59,939 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:05:59,939 - main - INFO - ============================================================
+2026-01-15 07:05:59,940 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:05:59,940 - main - INFO - ============================================================
+2026-01-15 07:05:59,940 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:05:59,941 - main - INFO - [OK] Azure Document Intelligence is configured
+2026-01-15 07:06:00,183 - main - INFO - [OK] Azure service initialized
+2026-01-15 07:06:00,183 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:06:00,183 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:06:00,184 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:06:00,184 - main - INFO - ============================================================
+2026-01-15 07:06:00,184 - main - INFO - Startup Configuration:
+2026-01-15 07:06:00,184 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:06:00,184 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:06:00,184 - main - INFO -   Max Retries: 3
+2026-01-15 07:06:00,184 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:06:00,185 - main - INFO -   Metrics: Enabled
+2026-01-15 07:06:00,185 - main - INFO - ============================================================
+2026-01-15 07:06:00,185 - main - INFO - Startup completed successfully
+2026-01-15 07:06:00,185 - main - INFO - ============================================================
+2026-01-15 07:08:42,676 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:08:56,509 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:08:56,539 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:08:56,539 - main - INFO - ============================================================
+2026-01-15 07:08:56,539 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:08:56,539 - main - INFO - ============================================================
+2026-01-15 07:08:56,540 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:08:56,540 - main - INFO - [OK] Azure Document Intelligence is configured
+2026-01-15 07:08:56,713 - main - INFO - [OK] Azure service initialized
+2026-01-15 07:08:56,713 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:08:56,713 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:08:56,714 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:08:56,714 - main - INFO - ============================================================
+2026-01-15 07:08:56,714 - main - INFO - Startup Configuration:
+2026-01-15 07:08:56,714 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:08:56,714 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:08:56,714 - main - INFO -   Max Retries: 3
+2026-01-15 07:08:56,714 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:08:56,714 - main - INFO -   Metrics: Enabled
+2026-01-15 07:08:56,714 - main - INFO - ============================================================
+2026-01-15 07:08:56,714 - main - INFO - Startup completed successfully
+2026-01-15 07:08:56,714 - main - INFO - ============================================================
+2026-01-15 07:12:41,780 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:12:47,493 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:12:47,523 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:12:47,524 - main - INFO - ============================================================
+2026-01-15 07:12:47,524 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:12:47,524 - main - INFO - ============================================================
+2026-01-15 07:12:47,524 - main - ERROR - [ERROR] Startup failed: Configuration validation failed
+Traceback (most recent call last):
+  File "C:\Users\1R6\OneDrive\Project Catalyst\KraftdIntel\backend\main.py", line 77, in startup_event
+    raise RuntimeError("Configuration validation failed")
+RuntimeError: Configuration validation failed
+2026-01-15 07:13:00,688 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:13:00,724 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:13:00,725 - main - INFO - ============================================================
+2026-01-15 07:13:00,725 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:13:00,725 - main - INFO - ============================================================
+2026-01-15 07:13:00,725 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:13:00,725 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 07:13:00,725 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 07:13:00,725 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:13:00,725 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:13:00,726 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:13:00,726 - main - INFO - ============================================================
+2026-01-15 07:13:00,726 - main - INFO - Startup Configuration:
+2026-01-15 07:13:00,726 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:13:00,726 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:13:00,726 - main - INFO -   Max Retries: 3
+2026-01-15 07:13:00,726 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:13:00,726 - main - INFO -   Metrics: Enabled
+2026-01-15 07:13:00,726 - main - INFO - ============================================================
+2026-01-15 07:13:00,726 - main - INFO - Startup completed successfully
+2026-01-15 07:13:00,726 - main - INFO - ============================================================
+2026-01-15 07:17:14,010 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:17:14,039 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:17:14,039 - main - INFO - ============================================================
+2026-01-15 07:17:14,039 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:17:14,040 - main - INFO - ============================================================
+2026-01-15 07:17:14,040 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:17:14,040 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 07:17:14,041 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 07:17:14,041 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:17:14,041 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:17:14,042 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:17:14,042 - main - INFO - ============================================================
+2026-01-15 07:17:14,042 - main - INFO - Startup Configuration:
+2026-01-15 07:17:14,042 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:17:14,042 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:17:14,042 - main - INFO -   Max Retries: 3
+2026-01-15 07:17:14,042 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:17:14,043 - main - INFO -   Metrics: Enabled
+2026-01-15 07:17:14,043 - main - INFO - ============================================================
+2026-01-15 07:17:14,043 - main - INFO - Startup completed successfully
+2026-01-15 07:17:14,044 - main - INFO - ============================================================
+2026-01-15 07:17:36,334 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-15 07:17:36,336 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-15 07:17:47,430 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:17:47,458 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:17:47,459 - main - INFO - ============================================================
+2026-01-15 07:17:47,459 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:17:47,459 - main - INFO - ============================================================
+2026-01-15 07:17:47,459 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:17:47,459 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 07:17:47,459 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 07:17:47,460 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:17:47,460 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:17:47,460 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:17:47,460 - main - INFO - ============================================================
+2026-01-15 07:17:47,460 - main - INFO - Startup Configuration:
+2026-01-15 07:17:47,460 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:17:47,461 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:17:47,461 - main - INFO -   Max Retries: 3
+2026-01-15 07:17:47,461 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:17:47,461 - main - INFO -   Metrics: Enabled
+2026-01-15 07:17:47,461 - main - INFO - ============================================================
+2026-01-15 07:17:47,461 - main - INFO - Startup completed successfully
+2026-01-15 07:17:47,461 - main - INFO - ============================================================
+2026-01-15 07:18:02,258 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-15 07:18:02,260 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-15 07:18:23,314 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:18:23,344 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:18:23,344 - main - INFO - ============================================================
+2026-01-15 07:18:23,344 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:18:23,345 - main - INFO - ============================================================
+2026-01-15 07:18:23,345 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:18:23,345 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 07:18:23,345 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 07:18:23,345 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:18:23,346 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:18:23,346 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:18:23,346 - main - INFO - ============================================================
+2026-01-15 07:18:23,346 - main - INFO - Startup Configuration:
+2026-01-15 07:18:23,346 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:18:23,346 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:18:23,346 - main - INFO -   Max Retries: 3
+2026-01-15 07:18:23,346 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:18:23,346 - main - INFO -   Metrics: Enabled
+2026-01-15 07:18:23,346 - main - INFO - ============================================================
+2026-01-15 07:18:23,347 - main - INFO - Startup completed successfully
+2026-01-15 07:18:23,347 - main - INFO - ============================================================
+2026-01-15 07:22:00,772 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:22:00,813 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:22:00,814 - main - INFO - ============================================================
+2026-01-15 07:22:00,814 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:22:00,814 - main - INFO - ============================================================
+2026-01-15 07:22:00,814 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:22:00,815 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 07:22:00,815 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 07:22:00,815 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:22:00,815 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:22:00,815 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:22:00,815 - main - INFO - ============================================================
+2026-01-15 07:22:00,816 - main - INFO - Startup Configuration:
+2026-01-15 07:22:00,816 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:22:00,816 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:22:00,817 - main - INFO -   Max Retries: 3
+2026-01-15 07:22:00,817 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:22:00,817 - main - INFO -   Metrics: Enabled
+2026-01-15 07:22:00,817 - main - INFO - ============================================================
+2026-01-15 07:22:00,818 - main - INFO - Startup completed successfully
+2026-01-15 07:22:00,818 - main - INFO - ============================================================
+2026-01-15 07:26:04,892 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:26:04,921 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:26:04,921 - main - INFO - ============================================================
+2026-01-15 07:26:04,921 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:26:04,921 - main - INFO - ============================================================
+2026-01-15 07:26:04,922 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:26:04,922 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 07:26:04,922 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 07:26:04,922 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:26:04,923 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:26:04,923 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:26:04,923 - main - INFO - ============================================================
+2026-01-15 07:26:04,923 - main - INFO - Startup Configuration:
+2026-01-15 07:26:04,923 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:26:04,924 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:26:04,924 - main - INFO -   Max Retries: 3
+2026-01-15 07:26:04,924 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:26:04,924 - main - INFO -   Metrics: Enabled
+2026-01-15 07:26:04,924 - main - INFO - ============================================================
+2026-01-15 07:26:04,924 - main - INFO - Startup completed successfully
+2026-01-15 07:26:04,924 - main - INFO - ============================================================
+2026-01-15 07:33:39,295 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:33:39,328 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:33:39,329 - main - INFO - ============================================================
+2026-01-15 07:33:39,329 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:33:39,329 - main - INFO - ============================================================
+2026-01-15 07:33:39,329 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:33:39,329 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 07:33:39,330 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 07:33:39,330 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:33:39,330 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:33:39,330 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:33:39,330 - main - INFO - ============================================================
+2026-01-15 07:33:39,330 - main - INFO - Startup Configuration:
+2026-01-15 07:33:39,330 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:33:39,330 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:33:39,331 - main - INFO -   Max Retries: 3
+2026-01-15 07:33:39,331 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:33:39,331 - main - INFO -   Metrics: Enabled
+2026-01-15 07:33:39,331 - main - INFO - ============================================================
+2026-01-15 07:33:39,332 - main - INFO - Startup completed successfully
+2026-01-15 07:33:39,332 - main - INFO - ============================================================
+2026-01-15 04:44:21,096 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 04:44:21,163 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 04:44:21,164 - main - INFO - ============================================================
+2026-01-15 04:44:21,166 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 04:44:21,167 - main - INFO - ============================================================
+2026-01-15 04:44:21,169 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 04:44:21,170 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 04:44:21,171 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 04:44:21,172 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 04:44:21,173 - main - INFO - [OK] Upload directory is writable
+2026-01-15 04:44:21,174 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 04:44:21,175 - main - INFO - ============================================================
+2026-01-15 04:44:21,177 - main - INFO - Startup Configuration:
+2026-01-15 04:44:21,178 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 04:44:21,179 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 04:44:21,180 - main - INFO -   Max Retries: 3
+2026-01-15 04:44:21,181 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 04:44:21,182 - main - INFO -   Metrics: Enabled
+2026-01-15 04:44:21,183 - main - INFO - ============================================================
+2026-01-15 04:44:21,185 - main - INFO - Startup completed successfully
+2026-01-15 04:44:21,186 - main - INFO - ============================================================
+2026-01-15 07:56:23,873 - __main__ - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:56:31,463 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:56:37,107 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 07:56:37,133 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 07:56:37,133 - main - INFO - ============================================================
+2026-01-15 07:56:37,133 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 07:56:37,133 - main - INFO - ============================================================
+2026-01-15 07:56:37,134 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 07:56:37,134 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 07:56:37,134 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 07:56:37,134 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 07:56:37,134 - main - INFO - [OK] Upload directory is writable
+2026-01-15 07:56:37,134 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 07:56:37,134 - main - INFO - ============================================================
+2026-01-15 07:56:37,134 - main - INFO - Startup Configuration:
+2026-01-15 07:56:37,135 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 07:56:37,135 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 07:56:37,135 - main - INFO -   Max Retries: 3
+2026-01-15 07:56:37,135 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 07:56:37,135 - main - INFO -   Metrics: Enabled
+2026-01-15 07:56:37,135 - main - INFO - ============================================================
+2026-01-15 07:56:37,135 - main - INFO - Startup completed successfully
+2026-01-15 07:56:37,135 - main - INFO - ============================================================
+2026-01-15 05:01:17,591 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-15 05:01:17,600 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-15 05:01:24,375 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 05:01:24,457 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 05:01:24,458 - main - INFO - ============================================================
+2026-01-15 05:01:24,459 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 05:01:24,460 - main - INFO - ============================================================
+2026-01-15 05:01:24,461 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 05:01:24,461 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 05:01:24,462 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 05:01:24,463 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 05:01:24,464 - main - INFO - [OK] Upload directory is writable
+2026-01-15 05:01:24,464 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 05:01:24,465 - main - INFO - ============================================================
+2026-01-15 05:01:24,466 - main - INFO - Startup Configuration:
+2026-01-15 05:01:24,467 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 05:01:24,468 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 05:01:24,471 - main - INFO -   Max Retries: 3
+2026-01-15 05:01:24,471 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 05:01:24,472 - main - INFO -   Metrics: Enabled
+2026-01-15 05:01:24,473 - main - INFO - ============================================================
+2026-01-15 05:01:24,473 - main - INFO - Startup completed successfully
+2026-01-15 05:01:24,474 - main - INFO - ============================================================
+2026-01-15 08:03:47,979 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 05:03:53,595 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-15 05:03:53,602 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-15 05:04:02,309 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 05:04:02,367 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 05:04:02,368 - main - INFO - ============================================================
+2026-01-15 05:04:02,369 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 05:04:02,369 - main - INFO - ============================================================
+2026-01-15 05:04:02,370 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 05:04:02,370 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 05:04:02,370 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 05:04:02,371 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 05:04:02,371 - main - INFO - [OK] Upload directory is writable
+2026-01-15 05:04:02,371 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 05:04:02,372 - main - INFO - ============================================================
+2026-01-15 05:04:02,372 - main - INFO - Startup Configuration:
+2026-01-15 05:04:02,372 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 05:04:02,372 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 05:04:02,373 - main - INFO -   Max Retries: 3
+2026-01-15 05:04:02,373 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 05:04:02,373 - main - INFO -   Metrics: Enabled
+2026-01-15 05:04:02,374 - main - INFO - ============================================================
+2026-01-15 05:04:02,374 - main - INFO - Startup completed successfully
+2026-01-15 05:04:02,374 - main - INFO - ============================================================
+2026-01-15 05:06:22,588 - main - INFO - Uploading document: test_document.pdf
+2026-01-15 05:06:22,591 - main - INFO - Document saved: 9d3d42a8-ae88-4543-a521-0265dfc4816b, size: 2257 bytes, type: pdf
+2026-01-15 05:06:22,593 - main - INFO - Document registered: 9d3d42a8-ae88-4543-a521-0265dfc4816b
+2026-01-15 05:06:27,057 - main - INFO - Extracting intelligence for document: 9d3d42a8-ae88-4543-a521-0265dfc4816b
+2026-01-15 05:06:27,057 - main - INFO - Processing pdf document
+2026-01-15 05:06:27,082 - main - INFO - Starting extraction pipeline...
+2026-01-15 05:06:27,092 - main - INFO - Pipeline completed successfully
+2026-01-15 05:06:27,093 - main - INFO - Document 9d3d42a8-ae88-4543-a521-0265dfc4816b extraction complete in 35ms
+2026-01-15 05:06:27,093 - main - INFO -   - Type: RFQ
+2026-01-15 05:06:27,094 - main - INFO -   - Completeness: 66.66666666666666%
+2026-01-15 05:06:27,094 - main - INFO -   - Quality: 100%
+2026-01-15 12:31:44,572 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:31:44,581 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:31:44,582 - main - INFO - ============================================================
+2026-01-15 12:31:44,583 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:31:44,583 - main - INFO - ============================================================
+2026-01-15 12:31:44,583 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:31:44,584 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:31:44,584 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:31:44,584 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:31:44,584 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:31:44,585 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:31:44,585 - main - INFO - ============================================================
+2026-01-15 12:31:44,585 - main - INFO - Startup Configuration:
+2026-01-15 12:31:44,585 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:31:44,585 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:31:44,585 - main - INFO -   Max Retries: 3
+2026-01-15 12:31:44,586 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:31:44,586 - main - INFO -   Metrics: Enabled
+2026-01-15 12:31:44,586 - main - INFO - ============================================================
+2026-01-15 12:31:44,586 - main - INFO - Startup completed successfully
+2026-01-15 12:31:44,587 - main - INFO - ============================================================
+2026-01-15 12:32:53,338 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:32:53,346 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:32:53,346 - main - INFO - ============================================================
+2026-01-15 12:32:53,346 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:32:53,347 - main - INFO - ============================================================
+2026-01-15 12:32:53,347 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:32:53,347 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:32:53,347 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:32:53,347 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:32:53,347 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:32:53,347 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:32:53,347 - main - INFO - ============================================================
+2026-01-15 12:32:53,347 - main - INFO - Startup Configuration:
+2026-01-15 12:32:53,347 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:32:53,347 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:32:53,348 - main - INFO -   Max Retries: 3
+2026-01-15 12:32:53,348 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:32:53,348 - main - INFO -   Metrics: Enabled
+2026-01-15 12:32:53,348 - main - INFO - ============================================================
+2026-01-15 12:32:53,348 - main - INFO - Startup completed successfully
+2026-01-15 12:32:53,348 - main - INFO - ============================================================
+2026-01-15 12:33:36,171 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:34:05,752 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:34:05,761 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:34:05,762 - main - INFO - ============================================================
+2026-01-15 12:34:05,762 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:34:05,762 - main - INFO - ============================================================
+2026-01-15 12:34:05,762 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:34:05,762 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:34:05,762 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:34:05,762 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:34:05,763 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:34:05,763 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:34:05,763 - main - INFO - ============================================================
+2026-01-15 12:34:05,763 - main - INFO - Startup Configuration:
+2026-01-15 12:34:05,763 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:34:05,764 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:34:05,764 - main - INFO -   Max Retries: 3
+2026-01-15 12:34:05,764 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:34:05,764 - main - INFO -   Metrics: Enabled
+2026-01-15 12:34:05,764 - main - INFO - ============================================================
+2026-01-15 12:34:05,764 - main - INFO - Startup completed successfully
+2026-01-15 12:34:05,764 - main - INFO - ============================================================
+2026-01-15 12:34:47,931 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:34:47,955 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:34:47,955 - main - INFO - ============================================================
+2026-01-15 12:34:47,956 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:34:47,956 - main - INFO - ============================================================
+2026-01-15 12:34:47,956 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:34:47,956 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:34:47,957 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:34:47,957 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:34:47,957 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:34:47,957 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:34:47,957 - main - INFO - ============================================================
+2026-01-15 12:34:47,957 - main - INFO - Startup Configuration:
+2026-01-15 12:34:47,957 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:34:47,957 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:34:47,957 - main - INFO -   Max Retries: 3
+2026-01-15 12:34:47,957 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:34:47,958 - main - INFO -   Metrics: Enabled
+2026-01-15 12:34:47,958 - main - INFO - ============================================================
+2026-01-15 12:34:47,958 - main - INFO - Startup completed successfully
+2026-01-15 12:34:47,958 - main - INFO - ============================================================
+2026-01-15 12:35:15,766 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:35:24,645 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:35:24,657 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:35:24,658 - main - INFO - ============================================================
+2026-01-15 12:35:24,658 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:35:24,658 - main - INFO - ============================================================
+2026-01-15 12:35:24,659 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:35:24,659 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:35:24,659 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:35:24,659 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:35:24,660 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:35:24,660 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:35:24,660 - main - INFO - ============================================================
+2026-01-15 12:35:24,660 - main - INFO - Startup Configuration:
+2026-01-15 12:35:24,661 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:35:24,661 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:35:24,661 - main - INFO -   Max Retries: 3
+2026-01-15 12:35:24,661 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:35:24,661 - main - INFO -   Metrics: Enabled
+2026-01-15 12:35:24,661 - main - INFO - ============================================================
+2026-01-15 12:35:24,662 - main - INFO - Startup completed successfully
+2026-01-15 12:35:24,662 - main - INFO - ============================================================
+2026-01-15 12:37:35,140 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:37:45,917 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:37:45,924 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:37:45,925 - main - INFO - ============================================================
+2026-01-15 12:37:45,925 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:37:45,925 - main - INFO - ============================================================
+2026-01-15 12:37:45,925 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:37:45,925 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:37:45,925 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:37:45,925 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:37:45,926 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:37:45,926 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:37:45,926 - main - INFO - ============================================================
+2026-01-15 12:37:45,926 - main - INFO - Startup Configuration:
+2026-01-15 12:37:45,926 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:37:45,926 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:37:45,926 - main - INFO -   Max Retries: 3
+2026-01-15 12:37:45,926 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:37:45,926 - main - INFO -   Metrics: Enabled
+2026-01-15 12:37:45,926 - main - INFO - ============================================================
+2026-01-15 12:37:45,926 - main - INFO - Startup completed successfully
+2026-01-15 12:37:45,926 - main - INFO - ============================================================
+2026-01-15 12:38:42,194 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:38:42,219 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:38:42,220 - main - INFO - ============================================================
+2026-01-15 12:38:42,220 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:38:42,220 - main - INFO - ============================================================
+2026-01-15 12:38:42,220 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:38:42,220 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:38:42,220 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:38:42,221 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:38:42,221 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:38:42,221 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:38:42,221 - main - INFO - ============================================================
+2026-01-15 12:38:42,221 - main - INFO - Startup Configuration:
+2026-01-15 12:38:42,221 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:38:42,222 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:38:42,222 - main - INFO -   Max Retries: 3
+2026-01-15 12:38:42,222 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:38:42,222 - main - INFO -   Metrics: Enabled
+2026-01-15 12:38:42,223 - main - INFO - ============================================================
+2026-01-15 12:38:42,223 - main - INFO - Startup completed successfully
+2026-01-15 12:38:42,223 - main - INFO - ============================================================
+2026-01-15 12:39:09,722 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:39:58,559 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:39:58,573 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:39:58,574 - main - INFO - ============================================================
+2026-01-15 12:39:58,574 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:39:58,574 - main - INFO - ============================================================
+2026-01-15 12:39:58,574 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:39:58,575 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:39:58,575 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:39:58,575 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:39:58,575 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:39:58,576 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:39:58,576 - main - INFO - ============================================================
+2026-01-15 12:39:58,576 - main - INFO - Startup Configuration:
+2026-01-15 12:39:58,576 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:39:58,576 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:39:58,576 - main - INFO -   Max Retries: 3
+2026-01-15 12:39:58,576 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:39:58,576 - main - INFO -   Metrics: Enabled
+2026-01-15 12:39:58,576 - main - INFO - ============================================================
+2026-01-15 12:39:58,576 - main - INFO - Startup completed successfully
+2026-01-15 12:39:58,576 - main - INFO - ============================================================
+2026-01-15 12:40:32,879 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:40:44,444 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:40:44,510 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:40:44,512 - main - INFO - ============================================================
+2026-01-15 12:40:44,513 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:40:44,514 - main - INFO - ============================================================
+2026-01-15 12:40:44,516 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:40:44,517 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:40:44,517 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:40:44,518 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:40:44,518 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:40:44,519 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:40:44,519 - main - INFO - ============================================================
+2026-01-15 12:40:44,520 - main - INFO - Startup Configuration:
+2026-01-15 12:40:44,520 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:40:44,520 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:40:44,521 - main - INFO -   Max Retries: 3
+2026-01-15 12:40:44,522 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:40:44,522 - main - INFO -   Metrics: Enabled
+2026-01-15 12:40:44,523 - main - INFO - ============================================================
+2026-01-15 12:40:44,524 - main - INFO - Startup completed successfully
+2026-01-15 12:40:44,524 - main - INFO - ============================================================
+2026-01-15 12:44:18,903 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:44:37,187 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:48:54,494 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:48:54,532 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:48:54,533 - main - INFO - ============================================================
+2026-01-15 12:48:54,533 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:48:54,534 - main - INFO - ============================================================
+2026-01-15 12:48:54,534 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:48:54,534 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:48:54,534 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:48:54,535 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:48:54,535 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:48:54,536 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:48:54,536 - main - INFO - ============================================================
+2026-01-15 12:48:54,536 - main - INFO - Startup Configuration:
+2026-01-15 12:48:54,536 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:48:54,537 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:48:54,537 - main - INFO -   Max Retries: 3
+2026-01-15 12:48:54,537 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:48:54,537 - main - INFO -   Metrics: Enabled
+2026-01-15 12:48:54,538 - main - INFO - ============================================================
+2026-01-15 12:48:54,538 - main - INFO - Startup completed successfully
+2026-01-15 12:48:54,538 - main - INFO - ============================================================
+2026-01-15 12:49:07,250 - main - INFO - ============================================================
+2026-01-15 12:49:07,251 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-15 12:49:07,251 - main - INFO - ============================================================
+2026-01-15 12:49:07,253 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-15 12:49:07,253 - main - INFO - [OK] Metrics exported successfully
+2026-01-15 12:49:20,264 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-15 12:49:20,298 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-15 12:49:20,299 - main - INFO - ============================================================
+2026-01-15 12:49:20,299 - main - INFO - Starting Kraftd Docs Backend
+2026-01-15 12:49:20,299 - main - INFO - ============================================================
+2026-01-15 12:49:20,299 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-15 12:49:20,299 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-15 12:49:20,299 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-15 12:49:20,299 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-15 12:49:20,299 - main - INFO - [OK] Upload directory is writable
+2026-01-15 12:49:20,300 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-15 12:49:20,300 - main - INFO - ============================================================
+2026-01-15 12:49:20,300 - main - INFO - Startup Configuration:
+2026-01-15 12:49:20,300 - main - INFO -   Request Timeout: 30.0s
+2026-01-15 12:49:20,300 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-15 12:49:20,300 - main - INFO -   Max Retries: 3
+2026-01-15 12:49:20,301 - main - INFO -   Rate Limiting: Enabled
+2026-01-15 12:49:20,301 - main - INFO -   Metrics: Enabled
+2026-01-15 12:49:20,301 - main - INFO - ============================================================
+2026-01-15 12:49:20,301 - main - INFO - Startup completed successfully
+2026-01-15 12:49:20,301 - main - INFO - ============================================================
+2026-01-15 13:08:55,945 - root - WARNING - Azure SDK not available. Falling back to environment variables only.
+2026-01-15 13:08:55,953 - main - INFO - Rate limiting enabled: 60 req/min

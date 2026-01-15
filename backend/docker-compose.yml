@@ -1,0 +1,52 @@
+services:
+  kraftd-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kraftd-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8000
+      - REQUEST_TIMEOUT=30
+      - DOCUMENT_PROCESSING_TIMEOUT=25
+      - FILE_PARSE_TIMEOUT=20
+      - MAX_RETRIES=3
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=60
+      - RATE_LIMIT_REQUESTS_PER_HOUR=1000
+      - METRICS_ENABLED=true
+      - ENVIRONMENT=development
+      - DEBUG=false
+      # Azure Document Intelligence (optional)
+      # - DOCUMENTINTELLIGENCE_ENDPOINT=https://your-instance.cognitiveservices.azure.com/
+      # - DOCUMENTINTELLIGENCE_API_KEY=your-key
+      # Azure OpenAI (optional for AI Agent)
+      # - AZURE_OPENAI_ENDPOINT=https://your-instance.openai.azure.com/
+      # - AZURE_OPENAI_API_KEY=your-key
+      # - AZURE_OPENAI_DEPLOYMENT=gpt-4
+    volumes:
+      - ./:/app
+      - uploads:/tmp/kraftd_uploads
+      - logs:/app/logs
+    networks:
+      - kraftd-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import http.client; c = http.client.HTTPConnection('localhost', 8000, timeout=5); c.request('GET', '/health'); exit(0 if c.getresponse().status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  uploads:
+    driver: local
+  logs:
+    driver: local
+
+networks:
+  kraftd-network:
+    driver: bridge

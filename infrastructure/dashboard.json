@@ -1,0 +1,211 @@
+{
+  "properties": {
+    "title": "KraftdIntel Application Overview",
+    "dashboard": [
+      {
+        "type": "tile",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "colSpan": 4,
+          "rowSpan": 2
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/AppMapGalPart"
+        }
+      },
+      {
+        "type": "tile",
+        "position": {
+          "x": 4,
+          "y": 0,
+          "colSpan": 2,
+          "rowSpan": 2
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/AvailabilityStatusTile"
+        }
+      },
+      {
+        "type": "tile",
+        "position": {
+          "x": 6,
+          "y": 0,
+          "colSpan": 2,
+          "rowSpan": 2
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/FailuresTile"
+        }
+      },
+      {
+        "type": "tile",
+        "position": {
+          "x": 8,
+          "y": 0,
+          "colSpan": 2,
+          "rowSpan": 2
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/PerformanceTile"
+        }
+      },
+      {
+        "type": "Extension/HubsExtension/PartType/MarkdownPart",
+        "position": {
+          "x": 0,
+          "y": 2,
+          "colSpan": 3,
+          "rowSpan": 2
+        },
+        "metadata": {
+          "inputs": [],
+          "type": "Extension/HubsExtension/PartType/MarkdownPart",
+          "settings": {
+            "content": {
+              "settings": {
+                "content": "## Request Rate\nNumber of requests per minute to the application"
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "Extension/AppInsightsExtension/PartType/MetricsExplorerBladePart",
+        "position": {
+          "x": 3,
+          "y": 2,
+          "colSpan": 3,
+          "rowSpan": 2
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            },
+            {
+              "name": "MetricsExplorerJsons",
+              "value": "[{\"resourceType\":\"microsoft.insights/components\",\"resourceName\":\"{appInsightsName}\",\"timeContext\":{\"durationMs\":86400000},\"metrics\":[{\"namespace\":\"microsoft.insights/components\",\"metric\":\"requestsPerSecond\"}]}]"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/MetricsExplorerBladePart"
+        }
+      },
+      {
+        "type": "Extension/AppInsightsExtension/PartType/MetricsExplorerBladePart",
+        "position": {
+          "x": 6,
+          "y": 2,
+          "colSpan": 3,
+          "rowSpan": 2
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            },
+            {
+              "name": "MetricsExplorerJsons",
+              "value": "[{\"resourceType\":\"microsoft.insights/components\",\"resourceName\":\"{appInsightsName}\",\"timeContext\":{\"durationMs\":86400000},\"metrics\":[{\"namespace\":\"microsoft.insights/components\",\"metric\":\"serverResponseTime\"}]}]"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/MetricsExplorerBladePart"
+        }
+      },
+      {
+        "type": "Extension/AppInsightsExtension/PartType/MetricsExplorerBladePart",
+        "position": {
+          "x": 9,
+          "y": 2,
+          "colSpan": 3,
+          "rowSpan": 2
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            },
+            {
+              "name": "MetricsExplorerJsons",
+              "value": "[{\"resourceType\":\"microsoft.insights/components\",\"resourceName\":\"{appInsightsName}\",\"timeContext\":{\"durationMs\":86400000},\"metrics\":[{\"namespace\":\"microsoft.insights/components\",\"metric\":\"exceptions/count\"}]}]"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/MetricsExplorerBladePart"
+        }
+      },
+      {
+        "type": "Extension/AppInsightsExtension/PartType/AnalyticsBladePart",
+        "position": {
+          "x": 0,
+          "y": 4,
+          "colSpan": 6,
+          "rowSpan": 3
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            },
+            {
+              "name": "Query",
+              "value": "requests\n| where timestamp > ago(24h)\n| summarize RequestCount=count(), AverageResponseTime=avg(duration), MaxResponseTime=max(duration), FailedCount=sum(toint(success==false)) by tostring(client_Browser)"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/AnalyticsBladePart"
+        }
+      },
+      {
+        "type": "Extension/AppInsightsExtension/PartType/AnalyticsBladePart",
+        "position": {
+          "x": 6,
+          "y": 4,
+          "colSpan": 6,
+          "rowSpan": 3
+        },
+        "metadata": {
+          "inputs": [
+            {
+              "name": "ComponentId",
+              "value": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/microsoft.insights/components/{appInsightsName}"
+            },
+            {
+              "name": "Query",
+              "value": "exceptions\n| where timestamp > ago(24h)\n| summarize ExceptionCount=count() by type\n| order by ExceptionCount desc"
+            }
+          ],
+          "type": "Extension/AppInsightsExtension/PartType/AnalyticsBladePart"
+        }
+      }
+    ]
+  },
+  "resourceId": "/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/Microsoft.Portal/dashboards/KraftdIntelDashboard",
+  "type": "Microsoft.Portal/dashboards"
+}
