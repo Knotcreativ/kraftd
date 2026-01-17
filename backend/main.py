@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from contextlib import asynccontextmanager
@@ -239,6 +240,15 @@ async def lifespan(app: FastAPI):
             logger.info("[OK] Metrics exported successfully")
 
 app = FastAPI(title="Kraftd Docs MVP Backend", lifespan=lifespan)
+
+# ===== CORS Configuration =====
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for MVP (restrict in production)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ===== Auth System (JWT + User Management) =====
 from services.auth_service import AuthService
@@ -738,7 +748,11 @@ async def root():
 # ===== Document Ingestion Endpoints =====
 @app.post("/api/v1/docs/upload")
 async def upload_document(file: UploadFile = File(...)):
-    """Upload and ingest a document (PDF, Excel, Word, image, scanned)."""
+    """Upload and ingest a document (PDF, Excel, Word, image, scanned).
+    
+    Supported formats: PDF, DOCX, XLSX, XLS, JPG, PNG, JPEG, GIF
+    Max file size: 25MB (per MASTER INPUT SPECIFICATION)
+    """
     try:
         logger.info(f"Uploading document: {file.filename}")
         doc_id = str(uuid.uuid4())
@@ -747,6 +761,19 @@ async def upload_document(file: UploadFile = File(...)):
         
         # Save uploaded file
         contents = await file.read()
+        
+        # Validate file size (25MB limit per specification)
+        max_size_bytes = 25 * 1024 * 1024  # 25MB
+        if len(contents) > max_size_bytes:
+            logger.warning(f"File too large: {file.filename} ({len(contents)} bytes > {max_size_bytes} bytes)")
+            raise HTTPException(status_code=413, detail=f"File size exceeds 25MB limit. File size: {len(contents) / (1024*1024):.2f}MB")
+        
+        # Validate file type
+        allowed_extensions = {'pdf', 'docx', 'xlsx', 'xls', 'jpg', 'jpeg', 'png', 'gif'}
+        if file_ext not in allowed_extensions:
+            logger.warning(f"Unsupported file type: {file_ext}")
+            raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_ext}. Allowed: {', '.join(allowed_extensions)}")
+        
         with open(file_path, "wb") as f:
             f.write(contents)
         
@@ -816,7 +843,17 @@ async def upload_document(file: UploadFile = File(...)):
 # ===== Document Conversion Endpoints =====
 @app.post("/api/v1/docs/convert")
 async def convert_document(document_id: str, target_format: str = "structured_data"):
-    """Convert document to target format (excel, pdf, structured_data)."""
+    """Convert document to target format.
+    
+    Supported target formats:
+    - structured_data: Extracted structured JSON data
+    - excel: Excel workbook with extracted data
+    - pdf: PDF report with extracted information
+    - json: Raw JSON export of extracted fields
+    - summary: Summary report of document
+    
+    Returns converted data in requested format.
+    """
     logger.info(f"Converting document {document_id} to {target_format}")
     
     # Get document from Cosmos DB or fallback
