@@ -573,6 +573,122 @@ async def detect_anomalies(
 
 
 # ============================================================================
+# Real-Time Price Ingestion Endpoint (Phase 7 Integration)
+# ============================================================================
+
+@router.post("/ingest/price")
+async def ingest_real_time_price(
+    item_id: str = Query(..., description="Item/Product ID"),
+    price: float = Query(..., gt=0, description="Current price"),
+    auth: str = Depends(verify_bearer_token)
+):
+    """
+    Ingest a real-time price point and broadcast to connected WebSocket clients
+    
+    This endpoint:
+    1. Adds the price to the item's history
+    2. Analyzes the price trend
+    3. Detects any risk signals
+    4. Broadcasts price update to all connected clients on /ws/prices
+    5. Broadcasts risk alerts if thresholds exceeded
+    
+    Query Parameters:
+    - item_id: Item/Product ID (required)
+    - price: Current price in dollars (required, > 0)
+    
+    Returns:
+        Ingestion confirmation with broadcast details
+    """
+    try:
+        from models.signals import PricePoint
+        from services.signals_broadcaster_bridge import SignalsBroadcasterBridge
+        
+        # Record the price point
+        price_point = PricePoint(
+            price=price,
+            timestamp=datetime.utcnow(),
+            source="api_ingestion"
+        )
+        SignalsService.add_price_point(item_id, price_point)
+        
+        # Analyze trend and get historical context
+        trend = SignalsService.get_price_trend(item_id, days_back=90)
+        
+        if not trend:
+            # Not enough history yet
+            return {
+                "status": "ingested",
+                "item_id": item_id,
+                "price": price,
+                "message": "Price recorded. Insufficient history for trend analysis.",
+                "broadcasts_sent": 0,
+                "timestamp": datetime.utcnow()
+            }
+        
+        # Broadcast price update
+        price_broadcasted = await SignalsBroadcasterBridge.broadcast_price_update(
+            item_id=item_id,
+            current_price=price,
+            previous_price=trend.previous_price,
+            trend=trend,
+            volatility=trend.volatility,
+            moving_avg_30=trend.moving_avg_30,
+            moving_avg_90=trend.moving_avg_90
+        )
+        
+        broadcasts_sent = 1 if price_broadcasted else 0
+        
+        # Check for risk signals and broadcast alerts
+        risk_signals = RiskScoringService.generate_risk_signals(item_id, trend)
+        
+        for signal in risk_signals:
+            alert_broadcasted = await SignalsBroadcasterBridge.broadcast_risk_alert(
+                item_id=item_id,
+                signal=signal
+            )
+            if alert_broadcasted:
+                broadcasts_sent += 1
+        
+        # Detect anomalies
+        prices = [pp.price for pp in SignalsService._price_history.get(item_id, [])]
+        anomalies = AnomalyDetectionService.detect_price_anomalies(prices)
+        
+        for idx, deviation in anomalies:
+            anomaly_broadcasted = await SignalsBroadcasterBridge.broadcast_anomaly_detected(
+                item_id=item_id,
+                anomaly_type="PRICE_SPIKE",
+                current_value=price,
+                expected_value=trend.moving_avg_90 or trend.previous_price,
+                deviation_percent=deviation,
+                z_score=2.5 if deviation > 10 else 1.5,
+                severity="HIGH" if deviation > 20 else "MEDIUM"
+            )
+            if anomaly_broadcasted:
+                broadcasts_sent += 1
+        
+        return {
+            "status": "ingested_and_broadcast",
+            "item_id": item_id,
+            "price": price,
+            "price_change_percent": trend.price_change_percent,
+            "trend_direction": trend.direction.value,
+            "broadcasts_sent": broadcasts_sent,
+            "risk_signals_detected": len(risk_signals),
+            "anomalies_detected": len(anomalies),
+            "timestamp": datetime.utcnow()
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error ingesting real-time price: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to ingest real-time price"
+        )
+
+
+# ============================================================================
 # Health Check Endpoint
 # ============================================================================
 

@@ -82,6 +82,14 @@ except Exception as e:
     logger.warning(f"Signals routes not available: {e}")
     SIGNALS_ROUTES_AVAILABLE = False
 
+# Import Streaming Routes (Phase 7: Real-Time Streaming)
+try:
+    from routes.streaming import router as streaming_router
+    STREAMING_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Streaming routes not available: {e}")
+    STREAMING_ROUTES_AVAILABLE = False
+
 # Export Tracking Service (Three-stage recording)
 from services.export_tracking_service import (
     initialize_export_tracking, get_export_tracking_service, ExportStage
@@ -974,7 +982,14 @@ if SIGNALS_ROUTES_AVAILABLE:
 else:
     logger.warning("[WARN] Signals routes not available - signals intelligence disabled")
 
-# ===== Health Check Endpoint =====
+# ===== Streaming Routes (Phase 7: Real-Time Streaming) =====
+if STREAMING_ROUTES_AVAILABLE:
+    app.include_router(streaming_router, prefix="/api/v1")
+    logger.info("[OK] Streaming routes registered at /api/v1/ws")
+else:
+    logger.warning("[WARN] Streaming routes not available - real-time streaming disabled")
+
+# ===== Health Check Endpoint ====="
 @app.get("/api/v1/health")
 async def health_check():
     """Health check endpoint."""
