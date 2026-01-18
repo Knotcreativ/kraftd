@@ -9,7 +9,8 @@ import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Layout from './components/Layout'
 import DocumentReviewDetail from './components/DocumentReviewDetail'
-import StreamingDashboard from './pages/StreamingDashboard'
+import { StreamingDashboard } from './pages/StreamingDashboard'
+import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
 import { apiClient } from './services/api'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -64,6 +65,16 @@ function AppContent() {
           <ProtectedRoute>
             <Layout>
               <StreamingDashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AnalyticsDashboard />
             </Layout>
           </ProtectedRoute>
         }
