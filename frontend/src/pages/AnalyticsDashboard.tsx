@@ -1,6 +1,6 @@
 /**
  * Analytics Dashboard Page
- * Displays historical data with charts, filters, and KPI cards
+ * Displays historical data with charts, filters, KPI cards, and data export
  */
 
 import React, { useState, useEffect } from 'react';
@@ -12,6 +12,13 @@ import {
   SignalChart,
   TrendChart,
 } from '../components/AnalyticsCharts';
+import {
+  exportAsCSV,
+  exportAsExcel,
+  exportAsJSON,
+  generateChartExportData,
+  ExportData,
+} from '../services/exportService';
 import './AnalyticsDashboard.css';
 
 interface ChartDataPoint {
@@ -51,9 +58,9 @@ export const AnalyticsDashboard: React.FC = () => {
     endDate: new Date(),
     displayMode: 'compact',
   });
-
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('day');
   const [isLoading, setIsLoading] = useState(false);
+  const [exportMessage, setExportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Mock data generators - in production, these would fetch from API
   const generateMockData = (
@@ -130,6 +137,56 @@ export const AnalyticsDashboard: React.FC = () => {
     // Simulate loading data from API
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 500);
+  };
+
+  const handleExport = (format: 'csv' | 'xlsx' | 'json') => {
+    try {
+      setExportMessage(null);
+      
+      // Prepare filter metadata
+      const filterMetadata = {
+        dateRange: `${filters.startDate.toLocaleDateString()} to ${filters.endDate.toLocaleDateString()}`,
+        item: filters.itemId || 'All',
+        supplier: filters.supplierId || 'All',
+        period,
+      };
+
+      // Generate export data for all charts
+      const chartTypes: Array<'price' | 'alert' | 'anomaly' | 'signal' | 'trend'> = [
+        'price',
+        'alert',
+        'anomaly',
+        'signal',
+        'trend',
+      ];
+
+      chartTypes.forEach(chartType => {
+        const exportData = generateChartExportData(chartType, filterMetadata);
+        
+        if (format === 'csv') {
+          exportAsCSV(exportData);
+        } else if (format === 'xlsx') {
+          exportAsExcel(exportData);
+        } else if (format === 'json') {
+          exportAsJSON(exportData);
+        }
+      });
+
+      const formatLabel = format === 'xlsx' ? 'Excel' : format.toUpperCase();
+      setExportMessage({
+        type: 'success',
+        text: `Successfully exported ${chartTypes.length} charts as ${formatLabel}!`,
+      });
+
+      // Clear message after 4 seconds
+      setTimeout(() => setExportMessage(null), 4000);
+    } catch (error) {
+      console.error('Export failed:', error);
+      setExportMessage({
+        type: 'error',
+        text: 'Failed to export data. Please try again.',
+      });
+    }
   };
 
   return (
@@ -280,11 +337,38 @@ export const AnalyticsDashboard: React.FC = () => {
       {/* Data Export Section */}
       <section className="export-section">
         <h2>Export Data</h2>
+        <p className="export-description">
+          Download your analytics data in multiple formats. All exports include current filters and metadata.
+        </p>
         <div className="export-buttons">
-          <button className="export-btn export-btn--csv">📥 Export as CSV</button>
-          <button className="export-btn export-btn--excel">📊 Export as Excel</button>
-          <button className="export-btn export-btn--pdf">📄 Export as PDF</button>
+          <button 
+            className="export-btn export-btn--csv"
+            onClick={() => handleExport('csv')}
+            title="Export all charts as comma-separated values"
+          >
+            📥 Export as CSV
+          </button>
+          <button 
+            className="export-btn export-btn--excel"
+            onClick={() => handleExport('xlsx')}
+            title="Export all charts as Excel spreadsheet"
+          >
+            📊 Export as Excel
+          </button>
+          <button 
+            className="export-btn export-btn--json"
+            onClick={() => handleExport('json')}
+            title="Export all charts as JSON format"
+          >
+            📋 Export as JSON
+          </button>
         </div>
+        {exportMessage && (
+          <div className={`export-message ${exportMessage.type}`}>
+            {exportMessage.type === 'success' ? '✓' : '✕'} {exportMessage.text}
+          </div>
+        )}
+      </section>
       </section>
     </div>
   );

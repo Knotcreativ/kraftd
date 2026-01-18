@@ -479,3 +479,149 @@
 .analytics-dashboard-page > section:nth-child(n + 2) {
   animation-delay: 0.1s;
 }
+
+/* Export Section */
+.export-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+}
+
+.export-section h2 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.export-description {
+  margin: 0 0 1.5rem 0;
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.export-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.export-btn {
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.export-btn--csv {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.export-btn--csv:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.export-btn--excel {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.export-btn--excel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.export-btn--json {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.export-btn--json:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.export-btn:active {
+  transform: translateY(0);
+}
+
+/* Export Message */
+.export-message {
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+  animation: slideInDown 0.3s ease;
+}
+
+.export-message.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.export-message.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Export Section */
+@media (max-width: 768px) {
+  .export-section {
+    padding: 1.5rem;
+  }
+
+  .export-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .export-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .export-section {
+    background: #1f2937;
+    color: #e5e7eb;
+  }
+
+  .export-section h2 {
+    color: #e5e7eb;
+  }
+
+  .export-description {
+    color: #d1d5db;
+  }
+}
+
