@@ -1,0 +1,181 @@
+{
+  "phase": {
+    "health": true,
+    "agent_api": true,
+    "authentication": true,
+    "templates": true,
+    "error_handling": true
+  },
+  "passed": 18,
+  "failed": 10,
+  "tests": [
+    {
+      "phase": "0",
+      "test": "GET /health",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "2",
+      "test": "GET /agent/status",
+      "passed": false,
+      "details": "Status: 503"
+    },
+    {
+      "phase": "2",
+      "test": "POST /agent/chat (no auth)",
+      "passed": false,
+      "details": "Status: 503"
+    },
+    {
+      "phase": "2",
+      "test": "POST /agent/analyze (no auth)",
+      "passed": false,
+      "details": "Status: 503"
+    },
+    {
+      "phase": "1+3",
+      "test": "POST /auth/register",
+      "passed": true,
+      "details": "Status: 201"
+    },
+    {
+      "phase": "1+3",
+      "test": "  - Token received",
+      "passed": true,
+      "details": "Bearer token extracted"
+    },
+    {
+      "phase": "1+3",
+      "test": "POST /auth/register (duplicate)",
+      "passed": false,
+      "details": "Status: 409"
+    },
+    {
+      "phase": "1+3",
+      "test": "POST /auth/login",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "1+3",
+      "test": "  - Token received",
+      "passed": true,
+      "details": "Bearer token extracted"
+    },
+    {
+      "phase": "1+3",
+      "test": "POST /auth/login (wrong password)",
+      "passed": true,
+      "details": "Status: 401"
+    },
+    {
+      "phase": "1+3",
+      "test": "GET /auth/profile (authenticated)",
+      "passed": false,
+      "details": "Status: 401"
+    },
+    {
+      "phase": "1+3",
+      "test": "POST /auth/forgot-password",
+      "passed": false,
+      "details": "Status: 404"
+    },
+    {
+      "phase": "4",
+      "test": "GET /templates",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "4",
+      "test": "  - Templates found",
+      "passed": true,
+      "details": "Found 3 templates"
+    },
+    {
+      "phase": "4",
+      "test": "GET /templates/admin/statistics",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "4",
+      "test": "  - Stats structure",
+      "passed": false,
+      "details": "Statistics returned"
+    },
+    {
+      "phase": "4",
+      "test": "POST /templates (create)",
+      "passed": true,
+      "details": "Status: 201"
+    },
+    {
+      "phase": "4",
+      "test": "  - Template ID",
+      "passed": true,
+      "details": "ID: 4f942da2-bb41-418d-8eb3-ff4132d391c8"
+    },
+    {
+      "phase": "4",
+      "test": "GET /templates/{id}",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "4",
+      "test": "POST /templates/validate",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "4",
+      "test": "POST /templates/{id}/generate",
+      "passed": false,
+      "details": "Status: 422"
+    },
+    {
+      "phase": "4",
+      "test": "PUT /templates/{id}",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "4",
+      "test": "POST /templates/{id}/duplicate",
+      "passed": true,
+      "details": "Status: 201"
+    },
+    {
+      "phase": "4",
+      "test": "DELETE /templates/{id}",
+      "passed": true,
+      "details": "Status: 204"
+    },
+    {
+      "phase": "errors",
+      "test": "GET /templates (no auth)",
+      "passed": false,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "errors",
+      "test": "GET /templates (invalid token)",
+      "passed": false,
+      "details": "Status: 200"
+    },
+    {
+      "phase": "errors",
+      "test": "POST /auth/register (invalid email)",
+      "passed": true,
+      "details": "Status: 422"
+    },
+    {
+      "phase": "errors",
+      "test": "POST /auth/register (short password)",
+      "passed": true,
+      "details": "Status: 422"
+    }
+  ]
+}

@@ -50,6 +50,14 @@ from services.secrets_manager import get_secrets_manager
 from repositories import UserRepository, DocumentRepository
 from repositories.document_repository import DocumentStatus as RepoDocumentStatus
 
+# Import Auth Routes (Phase 1: Authentication)
+try:
+    from routes.auth import router as auth_router
+    AUTH_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Auth routes not available: {e}")
+    AUTH_ROUTES_AVAILABLE = False
+
 # Import Agent Routes
 try:
     from routes.agent import router as agent_router
@@ -929,6 +937,13 @@ async def validate_token(authorization: str = None):
             status_code=500,
             detail="Token validation failed"
         )
+
+# ===== Auth Routes (Phase 1: User Authentication) =====
+if AUTH_ROUTES_AVAILABLE:
+    app.include_router(auth_router, prefix="/api/v1")
+    logger.info("[OK] Auth routes registered at /api/v1/auth")
+else:
+    logger.warning("[WARN] Auth routes not available - authentication disabled")
 
 # ===== Agent API Routes =====
 if AGENT_ROUTES_AVAILABLE:

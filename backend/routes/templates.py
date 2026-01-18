@@ -47,13 +47,43 @@ if not _initialized:
         logger.warning(f"Could not initialize sample templates: {e}")
 
 
+def verify_bearer_token(authorization: Optional[str] = Header(None)) -> str:
+    """Verify Bearer token is present and valid format.
+    
+    Args:
+        authorization: Authorization header value
+        
+    Returns:
+        Bearer token
+        
+    Raises:
+        HTTPException: If token is missing or invalid
+    """
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header format. Expected: Authorization: Bearer <token>",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    return parts[1]
+
+
 # ============================================================================
 # LIST & RETRIEVE TEMPLATES
 # ============================================================================
 
 @router.get("", response_model=TemplateListResponse)
 async def list_templates(
-    authorization: Optional[str] = Header(None),
+    authorization: str = Header(...),
     category: Optional[TemplateCategory] = Query(None),
     created_by: Optional[str] = Query(None),
     active_only: bool = Query(True),
@@ -74,6 +104,9 @@ async def list_templates(
       TemplateListResponse with templates array and metadata
     """
     try:
+        # Verify bearer token
+        verify_bearer_token(authorization)
+        
         # Get filtered templates from storage
         templates = TemplateStorageService.get_templates(
             category=category,
@@ -108,7 +141,7 @@ async def list_templates(
 @router.get("/{template_id}", response_model=Template)
 async def get_template(
     template_id: str,
-    authorization: Optional[str] = Header(None)
+    authorization: str = Header(...)
 ):
     """
     Get a specific template by ID
@@ -120,6 +153,9 @@ async def get_template(
       Template object with all details
     """
     try:
+        # Verify bearer token
+        verify_bearer_token(authorization)
+        
         template = TemplateStorageService.get_template(template_id)
         
         if not template:
