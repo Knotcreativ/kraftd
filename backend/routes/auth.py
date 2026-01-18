@@ -1,16 +1,30 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Header
 from pydantic import EmailStr
-from typing import Optional
-from datetime import datetime
+from typing import Optional, Dict
+from datetime import datetime, timedelta
+import uuid
+import logging
 
-from models.user import UserRegister, UserLogin, UserProfile, TokenResponse
+from models.user import (
+    UserRegister, UserLogin, UserProfile, TokenResponse,
+    ForgotPasswordRequest, ResetPasswordRequest, PasswordResetResponse,
+    VerifyEmailRequest, VerifyEmailResponse
+)
 from services.auth_service import AuthService
+from services.email_service import EmailService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 # In-memory user store (for MVP - replace with Cosmos DB later)
 # Key: email, Value: User object
 users_db = {}
+
+# In-memory reset token store (for MVP - replace with Redis later)
+# Key: token, Value: {"email": str, "expires_at": datetime}
+reset_tokens: Dict[str, dict] = {}
+verification_tokens: Dict[str, dict] = {}
 
 def get_current_user_email(authorization: str = Header(None)) -> str:
     """Extract and validate the current user from JWT token"""
@@ -172,3 +186,276 @@ async def validate_token(email: str = Depends(get_current_user_email)):
         "valid": True,
         "timestamp": datetime.utcnow().isoformat()
     }
+
+# ===== Password Recovery Endpoints =====
+
+@router.post("/forgot-password", response_model=dict)
+async def forgot_password(request: ForgotPasswordRequest):
+    """
+    Request a password reset email
+    
+    User provides email, receives reset link via email
+    Reset token valid for 24 hours
+    """
+    email = request.email
+    
+    # Check if user exists
+    user = users_db.get(email)
+    if user is None:
+        # Don't reveal whether email exists (security best practice)
+        logger.info(f"Password reset requested for non-existent email: {email}")
+        return {
+            "message": "If an account exists with this email, you will receive a password reset link",
+            "status": "pending"
+        }
+    
+    try:
+        # Generate reset token
+        reset_token = str(uuid.uuid4())
+        expires_at = datetime.utcnow() + timedelta(hours=24)
+        reset_tokens[reset_token] = {
+            "email": email,
+            "expires_at": expires_at,
+            "used": False
+        }
+        
+        # Build reset link
+        reset_link = f"http://localhost:3000/reset-password?token={reset_token}"
+        
+        # Send email
+        email_service = EmailService()
+        sent = await email_service.send_password_reset_email(
+            to_email=email,
+            reset_token=reset_token,
+            user_name=user.name or email.split("@")[0]
+        )
+        
+        if sent:
+            logger.info(f"Password reset email sent to {email}")
+        else:
+            logger.warning(f"Failed to send password reset email to {email}")
+        
+        # Always return same message for security
+        return {
+            "message": "If an account exists with this email, you will receive a password reset link",
+            "status": "pending"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in forgot_password: {str(e)}", exc_info=True)
+        return {
+            "message": "If an account exists with this email, you will receive a password reset link",
+            "status": "pending"
+        }
+
+
+@router.post("/reset-password", response_model=PasswordResetResponse)
+async def reset_password(request: ResetPasswordRequest):
+    """
+    Reset password using token from email
+    
+    Token must be valid and not expired
+    New password must meet requirements
+    """
+    token = request.token
+    new_password = request.new_password
+    
+    # Validate token
+    token_data = reset_tokens.get(token)
+    if token_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+    
+    # Check if expired
+    if datetime.utcnow() > token_data["expires_at"]:
+        # Remove expired token
+        del reset_tokens[token]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset token has expired. Please request a new one."
+        )
+    
+    # Check if token already used
+    if token_data.get("used", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This reset token has already been used"
+        )
+    
+    email = token_data["email"]
+    user = users_db.get(email)
+    
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    try:
+        # Hash new password
+        hashed_password = AuthService.hash_password(new_password)
+        
+        # Update user
+        user.hashed_password = hashed_password
+        user.updated_at = datetime.utcnow()
+        users_db[email] = user
+        
+        # Mark token as used
+        reset_tokens[token]["used"] = True
+        
+        logger.info(f"Password successfully reset for user: {email}")
+        
+        return PasswordResetResponse(
+            message="Password has been reset successfully. You can now login with your new password.",
+            status="success",
+            email=email
+        )
+        
+    except Exception as e:
+        logger.error(f"Error resetting password: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to reset password"
+        )
+
+
+@router.post("/verify-email", response_model=VerifyEmailResponse)
+async def verify_email(request: VerifyEmailRequest):
+    """
+    Verify email address using token from verification email
+    
+    Token must be valid and not expired
+    Marks email as verified and returns auth tokens
+    """
+    token = request.token
+    
+    # Validate token
+    token_data = verification_tokens.get(token)
+    if token_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token"
+        )
+    
+    # Check if expired
+    if datetime.utcnow() > token_data["expires_at"]:
+        # Remove expired token
+        del verification_tokens[token]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification token has expired. Please request a new one."
+        )
+    
+    # Check if token already used
+    if token_data.get("used", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This verification token has already been used"
+        )
+    
+    email = token_data["email"]
+    user = users_db.get(email)
+    
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    try:
+        # Mark email as verified
+        user.email_verified = True
+        user.status = "active"
+        user.updated_at = datetime.utcnow()
+        users_db[email] = user
+        
+        # Mark token as used
+        verification_tokens[token]["used"] = True
+        
+        # Generate auth tokens
+        access_token = AuthService.create_access_token(email)
+        refresh_token = AuthService.create_refresh_token(email)
+        
+        logger.info(f"Email successfully verified for user: {email}")
+        
+        return VerifyEmailResponse(
+            message="Email verified successfully. You are now logged in.",
+            status="success",
+            email=email,
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
+        
+    except Exception as e:
+        logger.error(f"Error verifying email: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to verify email"
+        )
+
+
+@router.post("/resend-verification", response_model=dict)
+async def resend_verification_email(request: ForgotPasswordRequest):
+    """
+    Resend email verification link
+    
+    User provides email, receives new verification link
+    Previous tokens are invalidated
+    """
+    email = request.email
+    
+    # Check if user exists
+    user = users_db.get(email)
+    if user is None:
+        logger.info(f"Verification resend requested for non-existent email: {email}")
+        return {
+            "message": "If an account exists with this email, you will receive a verification link",
+            "status": "pending"
+        }
+    
+    # Check if already verified
+    if user.email_verified:
+        return {
+            "message": "This email address is already verified",
+            "status": "already_verified"
+        }
+    
+    try:
+        # Generate new verification token
+        verification_token = str(uuid.uuid4())
+        expires_at = datetime.utcnow() + timedelta(hours=24)
+        verification_tokens[verification_token] = {
+            "email": email,
+            "expires_at": expires_at,
+            "used": False
+        }
+        
+        # Build verification link
+        verification_link = f"http://localhost:3000/verify-email?token={verification_token}"
+        
+        # Send email
+        email_service = EmailService()
+        sent = await email_service.send_verification_email(
+            to_email=email,
+            verification_token=verification_token,
+            user_name=user.name or email.split("@")[0]
+        )
+        
+        if sent:
+            logger.info(f"Verification email resent to {email}")
+        else:
+            logger.warning(f"Failed to send verification email to {email}")
+        
+        return {
+            "message": "Verification link has been sent to your email",
+            "status": "sent"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error resending verification email: {str(e)}", exc_info=True)
+        return {
+            "message": "If an account exists with this email, you will receive a verification link",
+            "status": "pending"
+        }

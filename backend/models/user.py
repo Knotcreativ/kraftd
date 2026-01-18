@@ -90,3 +90,51 @@ class TokenPayload(BaseModel):
     sub: str  # email
     exp: int
     iat: int
+
+class ForgotPasswordRequest(BaseModel):
+    """Request for password reset email"""
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    """Request to reset password with token"""
+    token: str
+    new_password: str
+    confirm_password: str
+    
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, v):
+        """Validate password strength requirements"""
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters')
+        if len(v) > 128:
+            raise ValueError('Password must be at most 128 characters')
+        if ' ' in v:
+            raise ValueError('Password cannot contain spaces')
+        return v
+    
+    @field_validator('confirm_password')
+    @classmethod
+    def validate_confirm(cls, v, info):
+        """Ensure passwords match"""
+        if 'new_password' in info.data and v != info.data['new_password']:
+            raise ValueError('Passwords do not match')
+        return v
+
+class PasswordResetResponse(BaseModel):
+    """Response after password reset"""
+    message: str
+    status: str = "success"
+    email: Optional[str] = None
+
+class VerifyEmailRequest(BaseModel):
+    """Request to verify email with token"""
+    token: str
+
+class VerifyEmailResponse(BaseModel):
+    """Response after email verification"""
+    message: str
+    status: str = "success"
+    email: Optional[str] = None
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
