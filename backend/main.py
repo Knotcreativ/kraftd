@@ -1698,3 +1698,179 @@ async def check_di_decision(request: dict = None):
             "reason": str(e),
             "timestamp": datetime.now().isoformat()
         }
+
+
+# ==================== EXPORT FEEDBACK ENDPOINT ====================
+
+class FeedbackRequest(BaseModel):
+    """User feedback on export"""
+    feedback_text: str
+    satisfaction_rating: int = 5
+    download_successful: bool = True
+
+
+@app.post("/api/v1/exports/{export_workflow_id}/feedback")
+async def submit_export_feedback(
+    export_workflow_id: str,
+    feedback_request: FeedbackRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Submit user feedback after export completion.
+    
+    This endpoint:
+    1. Records feedback to Cosmos DB (Stage 4)
+    2. Sends feedback to AI model for learning
+    3. Updates workflow with feedback status
+    
+    Args:
+        export_workflow_id: Export workflow ID (from Stage 1)
+        feedback_request: User's feedback and rating
+        current_user: Authenticated user
+        
+    Returns:
+        Confirmation with feedback ID and learning status
+    """
+    try:
+        owner_email = current_user.get("email")
+        
+        # Validate rating
+        if not 1 <= feedback_request.satisfaction_rating <= 5:
+            raise HTTPException(
+                status_code=400,
+                detail="Satisfaction rating must be between 1 and 5"
+            )
+        
+        # Get export tracking service
+        from services.export_tracking_service import get_export_tracking_service
+        tracking_service = get_export_tracking_service()
+        
+        # Prepare learning data for AI model
+        ai_learning_data = {
+            "feedback_sentiment": _analyze_sentiment(feedback_request.feedback_text),
+            "improvement_areas": _extract_improvement_areas(feedback_request.feedback_text),
+            "positive_aspects": _extract_positive_aspects(feedback_request.feedback_text),
+            "learning_enabled": True,
+            "rating_context": feedback_request.satisfaction_rating
+        }
+        
+        # Record feedback to Cosmos DB (Stage 4)
+        feedback_recorded = False
+        if tracking_service:
+            feedback_recorded = await tracking_service.record_stage_4_user_feedback(
+                export_workflow_id=export_workflow_id,
+                document_id="unknown",  # Could be retrieved from Stage 1 if needed
+                owner_email=owner_email,
+                feedback_text=feedback_request.feedback_text,
+                satisfaction_rating=feedback_request.satisfaction_rating,
+                download_successful=feedback_request.download_successful,
+                ai_model_learning_data=ai_learning_data
+            )
+        
+        # Send feedback to AI model for learning (if agent available)
+        learning_processed = False
+        if AGENT_AVAILABLE:
+            try:
+                agent = KraftdAIAgent()
+                
+                # Call agent's learning function with feedback
+                learning_result = await agent._learn_from_document_intelligence_tool(
+                    pattern_type="user_feedback",
+                    pattern_data={
+                        "export_workflow_id": export_workflow_id,
+                        "feedback_text": feedback_request.feedback_text,
+                        "satisfaction_rating": feedback_request.satisfaction_rating,
+                        "sentiment": ai_learning_data["feedback_sentiment"],
+                        "improvements_needed": ai_learning_data["improvement_areas"],
+                        "strengths": ai_learning_data["positive_aspects"],
+                        "source": "user_export_feedback"
+                    }
+                )
+                
+                learning_processed = learning_result.get("success", False)
+                logger.info(f"AI learning processed for feedback: {export_workflow_id}")
+            except Exception as e:
+                logger.warning(f"Could not process AI learning from feedback: {e}")
+                learning_processed = False
+        
+        # Return confirmation
+        return {
+            "status": "success",
+            "message": "Feedback submitted successfully",
+            "export_workflow_id": export_workflow_id,
+            "feedback_recorded": feedback_recorded,
+            "ai_learning_processed": learning_processed,
+            "rating": feedback_request.satisfaction_rating,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error submitting export feedback: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to submit feedback"
+        )
+
+
+def _analyze_sentiment(text: str) -> str:
+    """
+    Simple sentiment analysis of feedback text.
+    
+    Returns: positive, neutral, or negative
+    """
+    positive_words = ["excellent", "great", "good", "perfect", "amazing", "wonderful", "love", "very good"]
+    negative_words = ["bad", "poor", "terrible", "awful", "hate", "useless", "broken", "disappointing"]
+    
+    text_lower = text.lower()
+    
+    positive_count = sum(1 for word in positive_words if word in text_lower)
+    negative_count = sum(1 for word in negative_words if word in text_lower)
+    
+    if positive_count > negative_count:
+        return "positive"
+    elif negative_count > positive_count:
+        return "negative"
+    else:
+        return "neutral"
+
+
+def _extract_improvement_areas(text: str) -> List[str]:
+    """Extract improvement areas from feedback text."""
+    improvements = []
+    
+    keywords = {
+        "speed": ["faster", "slow", "speed", "quick"],
+        "accuracy": ["accurate", "correct", "wrong", "inaccurate"],
+        "format": ["format", "layout", "design", "style"],
+        "features": ["feature", "option", "button", "field"],
+        "documentation": ["docs", "help", "tutorial", "guide"]
+    }
+    
+    text_lower = text.lower()
+    for category, words in keywords.items():
+        if any(word in text_lower for word in words):
+            improvements.append(category)
+    
+    return improvements
+
+
+def _extract_positive_aspects(text: str) -> List[str]:
+    """Extract positive aspects from feedback text."""
+    positives = []
+    
+    keywords = {
+        "ease_of_use": ["easy", "simple", "straightforward", "intuitive"],
+        "accuracy": ["accurate", "correct", "precise", "detailed"],
+        "speed": ["fast", "quick", "instant", "responsive"],
+        "quality": ["quality", "professional", "clean", "clear"],
+        "features": ["feature", "option", "flexible", "customizable"]
+    }
+    
+    text_lower = text.lower()
+    for aspect, words in keywords.items():
+        if any(word in text_lower for word in words):
+            positives.append(aspect)
+    
+    return positives

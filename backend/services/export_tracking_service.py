@@ -25,6 +25,7 @@ class ExportStage(str, Enum):
     INITIAL_AI_SUMMARY = "initial_ai_summary"
     USER_MODIFICATIONS = "user_modifications"
     FINAL_SUMMARY_AND_DELIVERABLE = "final_summary_and_deliverable"
+    USER_FEEDBACK = "user_feedback"
 
 
 class ExportTrackingService:
@@ -356,6 +357,134 @@ class ExportTrackingService:
         except Exception as e:
             logger.error(f"Error recording Stage 3: {e}", exc_info=True)
             return False
+    
+    async def record_stage_4_user_feedback(
+        self,
+        export_workflow_id: str,
+        document_id: str,
+        owner_email: str,
+        feedback_text: str,
+        satisfaction_rating: int = 5,
+        download_successful: bool = True,
+        ai_model_learning_data: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Record Stage 4: User feedback after download completion.
+        
+        This feedback is sent back to the AI model for learning and continuous improvement.
+        Feedback provides the AI with insights into:
+        - Quality of initial summary
+        - Accuracy of modifications
+        - User satisfaction with final deliverable
+        - Areas for improvement
+        
+        Args:
+            export_workflow_id: Workflow ID from Stage 1 (links all stages)
+            document_id: Document ID
+            owner_email: Owner email (partition key)
+            feedback_text: User's feedback text
+            satisfaction_rating: 1-5 satisfaction rating
+            download_successful: Whether download completed successfully
+            ai_model_learning_data: Data to send to AI model for learning
+            
+        Returns:
+            True if recorded successfully, False otherwise
+        """
+        if not self.container:
+            logger.warning("Export tracking container not available, skipping Stage 4 record")
+            return False
+        
+        try:
+            record = {
+                "id": f"export_stage4_{document_id}_{uuid.uuid4()}",
+                "export_workflow_id": export_workflow_id,
+                "document_id": document_id,
+                "owner_email": owner_email,
+                "stage": ExportStage.USER_FEEDBACK.value,
+                "timestamp": datetime.now().isoformat(),
+                
+                "user_feedback": {
+                    "feedback_text": feedback_text,
+                    "satisfaction_rating": satisfaction_rating,
+                    "rating_category": self._categorize_rating(satisfaction_rating),
+                    "download_successful": download_successful,
+                    "submitted_at": datetime.now().isoformat()
+                },
+                
+                "ai_learning_data": ai_model_learning_data or {
+                    "feedback_sentiment": "neutral",
+                    "improvement_areas": [],
+                    "positive_aspects": [],
+                    "learning_enabled": True
+                },
+                
+                "feedback_metadata": {
+                    "feedback_length_chars": len(feedback_text),
+                    "contains_actionable_feedback": len(feedback_text) > 10,
+                    "workflow_completion": True,
+                    "user_engagement_score": self._calculate_engagement_score(feedback_text, satisfaction_rating)
+                },
+                
+                "status": "feedback_received",
+                "learning_queued": True,
+                "created_at": datetime.now().isoformat(),
+                "expiration_date": (datetime.now() + timedelta(days=self.DATA_RETENTION_DAYS)).isoformat()
+            }
+            
+            if self.container:
+                try:
+                    await self.container.create_item(record)
+                    logger.info(f"Recorded Stage 4 (User Feedback) for workflow {export_workflow_id}, rating={satisfaction_rating}")
+                    return True
+                except Exception as e:
+                    logger.warning(f"Failed to persist Stage 4 record to Cosmos DB: {e}")
+                    return False
+            else:
+                logger.debug(f"Export tracking container not available, Stage 4 record prepared but not persisted")
+                return True
+            
+        except Exception as e:
+            logger.error(f"Error recording Stage 4 (User Feedback): {e}", exc_info=True)
+            return False
+    
+    def _categorize_rating(self, rating: int) -> str:
+        """
+        Categorize satisfaction rating.
+        
+        Args:
+            rating: Rating from 1-5
+            
+        Returns:
+            Category name
+        """
+        if rating >= 5:
+            return "excellent"
+        elif rating >= 4:
+            return "good"
+        elif rating >= 3:
+            return "neutral"
+        elif rating >= 2:
+            return "poor"
+        else:
+            return "very_poor"
+    
+    def _calculate_engagement_score(self, feedback_text: str, rating: int) -> float:
+        """
+        Calculate user engagement score based on feedback.
+        
+        Args:
+            feedback_text: User feedback text
+            rating: Satisfaction rating
+            
+        Returns:
+            Engagement score 0-1
+        """
+        # Score based on feedback length and rating
+        length_score = min(len(feedback_text) / 500, 1.0)  # Normalized to 500 chars max
+        rating_score = rating / 5.0
+        
+        # Average of both
+        return (length_score + rating_score) / 2.0
     
     async def get_export_history(self, owner_email: str, limit: int = 50) -> List[Dict[str, Any]]:
         """
