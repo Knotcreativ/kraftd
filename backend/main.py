@@ -427,7 +427,7 @@ def get_current_user_email(authorization: str = None) -> str:
     
     return email
 
-@app.post("/api/v1/auth/register", status_code=201)
+@app.post("/api/v1/auth/register", status_code=201, response_model=TokenResponse)
 async def register(user_data: UserRegister):
     """
     Register a new user.
@@ -583,13 +583,28 @@ async def register(user_data: UserRegister):
             users_db[user_data.email] = user_record
         
         # ===== SUCCESS RESPONSE =====
-        # Per specification: return success, not tokens
+        # Generate tokens for immediate login after registration
         # NOTE: Email verification temporarily skipped for MVP
         
-        return {
-            "status": "success",
-            "message": "Registration successful. You can now login."
-        }
+        try:
+            access_token = AuthService.create_access_token(user_data.email)
+            refresh_token = AuthService.create_refresh_token(user_data.email)
+            
+            return TokenResponse(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_type="bearer",
+                expires_in=3600
+            )
+        except Exception as token_err:
+            logger.error(f"Error creating tokens: {str(token_err)}")
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "TOKEN_ERROR",
+                    "message": "Failed to generate authentication tokens"
+                }
+            )
     
     except HTTPException:
         raise
