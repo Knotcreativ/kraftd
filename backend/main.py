@@ -50,6 +50,11 @@ from services.secrets_manager import get_secrets_manager
 from repositories import UserRepository, DocumentRepository
 from repositories.document_repository import DocumentStatus as RepoDocumentStatus
 
+# Export Tracking Service (Three-stage recording)
+from services.export_tracking_service import (
+    initialize_export_tracking, get_export_tracking_service, ExportStage
+)
+
 # ===== Helper Functions =====
 async def get_document_repository() -> DocumentRepository:
     """
@@ -206,6 +211,17 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"[ERROR] Failed to initialize ExtractionPipeline: {str(e)}")
             raise
+        
+        # Initialize Export Tracking Service (Three-stage recording)
+        if cosmos_service and cosmos_service.is_initialized():
+            try:
+                await initialize_export_tracking(cosmos_service, "KraftdIntel")
+                logger.info("[OK] Export tracking service initialized")
+            except Exception as e:
+                logger.warning(f"[WARN] Export tracking initialization failed: {str(e)}")
+                logger.info("      Export recording will not be persisted to Cosmos DB")
+        else:
+            logger.info("[INFO] Cosmos DB not initialized, export tracking in fallback mode")
         
         logger.info("=" * 60)
         logger.info("Startup Configuration:")

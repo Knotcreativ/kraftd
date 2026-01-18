@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { apiClient } from '../services/api'
 import { Document } from '../types'
+import DocumentUpload from '../components/DocumentUpload'
+import DocumentList from '../components/DocumentList'
 import './Dashboard.css'
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, logout, user } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [isReviewing, setIsReviewing] = useState<string | null>(null)
 
   // Check authentication on mount
   useEffect(() => {
@@ -37,26 +39,38 @@ export default function Dashboard() {
     }
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setSelectedFile(e.target.files[0])
-    }
+  const handleUploadSuccess = (doc: Document) => {
+    setDocuments([doc, ...documents])
+    setSuccessMessage(`✓ "${doc.name}" uploaded successfully!`)
+    setTimeout(() => setSuccessMessage(null), 4000)
   }
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedFile) return
+  const handleUploadError = (errorMsg: string) => {
+    setError(errorMsg)
+    setTimeout(() => setError(null), 5000)
+  }
 
-    setIsUploading(true)
+  const handleReviewDocument = async (documentId: string) => {
+    setIsReviewing(documentId)
     try {
-      const doc = await apiClient.uploadDocument(selectedFile)
-      setDocuments([doc, ...documents])
-      setSelectedFile(null)
+      const result = await apiClient.reviewDocument(documentId)
+      
+      // Update document status to processing
+      setDocuments(docs =>
+        docs.map(doc =>
+          doc.id === documentId
+            ? { ...doc, status: 'processing' as const }
+            : doc
+        )
+      )
+      
+      setSuccessMessage(`✓ Document review started! Processing: ${result.document_id.substring(0, 8)}...`)
+      setTimeout(() => setSuccessMessage(null), 5000)
     } catch (err) {
-      setError('Upload failed')
-      console.error(err)
+      setError(`Failed to review document: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      setTimeout(() => setError(null), 5000)
     } finally {
-      setIsUploading(false)
+      setIsReviewing(null)
     }
   }
 
@@ -69,68 +83,52 @@ export default function Dashboard() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>Documents & Procurement Management</h1>
+          <div className="header-left">
+            <h1>📊 KraftdIntel Dashboard</h1>
+            {user && <p className="user-welcome">Welcome, {user.email}</p>}
+          </div>
           <button onClick={handleLogout} className="btn-logout">
-            Logout
+            🚪 Logout
           </button>
         </div>
       </header>
 
-      <div className="dashboard-content">
-        <div className="upload-section">
-          <h2>Upload Document</h2>
-          <form onSubmit={handleUpload} className="upload-form">
-            <div className="file-input-wrapper">
-              <input
-                type="file"
-                onChange={handleFileSelect}
-                disabled={isUploading}
-                id="file-input"
-              />
-              <label htmlFor="file-input" className="file-label">
-                {selectedFile ? selectedFile.name : 'Select a file or drag and drop'}
-              </label>
-            </div>
-            <button
-              type="submit"
-              disabled={!selectedFile || isUploading}
-              className="btn-upload"
-            >
-              {isUploading ? 'Uploading...' : 'Upload'}
-            </button>
-          </form>
-        </div>
+      <div className="dashboard-container">
+        {/* Success Message */}
+        {successMessage && (
+          <div className="success-alert">
+            <span className="alert-close" onClick={() => setSuccessMessage(null)}>✕</span>
+            {successMessage}
+          </div>
+        )}
 
-        <div className="documents-section">
-          <h2>Your Documents</h2>
-          {error && <div className="error-message">{error}</div>}
+        {/* Error Message */}
+        {error && (
+          <div className="error-alert">
+            <span className="alert-close" onClick={() => setError(null)}>✕</span>
+            {error}
+          </div>
+        )}
 
-          {isLoading ? (
-            <div className="loading">Loading documents...</div>
-          ) : documents.length === 0 ? (
-            <div className="empty-state">
-              <p>No documents uploaded yet</p>
-              <p className="hint">Upload your first document above to get started</p>
-            </div>
-          ) : (
-            <div className="documents-grid">
-              {documents.map((doc) => (
-                <div key={doc.id} className="document-card">
-                  <div className="doc-header">
-                    <h3>{doc.name}</h3>
-                    <span className={`status ${doc.status}`}>{doc.status}</span>
-                  </div>
-                  <p className="doc-meta">
-                    Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                  </p>
-                  <div className="doc-actions">
-                    <button className="btn-view">View</button>
-                    <button className="btn-workflow">Start Workflow</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="dashboard-grid">
+          {/* Upload Section */}
+          <div className="section upload-area">
+            <DocumentUpload
+              onUploadSuccess={handleUploadSuccess}
+              onUploadError={handleUploadError}
+            />
+          </div>
+
+          {/* Documents Section */}
+          <div className="section documents-area">
+            <DocumentList
+              documents={documents}
+              isLoading={isLoading}
+              onRefresh={loadDocuments}
+              onReview={handleReviewDocument}
+              isReviewing={isReviewing}
+            />
+          </div>
         </div>
       </div>
     </div>

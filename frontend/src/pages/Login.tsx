@@ -50,8 +50,14 @@ export default function Login() {
         setSuccessEmail(email)
         setLoginSuccess(true)
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : (isRegister ? 'Registration failed' : 'Login failed')
+    } catch (error: any) {
+      let message = error instanceof Error ? error.message : (isRegister ? 'Registration failed' : 'Login failed')
+      
+      // Handle email verification error
+      if (error.response?.status === 403 && error.response?.data?.detail?.error === 'EMAIL_NOT_VERIFIED') {
+        message = `Email not verified. Please check your email and verify your account. Not received? You can resend verification from the verify page.`
+      }
+      
       setError(message)
       console.error(isRegister ? 'Registration failed' : 'Login failed', error)
     } finally {
@@ -107,23 +113,41 @@ export default function Login() {
           </div>
         ) : registrationSuccess ? (
           <div className="success-screen">
-            <div className="success-icon">✓</div>
-            <h2>Registration Successful!</h2>
+            <div className="success-icon">✉️</div>
+            <h2>Check Your Email!</h2>
             <p className="success-message">
-              Your account has been created successfully.
+              We've sent a verification email to:
             </p>
             <p className="success-email">
-              Email: <strong>{successEmail}</strong>
+              <strong>{successEmail}</strong>
             </p>
             <p className="success-note">
-              You can now log in with your email and password.
+              Click the link in the email to verify your account. You'll then be able to log in.
             </p>
+            <div className="email-instructions">
+              <p><strong>Didn't receive the email?</strong></p>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  // Could add resend verification here
+                  setRegistrationSuccess(false)
+                  setIsRegister(false)
+                }}
+              >
+                Try Again
+              </button>
+              <p className="spam-notice">
+                Check your spam folder if you don't see the email.
+              </p>
+            </div>
             <button
               type="button"
               className="btn-primary"
-              onClick={handleBackToLogin}
+              style={{ marginTop: '20px' }}
+              onClick={() => navigate('/verify-email')}
             >
-              Go to Login
+              I Have a Verification Token
             </button>
           </div>
         ) : (
@@ -166,7 +190,19 @@ export default function Login() {
                 autoComplete={isRegister ? 'off' : 'current-password'}
               />
               {isRegister && <p className="form-hint">Password must be 8-128 characters, no spaces</p>}
-              {!isRegister && <p className="form-hint">Enter your email and password to sign in</p>}
+              {!isRegister && (
+                <div className="password-actions">
+                  <p className="form-hint">Enter your email and password to sign in</p>
+                  <button
+                    type="button"
+                    className="forgot-password-link"
+                    onClick={() => navigate('/forgot-password')}
+                    disabled={isLoading}
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
             </div>
 
             {isRegister && (

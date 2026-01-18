@@ -9,6 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
 
 class ApiClient {
   private client: AxiosInstance
+  private csrfToken: string = ''
 
   constructor() {
     this.client = axios.create({
@@ -16,15 +17,24 @@ class ApiClient {
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      // PHASE 8: Enable credentials to send/receive cookies
+      withCredentials: true
     })
 
-    // Request interceptor to add auth token
+    // Request interceptor to add auth token or CSRF token
     this.client.interceptors.request.use((config) => {
+      // PHASE 8: Try to get token from localStorage (fallback for backward compatibility)
       const token = localStorage.getItem('accessToken')
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
+      
+      // PHASE 8: Add CSRF token to POST/PUT/DELETE requests
+      if (this.csrfToken && (config.method === 'post' || config.method === 'put' || config.method === 'delete')) {
+        config.headers['X-CSRF-Token'] = this.csrfToken
+      }
+      
       return config
     })
 
@@ -36,7 +46,7 @@ class ApiClient {
           const refreshToken = localStorage.getItem('refreshToken')
           if (refreshToken) {
             try {
-              const response = await this.client.post('/auth/refresh-token', {
+              const response = await this.client.post('/auth/refresh', {
                 refreshToken
               })
               const { accessToken } = response.data
@@ -81,8 +91,40 @@ class ApiClient {
   }
 
   async refreshToken(refreshToken: string) {
-    const response = await this.client.post<AuthTokens>('/auth/refresh-token', {
+    const response = await this.client.post<AuthTokens>('/auth/refresh', {
       refreshToken
+    })
+    return response.data
+  }
+
+  // Email verification endpoints
+  async verifyEmail(token: string) {
+    const response = await this.client.post('/auth/verify-email', {
+      token
+    })
+    return response.data
+  }
+
+  async resendVerification(email: string) {
+    const response = await this.client.post('/auth/resend-verification', {
+      email
+    })
+    return response.data
+  }
+
+  // Phase 9: Password Recovery endpoints
+  async forgotPassword(email: string) {
+    const response = await this.client.post('/auth/forgot-password', {
+      email
+    })
+    return response.data
+  }
+
+  async resetPassword(token: string, newPassword: string, confirmPassword: string) {
+    const response = await this.client.post('/auth/reset-password', {
+      token,
+      new_password: newPassword,
+      confirm_password: confirmPassword
     })
     return response.data
   }
@@ -103,8 +145,8 @@ class ApiClient {
   }
 
   async listDocuments() {
-    const response = await this.client.get<Document[]>('/documents')
-    return response.data
+    const response = await this.client.get<{ documents: Document[]; total_count: number }>('/documents')
+    return response.data.documents
   }
 
   async updateDocument(id: string, data: Partial<Document>) {
@@ -114,6 +156,101 @@ class ApiClient {
 
   async deleteDocument(id: string) {
     await this.client.delete(`/documents/${id}`)
+  }
+
+  async reviewDocument(documentId: string) {
+    const response = await this.client.post<{ 
+      document_id: string
+      status: string
+      extracted_data: Record<string, unknown>
+      confidence_score: number
+      processing_time_ms: number
+    }>(`/docs/extract?document_id=${documentId}`)
+    return response.data
+  }
+
+  async getDocumentDetails(documentId: string) {
+    const response = await this.client.get<{
+      document_id: string
+      status: string
+      document_type: string
+      processing_time_ms: number
+      extraction_metrics: {
+        fields_mapped: number
+        inferences_made: number
+        line_items: number
+        parties_found: number
+      }
+      validation: {
+        completeness_score: number
+        quality_score: number
+        overall_score: number
+        ready_for_processing: boolean
+        requires_manual_review: boolean
+      }
+      document: {
+        metadata: {
+          document_type: string
+        }
+        extracted_data: Record<string, unknown>
+        line_items?: unknown[]
+        parties?: unknown[]
+      }
+    }>(`/docs/${documentId}`)
+    return response.data
+  }
+
+  async exportDocument(documentId: string, options: {
+    format: 'json' | 'csv' | 'excel' | 'pdf'
+    data: Record<string, unknown>
+    transformation_instructions?: string
+    use_ai_review?: boolean
+  }): Promise<any> {
+    try {
+      // First request gets the response with AI summary (JSON)
+      const response = await this.client.post<any>(
+        `/docs/${documentId}/export`,
+        options,
+        {
+          responseType: 'json'  // Get JSON response first for AI summary
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error exporting document:', error)
+      throw error
+    }
+  }
+
+  async downloadExportedFile(
+    documentId: string,
+    format: 'json' | 'csv' | 'excel' | 'pdf',
+    data: Record<string, unknown>,
+    instructions?: string,
+    templateOptions?: {
+      documentTemplate: string
+      templateCustomization?: string
+      use_ai_template_generation?: boolean
+      aiSummary?: Record<string, unknown>
+    }
+  ): Promise<ArrayBuffer> {
+    const response = await this.client.post<ArrayBuffer>(
+      `/docs/${documentId}/export`,
+      {
+        format,
+        data,
+        transformation_instructions: instructions || '',
+        use_ai_review: false,
+        use_ai_template_generation: templateOptions?.use_ai_template_generation || false,
+        document_template: templateOptions?.documentTemplate || 'standard',
+        template_customization: templateOptions?.templateCustomization || '',
+        ai_summary: templateOptions?.aiSummary || {}
+      },
+      {
+        responseType: 'arraybuffer'
+      }
+    )
+    return response.data
   }
 
   // Workflow endpoints
@@ -134,6 +271,26 @@ class ApiClient {
       status
     })
     return response.data
+  }
+
+  // PHASE 8: CSRF Token Management
+  async getCsrfToken(): Promise<string> {
+    try {
+      const response = await this.client.get<{ csrf_token: string }>('/auth/csrf-token')
+      this.csrfToken = response.data.csrf_token
+      return this.csrfToken
+    } catch (error) {
+      console.error('Failed to get CSRF token:', error)
+      throw error
+    }
+  }
+
+  setCsrfToken(token: string): void {
+    this.csrfToken = token
+  }
+
+  getCsrfTokenSync(): string {
+    return this.csrfToken
   }
 
   // Health check

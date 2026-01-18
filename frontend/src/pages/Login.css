@@ -187,6 +187,43 @@
   color: #999;
 }
 
+.password-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.password-actions .form-hint {
+  margin: 0;
+  flex: 1;
+}
+
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+
+.forgot-password-link:hover:not(:disabled) {
+  color: #764ba2;
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.forgot-password-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Success Screen Styles */
 .success-screen {
   text-align: center;
@@ -287,6 +324,51 @@
 .form-toggle .btn-link {
   font-size: 0.95rem;
   font-weight: 500;
+}
+
+/* Email Verification Instructions */
+.email-instructions {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.email-instructions p {
+  margin: 0 0 1rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.email-instructions p strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.spam-notice {
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 0.75rem;
+}
+
+.btn-secondary {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 2px solid #e0e0e0;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.btn-secondary:hover {
+  background-color: #e8e8e8;
+  border-color: #d0d0d0;
 }
 
 /* Redirect Spinner */
