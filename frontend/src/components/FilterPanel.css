@@ -1,0 +1,636 @@
+/* FilterPanel Component Styles */
+
+.filter-panel {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.filter-panel--compact {
+  max-height: 200px;
+}
+
+.filter-panel--expanded {
+  max-height: none;
+}
+
+/* Header */
+.filter-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.filter-panel__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-panel__icon {
+  font-size: 1.3rem;
+}
+
+.filter-panel__toggle {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: #667eea;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-panel__toggle:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.5);
+  transform: scale(1.05);
+}
+
+/* Sections */
+.filter-panel__section {
+  margin-bottom: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.filter-panel__section:last-of-type {
+  border-bottom: none;
+}
+
+.filter-panel__section--dates {
+  padding: 16px 0;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+  margin-bottom: 20px;
+}
+
+.filter-panel__section--presets {
+  margin-top: 16px;
+}
+
+/* Labels */
+.filter-panel__label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.filter-panel__sublabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Date Inputs */
+.filter-panel__date-inputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-panel__date-field {
+  flex: 1;
+  min-width: 140px;
+}
+
+.filter-panel__date-picker {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: white;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.filter-panel__date-picker:hover {
+  border-color: #667eea;
+}
+
+.filter-panel__date-picker:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-panel__separator {
+  color: #999;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+/* Date Presets */
+.filter-panel__presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.filter-panel__preset-btn {
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__preset-btn:hover {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Select Elements */
+.filter-panel__select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: white;
+  color: #2c3e50;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.filter-panel__select:hover {
+  border-color: #667eea;
+}
+
+.filter-panel__select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Checkboxes */
+.filter-panel__checkbox {
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.filter-panel__checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.filter-panel__checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #555;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.filter-panel__checkbox-label:hover {
+  color: #2c3e50;
+}
+
+/* Severity and Risk Badges */
+.filter-panel__severity-badge,
+.filter-panel__risk-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.severity-critical,
+.risk-critical {
+  background-color: #fee;
+  color: #c33;
+}
+
+.severity-high,
+.risk-high {
+  background-color: #fef3cd;
+  color: #856404;
+}
+
+.severity-medium,
+.risk-medium {
+  background-color: #cfe2ff;
+  color: #084298;
+}
+
+.severity-low,
+.risk-low {
+  background-color: #d1e7dd;
+  color: #0a3622;
+}
+
+.risk-minimal {
+  background-color: #e7f3ff;
+  color: #003d82;
+}
+
+/* Active Filters */
+.filter-panel__active-filters {
+  background: rgba(102, 126, 234, 0.05);
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.filter-panel__active-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #667eea;
+  margin: 0 0 8px 0;
+}
+
+.filter-panel__filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #667eea;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+.filter-panel__filter-tag button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-panel__filter-tag button:hover {
+  opacity: 0.7;
+}
+
+/* Saved Presets Section */
+.filter-panel__saved-presets {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 8px;
+}
+
+.filter-panel__saved-preset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  border: 1px solid #eee;
+}
+
+.filter-panel__saved-preset:last-child {
+  margin-bottom: 0;
+}
+
+.filter-panel__preset-load-btn {
+  padding: 4px 10px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.filter-panel__preset-load-btn:hover {
+  background: #5568d3;
+  transform: scale(1.05);
+}
+
+.filter-panel__preset-info {
+  flex: 1;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.filter-panel__preset-delete-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.filter-panel__preset-delete-btn:hover {
+  opacity: 1;
+}
+
+/* Preset Input Group */
+.filter-panel__preset-input-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.filter-panel__preset-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #2c3e50;
+}
+
+.filter-panel__preset-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-panel__save-preset-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px dashed rgba(102, 126, 234, 0.5);
+  border-radius: 6px;
+  color: #667eea;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__save-preset-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.8);
+}
+
+.filter-panel__preset-confirm-btn {
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__preset-confirm-btn:hover {
+  background: #218838;
+  transform: scale(1.05);
+}
+
+.filter-panel__preset-cancel-btn {
+  padding: 8px 16px;
+  background: #e0e0e0;
+  color: #666;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__preset-cancel-btn:hover {
+  background: #d0d0d0;
+}
+
+/* Action Buttons */
+.filter-panel__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.filter-panel__action-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__action-btn--reset {
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.filter-panel__action-btn--reset:hover {
+  background: rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px);
+}
+
+.filter-panel__action-btn--clear {
+  background: #e74c3c;
+  color: white;
+}
+
+.filter-panel__action-btn--clear:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+
+.filter-panel__action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Status Bar */
+.filter-panel__status {
+  background: rgba(102, 126, 234, 0.1);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+.filter-panel__status-text {
+  font-size: 0.85rem;
+  color: #667eea;
+  font-weight: 500;
+}
+
+/* React DatePicker Custom Styles */
+.react-datepicker__header {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.react-datepicker__header__text,
+.react-datepicker__day-name {
+  color: white;
+  font-weight: 600;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--in-selecting-range:not(.react-datepicker__day--in-range),
+.react-datepicker__day--in-range {
+  background-color: #667eea;
+  color: white;
+}
+
+.react-datepicker__day:hover {
+  background-color: rgba(102, 126, 234, 0.2);
+}
+
+.react-datepicker__day--today {
+  font-weight: bold;
+  color: #667eea;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .filter-panel {
+    padding: 16px;
+  }
+
+  .filter-panel__title {
+    font-size: 1rem;
+  }
+
+  .filter-panel__date-inputs {
+    flex-direction: column;
+  }
+
+  .filter-panel__date-field {
+    width: 100%;
+  }
+
+  .filter-panel__separator {
+    display: none;
+  }
+
+  .filter-panel__presets {
+    flex-direction: column;
+  }
+
+  .filter-panel__preset-btn {
+    width: 100%;
+  }
+
+  .filter-panel__actions {
+    flex-direction: column;
+  }
+
+  .filter-panel__action-btn {
+    width: 100%;
+  }
+
+  .filter-panel__saved-preset {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-panel__preset-info {
+    width: 100%;
+    margin: 4px 0;
+  }
+
+  .filter-panel__preset-delete-btn {
+    align-self: flex-end;
+    margin-top: -24px;
+  }
+
+  .filter-panel__preset-input-group {
+    flex-direction: column;
+  }
+
+  .filter-panel__preset-confirm-btn,
+  .filter-panel__preset-cancel-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-panel {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filter-panel__header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  .filter-panel__title {
+    font-size: 0.95rem;
+  }
+
+  .filter-panel__section {
+    margin-bottom: 12px;
+    padding: 8px 0;
+  }
+
+  .filter-panel__checkboxes {
+    gap: 6px;
+  }
+
+  .filter-panel__checkbox-label {
+    font-size: 0.9rem;
+  }
+
+  .filter-panel__filter-tag {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
+}

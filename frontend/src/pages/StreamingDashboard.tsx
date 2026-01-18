@@ -9,12 +9,38 @@ import { RiskAlerts } from '../components/RiskAlerts';
 import { AnomalyDetection } from '../components/AnomalyDetection';
 import { SupplierSignals } from '../components/SupplierSignals';
 import { TrendAnalysis } from '../components/TrendAnalysis';
+import FilterPanel from '../components/FilterPanel';
 import '../styles/StreamingDashboard.css';
 
 type DashboardTab = 'overview' | 'prices' | 'alerts' | 'anomalies' | 'signals' | 'trends';
 
+interface FilterState {
+  startDate: Date;
+  endDate: Date;
+  itemId?: string;
+  supplierId?: string;
+  severity?: string;
+  riskLevel?: string;
+  displayMode: 'compact' | 'expanded';
+}
+
 export const StreamingDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+  const [filters, setFilters] = useState<FilterState>({
+    startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+    endDate: new Date(),
+    displayMode: 'compact',
+  });
+
+  // Sample data - in production, this would come from API based on filters
+  const items = ['Wheat', 'Corn', 'Soybeans', 'Coffee', 'Cocoa'];
+  const suppliers = ['Supplier A', 'Supplier B', 'Supplier C', 'Supplier D', 'Supplier E'];
+
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    // TODO: Use newFilters to query historical data from /api/v1/events/*
+    console.log('Filters updated:', newFilters);
+  };
 
   const tabs: Array<{ id: DashboardTab; label: string; icon: string }> = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -46,6 +72,12 @@ export const StreamingDashboard: React.FC = () => {
           </button>
         ))}
       </nav>
+
+      <FilterPanel 
+        onFilterChange={handleFilterChange}
+        items={items}
+        suppliers={suppliers}
+      />
 
       <main className="dashboard-content">
         {activeTab === 'overview' && <OverviewTab />}
