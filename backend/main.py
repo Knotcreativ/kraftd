@@ -90,6 +90,14 @@ except Exception as e:
     logger.warning(f"Streaming routes not available: {e}")
     STREAMING_ROUTES_AVAILABLE = False
 
+# Import Events Routes (Phase 9: Historical Data & Analytics)
+try:
+    from routes.events import router as events_router
+    EVENTS_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Events routes not available: {e}")
+    EVENTS_ROUTES_AVAILABLE = False
+
 # Export Tracking Service (Three-stage recording)
 from services.export_tracking_service import (
     initialize_export_tracking, get_export_tracking_service, ExportStage
@@ -989,7 +997,14 @@ if STREAMING_ROUTES_AVAILABLE:
 else:
     logger.warning("[WARN] Streaming routes not available - real-time streaming disabled")
 
-# ===== Health Check Endpoint ====="
+# ===== Events Routes (Phase 9: Historical Data & Analytics) =====
+if EVENTS_ROUTES_AVAILABLE:
+    app.include_router(events_router)
+    logger.info("[OK] Events routes registered at /api/v1/events")
+else:
+    logger.warning("[WARN] Events routes not available - historical data disabled")
+
+# ===== Health Check Endpoint =====
 @app.get("/api/v1/health")
 async def health_check():
     """Health check endpoint."""
