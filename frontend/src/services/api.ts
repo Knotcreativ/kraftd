@@ -293,6 +293,77 @@ class ApiClient {
     return this.csrfToken
   }
 
+  // Phase 10: Event History endpoints
+  async getEventPrices(startDate: string, endDate: string, limit: number = 100, offset: number = 0) {
+    const response = await this.client.get<any>('/events/prices', {
+      params: { start_date: startDate, end_date: endDate, limit, offset }
+    })
+    return response.data
+  }
+
+  async getEventAlerts(startDate: string, endDate: string, limit: number = 100, offset: number = 0) {
+    const response = await this.client.get<any>('/events/alerts', {
+      params: { start_date: startDate, end_date: endDate, limit, offset }
+    })
+    return response.data
+  }
+
+  async getEventAnomalies(startDate: string, endDate: string, limit: number = 100, offset: number = 0) {
+    const response = await this.client.get<any>('/events/anomalies', {
+      params: { start_date: startDate, end_date: endDate, limit, offset }
+    })
+    return response.data
+  }
+
+  async getEventSignals(startDate: string, endDate: string, limit: number = 100, offset: number = 0) {
+    const response = await this.client.get<any>('/events/signals', {
+      params: { start_date: startDate, end_date: endDate, limit, offset }
+    })
+    return response.data
+  }
+
+  async getEventTrends(startDate: string, endDate: string, limit: number = 100, offset: number = 0) {
+    const response = await this.client.get<any>('/events/trends', {
+      params: { start_date: startDate, end_date: endDate, limit, offset }
+    })
+    return response.data
+  }
+
+  async getEventStats(startDate: string, endDate: string) {
+    const response = await this.client.get<any>('/events/stats', {
+      params: { start_date: startDate, end_date: endDate }
+    })
+    return response.data
+  }
+
+  async getAggregatedEvents(groupBy: 'day' | 'week' | 'month' | 'hour', startDate: string, endDate: string) {
+    const response = await this.client.get<any>('/events/aggregate', {
+      params: { group_by: groupBy, start_date: startDate, end_date: endDate }
+    })
+    return response.data
+  }
+
+  // User preferences endpoints
+  async getPreferences() {
+    const response = await this.client.get<any>('/users/preferences')
+    return response.data
+  }
+
+  async updatePreferences(preferences: Record<string, any>) {
+    const response = await this.client.put<any>('/users/preferences', preferences)
+    return response.data
+  }
+
+  async getAlertThresholds() {
+    const response = await this.client.get<any>('/users/alert-thresholds')
+    return response.data
+  }
+
+  async updateAlertThresholds(thresholds: Record<string, any>) {
+    const response = await this.client.put<any>('/users/alert-thresholds', thresholds)
+    return response.data
+  }
+
   // Health check
   async getHealth() {
     const response = await this.client.get('/health')

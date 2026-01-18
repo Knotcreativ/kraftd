@@ -1,9 +1,11 @@
 /**
  * Analytics Dashboard Page
  * Displays historical data with charts, filters, KPI cards, and data export
+ * Phase 10: Connected to real API endpoints
  */
 
 import React, { useState, useEffect } from 'react';
+import { apiClient } from '../services/api';
 import FilterPanel from '../components/FilterPanel';
 import {
   PriceChart,
@@ -59,87 +61,183 @@ export const AnalyticsDashboard: React.FC = () => {
     displayMode: 'compact',
   });
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('day');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [exportMessage, setExportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Mock data generators - in production, these would fetch from API
-  const generateMockData = (
-    count: number = 30,
-    baseValue: number = 100
-  ): ChartDataPoint[] => {
-    const data: ChartDataPoint[] = [];
-    for (let i = 0; i < count; i++) {
-      const date = new Date(filters.startDate);
-      date.setDate(date.getDate() + i);
-      
-      const value = baseValue + Math.random() * 40 - 20;
-      const trend = baseValue + (i * 0.5) + Math.random() * 20 - 10;
-      
-      data.push({
-        date: date.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        }),
-        timestamp: date.getTime(),
-        value: value,
-        count: Math.floor(Math.random() * 50) + 5,
-        avg: value + (Math.random() * 10 - 5),
-        min: value - Math.random() * 10,
-        max: value + Math.random() * 15,
-        trend: trend,
-        forecast: baseValue + (i * 0.7) + Math.random() * 25 - 12.5,
-      });
-    }
-    return data;
-  };
-
-  // Sample KPI cards
-  const kpiCards: KPICard[] = [
+  // State for chart data
+  const [priceData, setPriceData] = useState<ChartDataPoint[]>([]);
+  const [alertData, setAlertData] = useState<ChartDataPoint[]>([]);
+  const [anomalyData, setAnomalyData] = useState<ChartDataPoint[]>([]);
+  const [signalData, setSignalData] = useState<ChartDataPoint[]>([]);
+  const [trendData, setTrendData] = useState<ChartDataPoint[]>([]);
+  const [kpiCards, setKpiCards] = useState<KPICard[]>([
     {
       title: 'Total Alerts',
-      value: 1247,
-      change: '+12%',
+      value: 0,
+      change: '--',
       icon: '⚠️',
       color: 'red',
-      trend: 'up',
+      trend: 'stable',
     },
     {
       title: 'Avg Price',
-      value: '$245.32',
-      change: '+3.2%',
+      value: '$0.00',
+      change: '--',
       icon: '💰',
       color: 'green',
-      trend: 'up',
+      trend: 'stable',
     },
     {
       title: 'Anomalies',
-      value: 23,
-      change: '-5%',
+      value: 0,
+      change: '--',
       icon: '🔍',
       color: 'orange',
-      trend: 'down',
+      trend: 'stable',
     },
     {
       title: 'Suppliers',
-      value: 12,
+      value: 0,
       change: 'Stable',
       icon: '🏭',
       color: 'blue',
       trend: 'stable',
     },
-  ];
+  ]);
 
   const items = ['Wheat', 'Corn', 'Soybeans', 'Coffee', 'Cocoa'];
   const suppliers = ['Supplier A', 'Supplier B', 'Supplier C', 'Supplier D', 'Supplier E'];
 
-  const handleFilterChange = (newFilters: FilterState) => {
-    setFilters(newFilters);
-    // Simulate loading data from API
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 500);
+  // Convert Date to YYYY-MM-DD format for API
+  const formatDateForApi = (date: Date): string => {
+    return date.toISOString().split('T')[0];
   };
 
-  const handleExport = (format: 'csv' | 'xlsx' | 'json') => {
+  // Transform API response to chart data format
+  const transformEventData = (apiData: any): ChartDataPoint[] => {
+    if (!apiData || !apiData.results) return [];
+    
+    return apiData.results.map((item: any, index: number) => ({
+      date: new Date(item.timestamp || item.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+      timestamp: new Date(item.timestamp || item.date).getTime(),
+      value: item.value || item.price || item.score || 0,
+      count: item.count || 1,
+      avg: item.avg || item.value || 0,
+      min: item.min || 0,
+      max: item.max || item.value || 0,
+      trend: item.trend || (item.value || 0),
+      forecast: item.forecast || (item.value || 0),
+    }));
+  };
+
+  // Fetch event data from API
+  const fetchEventData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const startDate = formatDateForApi(filters.startDate);
+      const endDate = formatDateForApi(filters.endDate);
+
+      // Fetch all event types in parallel
+      const [
+        pricesResponse,
+        alertsResponse,
+        anomaliesResponse,
+        signalsResponse,
+        trendsResponse,
+        statsResponse
+      ] = await Promise.all([
+        apiClient.getEventPrices(startDate, endDate),
+        apiClient.getEventAlerts(startDate, endDate),
+        apiClient.getEventAnomalies(startDate, endDate),
+        apiClient.getEventSignals(startDate, endDate),
+        apiClient.getEventTrends(startDate, endDate),
+        apiClient.getEventStats(startDate, endDate)
+      ]);
+
+      // Transform data
+      const prices = transformEventData(pricesResponse);
+      const alerts = transformEventData(alertsResponse);
+      const anomalies = transformEventData(anomaliesResponse);
+      const signals = transformEventData(signalsResponse);
+      const trends = transformEventData(trendsResponse);
+
+      setPriceData(prices);
+      setAlertData(alerts);
+      setAnomalyData(anomalies);
+      setSignalData(signals);
+      setTrendData(trends);
+
+      // Update KPI cards from stats
+      if (statsResponse) {
+        const avgPrice = prices.length > 0 
+          ? (prices.reduce((sum: number, p: ChartDataPoint) => sum + (p.value || 0), 0) / prices.length).toFixed(2)
+          : '0.00';
+
+        const newKpiCards: KPICard[] = [
+          {
+            title: 'Total Alerts',
+            value: statsResponse.alert || 0,
+            change: `${alerts.length > 0 ? '+' : ''}${alerts.length}`,
+            icon: '⚠️',
+            color: 'red',
+            trend: alerts.length > 0 ? 'up' : 'stable',
+          },
+          {
+            title: 'Avg Price',
+            value: `$${avgPrice}`,
+            change: '+0%',
+            icon: '💰',
+            color: 'green',
+            trend: 'stable',
+          },
+          {
+            title: 'Anomalies',
+            value: statsResponse.anomaly || 0,
+            change: `${anomalies.length}`,
+            icon: '🔍',
+            color: 'orange',
+            trend: anomalies.length > 5 ? 'up' : 'down',
+          },
+          {
+            title: 'Suppliers',
+            value: statsResponse.signal || 0,
+            change: 'Stable',
+            icon: '🏭',
+            color: 'blue',
+            trend: 'stable',
+          },
+        ];
+        setKpiCards(newKpiCards);
+      }
+    } catch (err) {
+      console.error('Failed to fetch event data:', err);
+      setError('Failed to load analytics data. Please try again.');
+      // Fallback: set empty arrays to prevent chart errors
+      setPriceData([]);
+      setAlertData([]);
+      setAnomalyData([]);
+      setSignalData([]);
+      setTrendData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data on component mount and when filters change
+  useEffect(() => {
+    fetchEventData();
+  }, [filters]);
+
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+  };
+
+  const handleExport = async (format: 'csv' | 'xlsx' | 'json') => {
     try {
       setExportMessage(null);
       
@@ -198,6 +296,15 @@ export const AnalyticsDashboard: React.FC = () => {
         </div>
       </header>
 
+      {/* Error Message */}
+      {error && (
+        <div className="error-alert">
+          <span className="alert-close" onClick={() => setError(null)}>✕</span>
+          <strong>Error:</strong> {error}
+          <button className="btn-retry" onClick={fetchEventData}>Retry</button>
+        </div>
+      )}
+
       {/* Filter Panel */}
       <FilterPanel
         onFilterChange={handleFilterChange}
@@ -234,7 +341,7 @@ export const AnalyticsDashboard: React.FC = () => {
               <div className="kpi-icon">{card.icon}</div>
               <div className="kpi-content">
                 <h3 className="kpi-title">{card.title}</h3>
-                <p className="kpi-value">{card.value}</p>
+                <p className="kpi-value">{isLoading ? '...' : card.value}</p>
                 {card.change && (
                   <p
                     className={`kpi-change kpi-change--${
@@ -262,41 +369,46 @@ export const AnalyticsDashboard: React.FC = () => {
         <div className="charts-container">
           <div className="chart-wrapper">
             <PriceChart
-              data={generateMockData(30, 245)}
+              data={priceData}
               isLoading={isLoading}
               period={period}
+              eventType="prices"
             />
           </div>
 
           <div className="chart-wrapper">
             <AlertChart
-              data={generateMockData(30, 35)}
+              data={alertData}
               isLoading={isLoading}
               period={period}
+              eventType="alerts"
             />
           </div>
 
           <div className="chart-wrapper">
             <AnomalyChart
-              data={generateMockData(30, 0.5)}
+              data={anomalyData}
               isLoading={isLoading}
               period={period}
+              eventType="anomalies"
             />
           </div>
 
           <div className="chart-wrapper">
             <SignalChart
-              data={generateMockData(30, 0.1)}
+              data={signalData}
               isLoading={isLoading}
               period={period}
+              eventType="signals"
             />
           </div>
 
           <div className="chart-wrapper">
             <TrendChart
-              data={generateMockData(30, 200)}
+              data={trendData}
               isLoading={isLoading}
               period={period}
+              eventType="trends"
             />
           </div>
         </div>
@@ -345,6 +457,7 @@ export const AnalyticsDashboard: React.FC = () => {
             className="export-btn export-btn--csv"
             onClick={() => handleExport('csv')}
             title="Export all charts as comma-separated values"
+            disabled={isLoading}
           >
             📥 Export as CSV
           </button>
@@ -352,6 +465,7 @@ export const AnalyticsDashboard: React.FC = () => {
             className="export-btn export-btn--excel"
             onClick={() => handleExport('xlsx')}
             title="Export all charts as Excel spreadsheet"
+            disabled={isLoading}
           >
             📊 Export as Excel
           </button>
@@ -359,6 +473,7 @@ export const AnalyticsDashboard: React.FC = () => {
             className="export-btn export-btn--json"
             onClick={() => handleExport('json')}
             title="Export all charts as JSON format"
+            disabled={isLoading}
           >
             📋 Export as JSON
           </button>
@@ -369,9 +484,9 @@ export const AnalyticsDashboard: React.FC = () => {
           </div>
         )}
       </section>
-      </section>
     </div>
   );
 };
 
 export default AnalyticsDashboard;
+

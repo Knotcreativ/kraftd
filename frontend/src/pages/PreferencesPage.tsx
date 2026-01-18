@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '../services/api';
 import Breadcrumb from '../components/Breadcrumb';
 import AlertPreferences from '../components/AlertPreferences';
 import './PreferencesPage.css';
@@ -12,13 +13,45 @@ interface PreferenceSection {
   description: string;
 }
 
+interface UserPreferences {
+  notifications: {
+    email: boolean;
+    sms: boolean;
+    inApp: boolean;
+  };
+  theme: 'light' | 'dark' | 'auto';
+  collapseSidebar: boolean;
+  enableAnimations: boolean;
+  allowAnalytics: boolean;
+  dataRetentionDays: number;
+}
+
 /**
  * Preferences Landing Page
+ * Phase 10: Connected to real API endpoints
  * Central hub for all user preferences and settings
  * Includes alerts, notifications, display, and data management
  */
 const PreferencesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<PreferenceTab>('alerts');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    notifications: {
+      email: false,
+      sms: false,
+      inApp: false,
+    },
+    theme: 'light',
+    collapseSidebar: false,
+    enableAnimations: true,
+    allowAnalytics: true,
+    dataRetentionDays: 365,
+  });
 
   const sections: PreferenceSection[] = [
     {
@@ -47,6 +80,101 @@ const PreferencesPage: React.FC = () => {
     },
   ];
 
+  // Load preferences from API on mount
+  useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  const loadPreferences = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.getPreferences();
+      if (response && response.notifications) {
+        // Map API response to component state
+        setPreferences({
+          notifications: {
+            email: response.notifications.email || false,
+            sms: response.notifications.sms || false,
+            inApp: response.notifications.in_app || false,
+          },
+          theme: response.theme || 'light',
+          collapseSidebar: response.collapse_sidebar || false,
+          enableAnimations: response.enable_animations !== false,
+          allowAnalytics: response.allow_analytics !== false,
+          dataRetentionDays: response.data_retention_days || 365,
+        });
+        setLastUpdated(new Date());
+      }
+    } catch (err) {
+      console.error('Failed to load preferences:', err);
+      // Set sensible defaults if API fails
+      setError('Failed to load preferences. Using default settings.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const savePreferences = async (updatedPrefs: Partial<UserPreferences>) => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      // Map component state to API format
+      const apiPayload = {
+        notifications: {
+          email: updatedPrefs.notifications?.email ?? preferences.notifications.email,
+          sms: updatedPrefs.notifications?.sms ?? preferences.notifications.sms,
+          in_app: updatedPrefs.notifications?.inApp ?? preferences.notifications.inApp,
+        },
+        theme: updatedPrefs.theme ?? preferences.theme,
+        collapse_sidebar: updatedPrefs.collapseSidebar ?? preferences.collapseSidebar,
+        enable_animations: updatedPrefs.enableAnimations ?? preferences.enableAnimations,
+        allow_analytics: updatedPrefs.allowAnalytics ?? preferences.allowAnalytics,
+        data_retention_days: updatedPrefs.dataRetentionDays ?? preferences.dataRetentionDays,
+      };
+
+      await apiClient.updatePreferences(apiPayload);
+      
+      // Update local state
+      setPreferences(prev => ({ ...prev, ...updatedPrefs }));
+      setLastUpdated(new Date());
+      setSuccessMessage('✓ Preferences saved successfully!');
+      
+      // Clear success message after 4 seconds
+      setTimeout(() => setSuccessMessage(null), 4000);
+    } catch (err) {
+      console.error('Failed to save preferences:', err);
+      setError(`Failed to save preferences: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      // Clear error after 5 seconds
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleNotificationChange = (type: 'email' | 'sms' | 'inApp', value: boolean) => {
+    const updatedPrefs = {
+      notifications: {
+        ...preferences.notifications,
+        [type]: value,
+      },
+    };
+    setPreferences(prev => ({ ...prev, ...updatedPrefs }));
+    savePreferences(updatedPrefs);
+  };
+
+  const handleThemeChange = (theme: 'light' | 'dark' | 'auto') => {
+    const updatedPrefs = { theme };
+    setPreferences(prev => ({ ...prev, ...updatedPrefs }));
+    savePreferences(updatedPrefs);
+  };
+
+  const handleToggleChange = (field: 'collapseSidebar' | 'enableAnimations' | 'allowAnalytics', value: boolean) => {
+    const updatedPrefs = { [field]: value };
+    setPreferences(prev => ({ ...prev, ...updatedPrefs }));
+    savePreferences(updatedPrefs);
+  };
+
   return (
     <div className="preferences-page">
       <Breadcrumb />
@@ -62,6 +190,22 @@ const PreferencesPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="error-alert">
+            <span className="alert-close" onClick={() => setError(null)}>✕</span>
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="success-alert">
+            <span className="alert-close" onClick={() => setSuccessMessage(null)}>✕</span>
+            {successMessage}
+          </div>
+        )}
+
         {/* Tab Navigation */}
         <div className="preferences-tabs">
           <nav className="preferences-nav" aria-label="Preference sections">
@@ -72,6 +216,7 @@ const PreferencesPage: React.FC = () => {
                 onClick={() => setActiveTab(section.id)}
                 aria-selected={activeTab === section.id}
                 aria-label={section.label}
+                disabled={isLoading}
               >
                 <span className="tab-icon">{section.icon}</span>
                 <span className="tab-label">{section.label}</span>
@@ -80,147 +225,208 @@ const PreferencesPage: React.FC = () => {
           </nav>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Loading preferences...</p>
+          </div>
+        )}
+
         {/* Content Area */}
-        <div className="preferences-content">
-          {/* Alert Settings Tab */}
-          {activeTab === 'alerts' && (
-            <div className="preference-section">
-              <div className="section-header">
-                <h2>{sections[0].label}</h2>
-                <p className="section-description">{sections[0].description}</p>
-              </div>
-              <AlertPreferences />
-            </div>
-          )}
-
-          {/* Notifications Tab */}
-          {activeTab === 'notifications' && (
-            <div className="preference-section">
-              <div className="section-header">
-                <h2>{sections[1].label}</h2>
-                <p className="section-description">{sections[1].description}</p>
-              </div>
-              <div className="notification-settings">
-                <div className="settings-card">
-                  <h3>Email Notifications</h3>
-                  <label className="settings-toggle">
-                    <input type="checkbox" defaultChecked />
-                    <span className="toggle-label">Receive email alerts</span>
-                  </label>
-                  <p className="setting-hint">Daily digest of important events</p>
+        {!isLoading && (
+          <div className="preferences-content">
+            {/* Alert Settings Tab */}
+            {activeTab === 'alerts' && (
+              <div className="preference-section">
+                <div className="section-header">
+                  <h2>{sections[0].label}</h2>
+                  <p className="section-description">{sections[0].description}</p>
                 </div>
-
-                <div className="settings-card">
-                  <h3>SMS Notifications</h3>
-                  <label className="settings-toggle">
-                    <input type="checkbox" defaultChecked />
-                    <span className="toggle-label">Receive SMS alerts</span>
-                  </label>
-                  <p className="setting-hint">Instant alerts for critical events</p>
-                </div>
-
-                <div className="settings-card">
-                  <h3>In-App Notifications</h3>
-                  <label className="settings-toggle">
-                    <input type="checkbox" defaultChecked />
-                    <span className="toggle-label">Show in-app notifications</span>
-                  </label>
-                  <p className="setting-hint">Real-time notifications while using the app</p>
-                </div>
+                <AlertPreferences />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Display Tab */}
-          {activeTab === 'display' && (
-            <div className="preference-section">
-              <div className="section-header">
-                <h2>{sections[2].label}</h2>
-                <p className="section-description">{sections[2].description}</p>
-              </div>
-              <div className="display-settings">
-                <div className="settings-card">
-                  <h3>Theme</h3>
-                  <div className="theme-selector">
-                    <label className="theme-option">
-                      <input type="radio" name="theme" value="light" defaultChecked />
-                      <span className="theme-label">☀️ Light</span>
+            {/* Notifications Tab */}
+            {activeTab === 'notifications' && (
+              <div className="preference-section">
+                <div className="section-header">
+                  <h2>{sections[1].label}</h2>
+                  <p className="section-description">{sections[1].description}</p>
+                </div>
+                <div className="notification-settings">
+                  <div className="settings-card">
+                    <h3>Email Notifications</h3>
+                    <label className="settings-toggle">
+                      <input
+                        type="checkbox"
+                        checked={preferences.notifications.email}
+                        onChange={(e) => handleNotificationChange('email', e.target.checked)}
+                        disabled={isSaving}
+                      />
+                      <span className="toggle-label">Receive email alerts</span>
                     </label>
-                    <label className="theme-option">
-                      <input type="radio" name="theme" value="dark" />
-                      <span className="theme-label">🌙 Dark</span>
+                    <p className="setting-hint">Daily digest of important events</p>
+                  </div>
+
+                  <div className="settings-card">
+                    <h3>SMS Notifications</h3>
+                    <label className="settings-toggle">
+                      <input
+                        type="checkbox"
+                        checked={preferences.notifications.sms}
+                        onChange={(e) => handleNotificationChange('sms', e.target.checked)}
+                        disabled={isSaving}
+                      />
+                      <span className="toggle-label">Receive SMS alerts</span>
                     </label>
-                    <label className="theme-option">
-                      <input type="radio" name="theme" value="auto" />
-                      <span className="theme-label">🔄 Auto</span>
+                    <p className="setting-hint">Instant alerts for critical events</p>
+                  </div>
+
+                  <div className="settings-card">
+                    <h3>In-App Notifications</h3>
+                    <label className="settings-toggle">
+                      <input
+                        type="checkbox"
+                        checked={preferences.notifications.inApp}
+                        onChange={(e) => handleNotificationChange('inApp', e.target.checked)}
+                        disabled={isSaving}
+                      />
+                      <span className="toggle-label">Show in-app notifications</span>
                     </label>
+                    <p className="setting-hint">Real-time notifications while using the app</p>
                   </div>
                 </div>
+              </div>
+            )}
 
-                <div className="settings-card">
-                  <h3>Sidebar</h3>
-                  <label className="settings-toggle">
-                    <input type="checkbox" defaultChecked />
-                    <span className="toggle-label">Collapse sidebar by default</span>
-                  </label>
-                  <p className="setting-hint">Show/hide navigation sidebar on startup</p>
+            {/* Display Tab */}
+            {activeTab === 'display' && (
+              <div className="preference-section">
+                <div className="section-header">
+                  <h2>{sections[2].label}</h2>
+                  <p className="section-description">{sections[2].description}</p>
                 </div>
+                <div className="display-settings">
+                  <div className="settings-card">
+                    <h3>Theme</h3>
+                    <div className="theme-selector">
+                      <label className="theme-option">
+                        <input
+                          type="radio"
+                          name="theme"
+                          value="light"
+                          checked={preferences.theme === 'light'}
+                          onChange={() => handleThemeChange('light')}
+                          disabled={isSaving}
+                        />
+                        <span className="theme-label">☀️ Light</span>
+                      </label>
+                      <label className="theme-option">
+                        <input
+                          type="radio"
+                          name="theme"
+                          value="dark"
+                          checked={preferences.theme === 'dark'}
+                          onChange={() => handleThemeChange('dark')}
+                          disabled={isSaving}
+                        />
+                        <span className="theme-label">🌙 Dark</span>
+                      </label>
+                      <label className="theme-option">
+                        <input
+                          type="radio"
+                          name="theme"
+                          value="auto"
+                          checked={preferences.theme === 'auto'}
+                          onChange={() => handleThemeChange('auto')}
+                          disabled={isSaving}
+                        />
+                        <span className="theme-label">🔄 Auto</span>
+                      </label>
+                    </div>
+                  </div>
 
-                <div className="settings-card">
-                  <h3>Animations</h3>
-                  <label className="settings-toggle">
-                    <input type="checkbox" defaultChecked />
-                    <span className="toggle-label">Enable animations</span>
-                  </label>
-                  <p className="setting-hint">Smooth transitions and visual effects</p>
+                  <div className="settings-card">
+                    <h3>Sidebar</h3>
+                    <label className="settings-toggle">
+                      <input
+                        type="checkbox"
+                        checked={preferences.collapseSidebar}
+                        onChange={(e) => handleToggleChange('collapseSidebar', e.target.checked)}
+                        disabled={isSaving}
+                      />
+                      <span className="toggle-label">Collapse sidebar by default</span>
+                    </label>
+                    <p className="setting-hint">Show/hide navigation sidebar on startup</p>
+                  </div>
+
+                  <div className="settings-card">
+                    <h3>Animations</h3>
+                    <label className="settings-toggle">
+                      <input
+                        type="checkbox"
+                        checked={preferences.enableAnimations}
+                        onChange={(e) => handleToggleChange('enableAnimations', e.target.checked)}
+                        disabled={isSaving}
+                      />
+                      <span className="toggle-label">Enable animations</span>
+                    </label>
+                    <p className="setting-hint">Smooth transitions and visual effects</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Data & Privacy Tab */}
-          {activeTab === 'data' && (
-            <div className="preference-section">
-              <div className="section-header">
-                <h2>{sections[3].label}</h2>
-                <p className="section-description">{sections[3].description}</p>
+            {/* Data & Privacy Tab */}
+            {activeTab === 'data' && (
+              <div className="preference-section">
+                <div className="section-header">
+                  <h2>{sections[3].label}</h2>
+                  <p className="section-description">{sections[3].description}</p>
+                </div>
+                <div className="data-settings">
+                  <div className="settings-card warning">
+                    <h3>Data Retention</h3>
+                    <p>Historical data is retained for {preferences.dataRetentionDays} days for analysis and reporting.</p>
+                    <button className="settings-button secondary">Learn More</button>
+                  </div>
+
+                  <div className="settings-card">
+                    <h3>Data Export</h3>
+                    <p>Download a copy of all your data in a standard format.</p>
+                    <button className="settings-button secondary">Export My Data</button>
+                  </div>
+
+                  <div className="settings-card danger">
+                    <h3>Delete Account</h3>
+                    <p>Permanently delete your account and all associated data.</p>
+                    <button className="settings-button danger">Delete Account</button>
+                  </div>
+
+                  <div className="settings-card">
+                    <h3>Privacy</h3>
+                    <label className="settings-toggle">
+                      <input
+                        type="checkbox"
+                        checked={preferences.allowAnalytics}
+                        onChange={(e) => handleToggleChange('allowAnalytics', e.target.checked)}
+                        disabled={isSaving}
+                      />
+                      <span className="toggle-label">Allow analytics tracking</span>
+                    </label>
+                    <p className="setting-hint">Help us improve by sharing usage data</p>
+                  </div>
+                </div>
               </div>
-              <div className="data-settings">
-                <div className="settings-card warning">
-                  <h3>Data Retention</h3>
-                  <p>Historical data is retained for 12 months for analysis and reporting.</p>
-                  <button className="settings-button secondary">Learn More</button>
-                </div>
-
-                <div className="settings-card">
-                  <h3>Data Export</h3>
-                  <p>Download a copy of all your data in a standard format.</p>
-                  <button className="settings-button secondary">Export My Data</button>
-                </div>
-
-                <div className="settings-card danger">
-                  <h3>Delete Account</h3>
-                  <p>Permanently delete your account and all associated data.</p>
-                  <button className="settings-button danger">Delete Account</button>
-                </div>
-
-                <div className="settings-card">
-                  <h3>Privacy</h3>
-                  <label className="settings-toggle">
-                    <input type="checkbox" defaultChecked />
-                    <span className="toggle-label">Allow analytics tracking</span>
-                  </label>
-                  <p className="setting-hint">Help us improve by sharing usage data</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Footer */}
         <div className="preferences-footer">
           <p className="footer-text">
-            Changes are saved automatically. Last updated: {new Date().toLocaleString()}
+            {isSaving ? '💾 Saving...' : `Last updated: ${lastUpdated.toLocaleString()}`}
           </p>
         </div>
       </div>
@@ -229,3 +435,4 @@ const PreferencesPage: React.FC = () => {
 };
 
 export default PreferencesPage;
+
