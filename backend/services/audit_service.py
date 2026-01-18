@@ -25,7 +25,7 @@ import logging
 import json
 import os
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from dataclasses import dataclass, asdict
 import uuid
@@ -268,7 +268,7 @@ class AuditService:
         """
         # Set timestamp if not provided
         if not event.timestamp:
-            event.timestamp = datetime.utcnow().isoformat() + "Z"
+            event.timestamp = datetime.now(tz=timezone.utc).isoformat()
         
         # Generate ID if not provided
         if not event.id:
@@ -371,7 +371,8 @@ class AuditService:
         tenant_id: str,
         allowed: bool,
         reason: Optional[str] = None,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
     ) -> str:
         """Log resource access attempt
         
@@ -384,6 +385,7 @@ class AuditService:
             allowed: Whether access was allowed
             reason: Why allowed/denied
             ip_address: Source IP
+            user_agent: Client user agent
             
         Returns:
             Event ID
@@ -407,6 +409,7 @@ class AuditService:
             allowed=allowed,
             reason=reason,
             ip_address=ip_address,
+            user_agent=user_agent,
             tags=tags
         )
         
@@ -421,7 +424,9 @@ class AuditService:
         tenant_id: str,
         action: str,
         changes: Optional[Dict[str, Any]] = None,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
+        reason: Optional[str] = None,
+        user_agent: Optional[str] = None
     ) -> str:
         """Log resource modification
         
@@ -434,6 +439,8 @@ class AuditService:
             action: Action performed (create, update, delete)
             changes: Before/after values
             ip_address: Source IP
+            reason: Reason for modification
+            user_agent: Client user agent
             
         Returns:
             Event ID
@@ -456,8 +463,10 @@ class AuditService:
             resource_type=resource_type,
             resource_id=resource_id,
             allowed=True,
+            reason=reason,
             changes=changes,
-            ip_address=ip_address
+            ip_address=ip_address,
+            user_agent=user_agent
         )
         
         return await AuditService.log_event(event)
@@ -470,7 +479,8 @@ class AuditService:
         resource_id: Optional[str],
         tenant_id: str,
         error_message: str,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
     ) -> str:
         """Log error or failed operation
         
@@ -482,6 +492,7 @@ class AuditService:
             tenant_id: Tenant context
             error_message: Error details
             ip_address: Source IP
+            user_agent: Client user agent
             
         Returns:
             Event ID
@@ -501,6 +512,7 @@ class AuditService:
             reason=error_message,
             error_message=error_message,
             ip_address=ip_address,
+            user_agent=user_agent,
             tags=["error", "security_event"]
         )
         

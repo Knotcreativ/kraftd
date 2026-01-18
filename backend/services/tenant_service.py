@@ -4,7 +4,7 @@ Manages tenant context and multi-tenant data isolation
 """
 
 import logging
-import threading
+from contextvars import ContextVar
 from typing import Optional, Dict, Tuple
 from dataclasses import dataclass
 
@@ -12,8 +12,8 @@ from services.rbac_service import UserRole
 
 logger = logging.getLogger(__name__)
 
-# Thread-local storage for tenant context
-_thread_local = threading.local()
+# Context variable for tenant context (async-safe)
+_tenant_context: ContextVar[Optional['TenantContext']] = ContextVar('tenant_context', default=None)
 
 
 @dataclass
@@ -28,10 +28,9 @@ class TenantContext:
         """
         Check if user is tenant admin
         
-        Note: In Phase 4, we assume ADMIN users are tenant admins
-        Future phases can implement granular tenant admin roles
+        Returns True for ADMIN (system admin) and TENANT_ADMIN roles
         """
-        return self.user_role == UserRole.ADMIN
+        return self.user_role in [UserRole.ADMIN, UserRole.TENANT_ADMIN]
     
     def can_access_resource(self, resource_owner_email: str) -> bool:
         """
@@ -47,9 +46,8 @@ class TenantContext:
         if resource_owner_email == self.user_email:
             return True
         
-        # ADMIN and VIEWER can access any resource in tenant
-        # (This will be refined in Phase 5+ for granular permissions)
-        if self.user_role in [UserRole.ADMIN]:
+        # ADMIN and TENANT_ADMIN can access any resource in tenant
+        if self.user_role in [UserRole.ADMIN, UserRole.TENANT_ADMIN]:
             return True
         
         # Default: deny access
@@ -62,6 +60,9 @@ class TenantContext:
 class TenantService:
     """Service for managing tenant context and isolation"""
     
+    # Context variable for tenant context (async-safe)
+    _tenant_context: ContextVar[Optional[TenantContext]] = _tenant_context
+    
     # In-memory tenant mapping (user_email -> tenant_id)
     # In production, this would be stored in Cosmos DB
     _tenant_mapping: Dict[str, str] = {}
@@ -72,12 +73,12 @@ class TenantService:
     @staticmethod
     def get_current_tenant() -> Optional[TenantContext]:
         """
-        Get current tenant context from thread-local storage
+        Get current tenant context from context variable
         
         Returns:
             TenantContext if set, None otherwise
         """
-        return getattr(_thread_local, 'tenant_context', None)
+        return _tenant_context.get()
     
     @staticmethod
     def set_current_tenant(context: TenantContext) -> None:
@@ -87,17 +88,16 @@ class TenantService:
         Args:
             context: TenantContext instance
         """
-        _thread_local.tenant_context = context
+        _tenant_context.set(context)
         logger.debug(f"Tenant context set: {context}")
     
     @staticmethod
     def clear_current_tenant() -> None:
         """Clear tenant context for current request"""
-        if hasattr(_thread_local, 'tenant_context'):
-            delattr(_thread_local, 'tenant_context')
+        _tenant_context.set(None)
     
     @staticmethod
-    async def verify_tenant_access(user_email: str) -> str:
+    def verify_tenant_access(user_email: str) -> str:
         """
         Verify user has access to a tenant and return tenant_id
         
@@ -123,23 +123,25 @@ class TenantService:
         return TenantService.DEFAULT_TENANT_ID
     
     @staticmethod
-    async def assign_tenant(user_email: str, tenant_id: str) -> bool:
+    def assign_tenant(user_email: str, tenant_id: Optional[str] = None) -> str:
         """
         Assign user to a tenant
         
         Args:
             user_email: User email address
-            tenant_id: Tenant ID to assign
+            tenant_id: Tenant ID to assign (uses DEFAULT_TENANT_ID if not provided)
             
         Returns:
-            True if assignment successful
+            The tenant_id assigned
         """
+        if tenant_id is None:
+            tenant_id = TenantService.DEFAULT_TENANT_ID
         TenantService._tenant_mapping[user_email] = tenant_id
         logger.info(f"User {user_email} assigned to tenant {tenant_id}")
-        return True
+        return tenant_id
     
     @staticmethod
-    async def get_tenant_for_user(user_email: str) -> Optional[str]:
+    def get_tenant_for_user(user_email: str) -> Optional[str]:
         """
         Get tenant ID for user
         
@@ -152,7 +154,7 @@ class TenantService:
         return TenantService._tenant_mapping.get(user_email)
     
     @staticmethod
-    async def get_users_in_tenant(tenant_id: str) -> list:
+    def get_users_in_tenant(tenant_id: str) -> list:
         """
         Get all users in a tenant
         
@@ -168,7 +170,7 @@ class TenantService:
         ]
     
     @staticmethod
-    async def remove_user_from_tenant(user_email: str) -> bool:
+    def remove_user_from_tenant(user_email: str) -> bool:
         """
         Remove user from all tenants
         
@@ -238,15 +240,15 @@ class TenantService:
         Returns:
             True if access is allowed
         """
-        # ADMIN users can access across tenants (with logging)
-        if user_role == UserRole.ADMIN:
+        # ADMIN and SYSTEM_ADMIN users can access across tenants (with logging)
+        if user_role in [UserRole.ADMIN, UserRole.SYSTEM_ADMIN]:
             logger.warning(
-                f"ADMIN user accessing cross-tenant resource: "
+                f"{user_role.value.upper()} user accessing cross-tenant resource: "
                 f"{current_tenant} -> {target_tenant}"
             )
             return True
         
-        # Regular users cannot access cross-tenant
+        # Regular users and tenant admins cannot access cross-tenant
         return current_tenant == target_tenant
 
 
@@ -266,7 +268,7 @@ async def get_or_create_tenant_context(
     Returns:
         TenantContext instance
     """
-    tenant_id = await TenantService.verify_tenant_access(user_email)
+    tenant_id = TenantService.verify_tenant_access(user_email)
     return TenantService.create_tenant_context(tenant_id, user_email, user_role)
 
 

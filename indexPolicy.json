@@ -1,0 +1,46 @@
+﻿{
+  "indexingMode": "consistent",
+  "automatic": true,
+  "includedPaths": [
+    {
+      "path": "/*"
+    }
+  ],
+  "excludedPaths": [
+    {
+      "path": "/\"_etag\"/?"
+    }
+  ],
+  "compositeIndexes": [
+    [
+      {
+        "path": "/tenant_id",
+        "order": "ascending"
+      },
+      {
+        "path": "/timestamp",
+        "order": "descending"
+      }
+    ],
+    [
+      {
+        "path": "/tenant_id",
+        "order": "ascending"
+      },
+      {
+        "path": "/event_type",
+        "order": "ascending"
+      }
+    ],
+    [
+      {
+        "path": "/tenant_id",
+        "order": "ascending"
+      },
+      {
+        "path": "/user_email",
+        "order": "ascending"
+      }
+    ]
+  ]
+}

@@ -17,7 +17,7 @@ import json
 import sys
 from pathlib import Path
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict
 
 # Add backend directory to path for imports
@@ -34,6 +34,13 @@ from models.streaming import (
 )
 from services.signals_broadcaster_bridge import SignalsBroadcasterBridge
 from models.signals import RiskSignal, RiskLevel, AlertType, PriceTrend, TrendDirection as SignalTrendDirection
+import uuid
+
+
+def create_client_connection(websocket, user_id: str) -> ClientConnection:
+    """Helper to create ClientConnection with auto-generated client_id"""
+    client_id = f"test-client-{uuid.uuid4()}"
+    return ClientConnection(client_id, websocket, user_id)
 
 
 # ============================================================================
@@ -71,7 +78,7 @@ def sample_price_update():
         trend_direction=TrendDirection.UPTREND,
         moving_average_7d=148.50,
         moving_average_30d=147.25,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(tz=timezone.utc)
     )
 
 
@@ -88,7 +95,7 @@ def sample_risk_alert():
             "trend": "upward",
             "days": 1
         },
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(tz=timezone.utc)
     )
 
 
@@ -103,7 +110,7 @@ def sample_anomaly():
         message="Price anomaly detected",
         details={"method": "z_score", "threshold": 2.5},
         item_id="ITEM-003",
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(tz=timezone.utc)
     )
 
 
@@ -117,7 +124,7 @@ async def test_client_connection_lifecycle(mock_websocket):
     user_id = "user-123"
     
     # Create client connection
-    client = ClientConnection(mock_websocket, user_id)
+    client = create_client_connection(mock_websocket, user_id)
     
     # Verify initial state
     assert client.client_id is not None
@@ -129,7 +136,7 @@ async def test_client_connection_lifecycle(mock_websocket):
     # Mark as active (time should update)
     initial_time = client.last_activity
     await asyncio.sleep(0.01)
-    client.last_activity = datetime.utcnow()
+    client.last_activity = datetime.now(tz=timezone.utc)
     
     assert client.last_activity > initial_time
 
@@ -137,7 +144,7 @@ async def test_client_connection_lifecycle(mock_websocket):
 @pytest.mark.asyncio
 async def test_client_send_event(mock_websocket, sample_price_update):
     """Test sending an event to a client"""
-    client = ClientConnection(mock_websocket, "user-123")
+    client = create_client_connection(mock_websocket, "user-123")
     
     success = await client.send_event(sample_price_update)
     
@@ -149,13 +156,13 @@ async def test_client_send_event(mock_websocket, sample_price_update):
 @pytest.mark.asyncio
 async def test_client_send_event_with_filters(mock_websocket):
     """Test that events can be filtered at client level"""
-    client = ClientConnection(mock_websocket, "user-123")
+    client = create_client_connection(mock_websocket, "user-123")
     
     # Add filter for only HIGH risk alerts
-    client.subscriptions["alerts"] = {"risk_level": ["HIGH", "CRITICAL"]}
+    client.filters["alerts"] = {"risk_level": ["HIGH", "CRITICAL"]}
     
     # This is application-level filtering, verified in broadcaster
-    assert "alerts" in client.subscriptions
+    assert "alerts" in client.filters
 
 
 @pytest.mark.asyncio
@@ -163,7 +170,7 @@ async def test_broadcaster_register_client(test_broadcaster, mock_websocket):
     """Test registering a client with broadcaster"""
     user_id = "user-456"
     
-    client_conn = await test_broadcaster.register_client(mock_websocket, user_id)
+    client_conn = test_broadcaster.register_client(mock_websocket, user_id)
     
     assert client_conn is not None
     assert client_conn.user_id == user_id
@@ -173,10 +180,10 @@ async def test_broadcaster_register_client(test_broadcaster, mock_websocket):
 @pytest.mark.asyncio
 async def test_broadcaster_unregister_client(test_broadcaster, mock_websocket):
     """Test unregistering a client from broadcaster"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-789")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-789")
     client_id = client_conn.client_id
     
-    success = await test_broadcaster.unregister_client(client_id)
+    success = test_broadcaster.unregister_client(client_id)
     
     assert success == True
     assert client_id not in test_broadcaster.clients
@@ -189,9 +196,9 @@ async def test_broadcaster_unregister_client(test_broadcaster, mock_websocket):
 @pytest.mark.asyncio
 async def test_subscribe_to_topic(test_broadcaster, mock_websocket):
     """Test subscribing a client to a topic"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-123")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-123")
     
-    success = await test_broadcaster.subscribe(
+    success = test_broadcaster.subscribe(
         client_conn.client_id,
         "alerts",
         filters={"risk_level": ["HIGH", "CRITICAL"]}
@@ -205,13 +212,13 @@ async def test_subscribe_to_topic(test_broadcaster, mock_websocket):
 @pytest.mark.asyncio
 async def test_unsubscribe_from_topic(test_broadcaster, mock_websocket):
     """Test unsubscribing a client from a topic"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-123")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-123")
     
     # Subscribe first
-    await test_broadcaster.subscribe(client_conn.client_id, "prices")
+    test_broadcaster.subscribe(client_conn.client_id, "prices")
     
     # Unsubscribe
-    success = await test_broadcaster.unsubscribe(client_conn.client_id, "prices")
+    success = test_broadcaster.unsubscribe(client_conn.client_id, "prices")
     
     assert success == True
     assert client_conn.client_id not in test_broadcaster.topic_subscriptions.get("prices", set())
@@ -222,46 +229,48 @@ async def test_filter_price_updates_by_item_id(test_broadcaster):
     """Test filtering price updates by item_id"""
     # Create mock client
     mock_ws = AsyncMock()
-    client_conn = await test_broadcaster.register_client(mock_ws, "user-123")
+    client_conn = test_broadcaster.register_client(mock_ws, "user-123")
     
     # Subscribe with filter
     filters = {"item_id": ["ITEM-001", "ITEM-002"]}
-    await test_broadcaster.subscribe(client_conn.client_id, "prices", filters)
+    test_broadcaster.subscribe(client_conn.client_id, "prices", filters)
     
     # Test matching event
     matching_event = PriceUpdate(
         item_id="ITEM-001",
-        current_price=100.0,
+        price=100.0,
         previous_price=95.0,
-        price_change=5.0,
-        price_change_percent=5.26,
+        change_percent=5.26,
         volatility=2.0,
-        trend_direction="uptrend",
-        timestamp=datetime.utcnow()
+        trend_direction=TrendDirection.UPTREND,
+        moving_average_7d=98.0,
+        moving_average_30d=97.0,
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
-    assert test_broadcaster._matches_filters(matching_event, filters) == True
+    assert test_broadcaster._matches_filters(matching_event.dict(), filters) == True
     
     # Test non-matching event
     non_matching_event = PriceUpdate(
         item_id="ITEM-999",
-        current_price=100.0,
+        price=100.0,
         previous_price=95.0,
-        price_change=5.0,
-        price_change_percent=5.26,
+        change_percent=5.26,
         volatility=2.0,
-        trend_direction="uptrend",
-        timestamp=datetime.utcnow()
+        trend_direction=TrendDirection.UPTREND,
+        moving_average_7d=98.0,
+        moving_average_30d=97.0,
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
-    assert test_broadcaster._matches_filters(non_matching_event, filters) == False
+    assert test_broadcaster._matches_filters(non_matching_event.dict(), filters) == False
 
 
 @pytest.mark.asyncio
 async def test_filter_risk_alerts_by_level(test_broadcaster):
     """Test filtering risk alerts by risk level"""
     mock_ws = AsyncMock()
-    await test_broadcaster.register_client(mock_ws, "user-123")
+    test_broadcaster.register_client(mock_ws, "user-123")
     
     filters = {"risk_level": ["CRITICAL", "HIGH"]}
     
@@ -271,8 +280,9 @@ async def test_filter_risk_alerts_by_level(test_broadcaster):
         risk_level=AlertLevel.CRITICAL,
         alert_type="PRICE_SPIKE",
         message="Critical alert",
+        details={"severity": "CRITICAL", "reason": "Price spike detected"},
         risk_score=95.0,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
     # Note: filter matching is application-specific
@@ -282,12 +292,12 @@ async def test_filter_risk_alerts_by_level(test_broadcaster):
 @pytest.mark.asyncio
 async def test_multiple_subscriptions_same_client(test_broadcaster, mock_websocket):
     """Test that a client can subscribe to multiple topics"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-123")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-123")
     
     # Subscribe to multiple topics
-    await test_broadcaster.subscribe(client_conn.client_id, "prices")
-    await test_broadcaster.subscribe(client_conn.client_id, "alerts")
-    await test_broadcaster.subscribe(client_conn.client_id, "anomalies")
+    test_broadcaster.subscribe(client_conn.client_id, "prices")
+    test_broadcaster.subscribe(client_conn.client_id, "alerts")
+    test_broadcaster.subscribe(client_conn.client_id, "anomalies")
     
     assert "prices" in test_broadcaster.topic_subscriptions
     assert "alerts" in test_broadcaster.topic_subscriptions
@@ -297,10 +307,10 @@ async def test_multiple_subscriptions_same_client(test_broadcaster, mock_websock
 @pytest.mark.asyncio
 async def test_subscription_with_no_filters(test_broadcaster, mock_websocket):
     """Test subscribing without filters receives all events"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-123")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-123")
     
     # Subscribe with no filters (None or empty dict)
-    await test_broadcaster.subscribe(client_conn.client_id, "prices", filters=None)
+    test_broadcaster.subscribe(client_conn.client_id, "prices", filters=None)
     
     # Should accept all price events
     assert client_conn.client_id in test_broadcaster.topic_subscriptions["prices"]
@@ -314,10 +324,10 @@ async def test_subscription_with_no_filters(test_broadcaster, mock_websocket):
 async def test_broadcast_price_update_single_client(test_broadcaster, sample_price_update):
     """Test broadcasting price update to a single client"""
     mock_ws = AsyncMock()
-    client_conn = await test_broadcaster.register_client(mock_ws, "user-123")
+    client_conn = test_broadcaster.register_client(mock_ws, "user-123")
     
     # Subscribe to prices
-    await test_broadcaster.subscribe(client_conn.client_id, "prices")
+    test_broadcaster.subscribe(client_conn.client_id, "prices")
     
     # Broadcast
     count = await test_broadcaster.broadcast_event(sample_price_update, "prices")
@@ -333,8 +343,8 @@ async def test_broadcast_to_multiple_clients(test_broadcaster, sample_price_upda
     clients = []
     for i in range(3):
         mock_ws = AsyncMock()
-        client_conn = await test_broadcaster.register_client(mock_ws, f"user-{i}")
-        await test_broadcaster.subscribe(client_conn.client_id, "prices")
+        client_conn = test_broadcaster.register_client(mock_ws, f"user-{i}")
+        test_broadcaster.subscribe(client_conn.client_id, "prices")
         clients.append((client_conn, mock_ws))
     
     # Broadcast
@@ -347,14 +357,14 @@ async def test_broadcast_to_multiple_clients(test_broadcaster, sample_price_upda
 async def test_broadcast_excludes_specified_client(test_broadcaster, sample_price_update):
     """Test that exclude_client parameter works"""
     mock_ws1 = AsyncMock()
-    client1 = await test_broadcaster.register_client(mock_ws1, "user-1")
+    client1 = test_broadcaster.register_client(mock_ws1, "user-1")
     
     mock_ws2 = AsyncMock()
-    client2 = await test_broadcaster.register_client(mock_ws2, "user-2")
+    client2 = test_broadcaster.register_client(mock_ws2, "user-2")
     
     # Subscribe both
-    await test_broadcaster.subscribe(client1.client_id, "prices")
-    await test_broadcaster.subscribe(client2.client_id, "prices")
+    test_broadcaster.subscribe(client1.client_id, "prices")
+    test_broadcaster.subscribe(client2.client_id, "prices")
     
     # Broadcast excluding client1
     count = await test_broadcaster.broadcast_event(
@@ -372,22 +382,23 @@ async def test_broadcast_excludes_specified_client(test_broadcaster, sample_pric
 async def test_broadcast_respects_filters(test_broadcaster):
     """Test that broadcasting respects client filters"""
     mock_ws = AsyncMock()
-    client_conn = await test_broadcaster.register_client(mock_ws, "user-123")
+    client_conn = test_broadcaster.register_client(mock_ws, "user-123")
     
     # Subscribe with filter
     filters = {"item_id": ["ITEM-001"]}
-    await test_broadcaster.subscribe(client_conn.client_id, "prices", filters)
+    test_broadcaster.subscribe(client_conn.client_id, "prices", filters)
     
     # Broadcast event matching filter
     matching_event = PriceUpdate(
         item_id="ITEM-001",
-        current_price=100.0,
+        price=100.0,
         previous_price=95.0,
-        price_change=5.0,
-        price_change_percent=5.26,
+        change_percent=5.26,
         volatility=2.0,
-        trend_direction="uptrend",
-        timestamp=datetime.utcnow()
+        trend_direction=TrendDirection.UPTREND,
+        moving_average_7d=98.0,
+        moving_average_30d=97.0,
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
     # Note: in actual implementation, filter matching is tested here
@@ -400,20 +411,21 @@ async def test_broadcast_parallel_delivery(test_broadcaster):
     clients = []
     for i in range(10):
         mock_ws = AsyncMock()
-        client_conn = await test_broadcaster.register_client(mock_ws, f"user-{i}")
-        await test_broadcaster.subscribe(client_conn.client_id, "prices")
+        client_conn = test_broadcaster.register_client(mock_ws, f"user-{i}")
+        test_broadcaster.subscribe(client_conn.client_id, "prices")
         clients.append((client_conn, mock_ws))
     
     # Create event
     event = PriceUpdate(
         item_id="ITEM-001",
-        current_price=100.0,
+        price=100.0,
         previous_price=95.0,
-        price_change=5.0,
-        price_change_percent=5.26,
+        change_percent=5.26,
         volatility=2.0,
-        trend_direction="uptrend",
-        timestamp=datetime.utcnow()
+        trend_direction=TrendDirection.UPTREND,
+        moving_average_7d=98.0,
+        moving_average_30d=97.0,
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
     # Broadcast
@@ -427,23 +439,24 @@ async def test_broadcast_parallel_delivery(test_broadcaster):
 async def test_broadcast_different_event_types(test_broadcaster):
     """Test broadcasting different event types to same client"""
     mock_ws = AsyncMock()
-    client_conn = await test_broadcaster.register_client(mock_ws, "user-123")
+    client_conn = test_broadcaster.register_client(mock_ws, "user-123")
     
     # Subscribe to multiple topics
-    await test_broadcaster.subscribe(client_conn.client_id, "prices")
-    await test_broadcaster.subscribe(client_conn.client_id, "alerts")
-    await test_broadcaster.subscribe(client_conn.client_id, "anomalies")
+    test_broadcaster.subscribe(client_conn.client_id, "prices")
+    test_broadcaster.subscribe(client_conn.client_id, "alerts")
+    test_broadcaster.subscribe(client_conn.client_id, "anomalies")
     
     # Broadcast different events
     price_event = PriceUpdate(
         item_id="ITEM-001",
-        current_price=100.0,
+        price=100.0,
         previous_price=95.0,
-        price_change=5.0,
-        price_change_percent=5.26,
+        change_percent=5.26,
         volatility=2.0,
-        trend_direction="uptrend",
-        timestamp=datetime.utcnow()
+        trend_direction=TrendDirection.UPTREND,
+        moving_average_7d=98.0,
+        moving_average_30d=97.0,
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
     alert_event = RiskAlert(
@@ -451,8 +464,9 @@ async def test_broadcast_different_event_types(test_broadcaster):
         risk_level=AlertLevel.HIGH,
         alert_type="PRICE_SPIKE",
         message="Price spike",
+        details={"severity": "HIGH", "reason": "Price volatility spike"},
         risk_score=75.0,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
     # Broadcast both
@@ -471,13 +485,13 @@ async def test_broadcast_different_event_types(test_broadcaster):
 async def test_broadcast_with_inactive_client(test_broadcaster, sample_price_update):
     """Test handling of inactive client connection"""
     mock_ws = AsyncMock()
-    client_conn = await test_broadcaster.register_client(mock_ws, "user-123")
+    client_conn = test_broadcaster.register_client(mock_ws, "user-123")
     
     # Subscribe
-    await test_broadcaster.subscribe(client_conn.client_id, "prices")
+    test_broadcaster.subscribe(client_conn.client_id, "prices")
     
     # Mark client as inactive
-    client_conn.last_activity = datetime.utcnow() - asyncio.timedelta(hours=2)
+    client_conn.last_activity = datetime.now(tz=timezone.utc) - timedelta(hours=2)
     
     # Broadcaster should handle gracefully
     # Note: actual cleanup happens via cleanup_inactive_clients()
@@ -487,11 +501,10 @@ async def test_broadcast_with_inactive_client(test_broadcaster, sample_price_upd
 async def test_cleanup_inactive_clients(test_broadcaster):
     """Test cleanup of inactive clients"""
     mock_ws = AsyncMock()
-    client_conn = await test_broadcaster.register_client(mock_ws, "user-123")
+    client_conn = test_broadcaster.register_client(mock_ws, "user-123")
     
     # Manually set old activity time
-    from datetime import timedelta
-    client_conn.last_activity = datetime.utcnow() - timedelta(seconds=130)
+    client_conn.last_activity = datetime.now(tz=timezone.utc) - timedelta(seconds=130)
     
     # Cleanup with 120 second timeout
     removed = await test_broadcaster.cleanup_inactive_clients(timeout_seconds=120)
@@ -506,7 +519,7 @@ async def test_handle_websocket_send_error(test_broadcaster):
     mock_ws = AsyncMock()
     mock_ws.send_json.side_effect = Exception("Connection lost")
     
-    client_conn = await test_broadcaster.register_client(mock_ws, "user-123")
+    client_conn = test_broadcaster.register_client(mock_ws, "user-123")
     
     # Increment error count
     client_conn.errors += 1
@@ -518,10 +531,10 @@ async def test_handle_websocket_send_error(test_broadcaster):
 @pytest.mark.asyncio
 async def test_invalid_topic_subscription(test_broadcaster, mock_websocket):
     """Test subscribing to invalid topic name"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-123")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-123")
     
     # Subscribe to valid topic (any topic is valid in this implementation)
-    result = await test_broadcaster.subscribe(client_conn.client_id, "custom_topic")
+    result = test_broadcaster.subscribe(client_conn.client_id, "custom_topic")
     
     assert result == True  # Should allow any topic
 
@@ -582,8 +595,8 @@ async def test_handle_500_concurrent_connections(test_broadcaster):
     # Create 500 mock clients
     for i in range(500):
         mock_ws = AsyncMock()
-        client_conn = await test_broadcaster.register_client(mock_ws, f"user-{i}")
-        await test_broadcaster.subscribe(client_conn.client_id, "prices")
+        client_conn = test_broadcaster.register_client(mock_ws, f"user-{i}")
+        test_broadcaster.subscribe(client_conn.client_id, "prices")
         connections.append((client_conn, mock_ws))
     
     # Verify all registered
@@ -592,13 +605,14 @@ async def test_handle_500_concurrent_connections(test_broadcaster):
     # Broadcast to all
     event = PriceUpdate(
         item_id="ITEM-001",
-        current_price=100.0,
+        price=100.0,
         previous_price=95.0,
-        price_change=5.0,
-        price_change_percent=5.26,
+        change_percent=5.26,
         volatility=2.0,
-        trend_direction="uptrend",
-        timestamp=datetime.utcnow()
+        trend_direction=TrendDirection.UPTREND,
+        moving_average_7d=98.0,
+        moving_average_30d=97.0,
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
     count = await test_broadcaster.broadcast_event(event, "prices")
@@ -608,20 +622,21 @@ async def test_handle_500_concurrent_connections(test_broadcaster):
 @pytest.mark.asyncio
 async def test_handle_high_event_frequency(test_broadcaster, mock_websocket):
     """Test handling rapid event broadcasts"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-123")
-    await test_broadcaster.subscribe(client_conn.client_id, "prices")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-123")
+    test_broadcaster.subscribe(client_conn.client_id, "prices")
     
     # Broadcast 100 events rapidly
     for i in range(100):
         event = PriceUpdate(
             item_id=f"ITEM-{i}",
-            current_price=100.0 + i,
+            price=100.0 + i,
             previous_price=95.0 + i,
-            price_change=5.0,
-            price_change_percent=5.26,
+            change_percent=5.26,
             volatility=2.0,
-            trend_direction="uptrend",
-            timestamp=datetime.utcnow()
+            trend_direction=TrendDirection.UPTREND,
+            moving_average_7d=98.0 + i,
+            moving_average_30d=97.0 + i,
+            timestamp=datetime.now(tz=timezone.utc)
         )
         
         count = await test_broadcaster.broadcast_event(event, "prices")
@@ -637,7 +652,7 @@ async def test_memory_efficiency_with_many_clients(test_broadcaster):
     # Create 1000 clients
     for i in range(1000):
         mock_ws = AsyncMock()
-        await test_broadcaster.register_client(mock_ws, f"user-{i}")
+        test_broadcaster.register_client(mock_ws, f"user-{i}")
     
     # Verify all stored
     assert len(test_broadcaster.clients) == 1000
@@ -655,38 +670,39 @@ async def test_memory_efficiency_with_many_clients(test_broadcaster):
 @pytest.mark.asyncio
 async def test_get_broadcaster_statistics(test_broadcaster, mock_websocket):
     """Test retrieving broadcaster statistics"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-123")
-    await test_broadcaster.subscribe(client_conn.client_id, "prices")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-123")
+    test_broadcaster.subscribe(client_conn.client_id, "prices")
     
     # Broadcast event
     event = PriceUpdate(
         item_id="ITEM-001",
-        current_price=100.0,
+        price=100.0,
         previous_price=95.0,
-        price_change=5.0,
-        price_change_percent=5.26,
+        change_percent=5.26,
         volatility=2.0,
-        trend_direction="uptrend",
-        timestamp=datetime.utcnow()
+        trend_direction=TrendDirection.UPTREND,
+        moving_average_7d=98.0,
+        moving_average_30d=97.0,
+        timestamp=datetime.now(tz=timezone.utc)
     )
     
     await test_broadcaster.broadcast_event(event, "prices")
     
     # Get stats
-    stats = await test_broadcaster.get_stats()
+    stats = test_broadcaster.get_stats()
     
     assert "active_connections" in stats
-    assert "messages_sent" in stats
+    assert "messages_sent_total" in stats
     assert stats["active_connections"] >= 1
 
 
 @pytest.mark.asyncio
 async def test_get_client_statistics(test_broadcaster, mock_websocket):
     """Test retrieving per-client statistics"""
-    client_conn = await test_broadcaster.register_client(mock_websocket, "user-123")
+    client_conn = test_broadcaster.register_client(mock_websocket, "user-123")
     
     # Get client stats
-    client_stats = await test_broadcaster.get_clients_stats()
+    client_stats = test_broadcaster.get_clients_stats()
     
     assert isinstance(client_stats, list)
     assert len(client_stats) >= 1

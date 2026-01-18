@@ -5,6 +5,7 @@ Validates that user profile endpoints respect tenant boundaries
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime, timezone
 from fastapi.testclient import TestClient
 from fastapi import HTTPException, status
 
@@ -212,7 +213,9 @@ class TestUserProfileEndpointTenantContext:
             email=email,
             theme="light",
             notifications_enabled=True,
-            language="en"
+            language="en",
+            preferences={},
+            updated_at=datetime.now(tz=timezone.utc)
         )
         mock_profile_service.get_preferences = AsyncMock(return_value=mock_prefs)
         

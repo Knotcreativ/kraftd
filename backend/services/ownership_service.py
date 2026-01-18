@@ -88,7 +88,7 @@ class OwnershipService:
             return False
         
         # Build resource key
-        resource_key = f"{resource_type.value}:{resource_id}"
+        resource_key = f"{tenant_id}:{resource_type.value}:{resource_id}"
         
         # Check if resource exists
         record = OwnershipService._ownership_db.get(resource_key)
@@ -135,13 +135,13 @@ class OwnershipService:
         if not tenant_context:
             return False
         
-        resource_key = f"{resource_type.value}:{resource_id}"
+        resource_key = f"{tenant_context.tenant_id}:{resource_type.value}:{resource_id}"
         record = OwnershipService._ownership_db.get(resource_key)
         
         if not record:
             return False
         
-        # Verify tenant isolation
+        # Verify tenant isolation (already verified via key)
         if not TenantService.is_same_tenant(record.tenant_id, tenant_context.tenant_id):
             logger.warning(f"Cross-tenant access attempt: {resource_key}")
             return False
@@ -209,11 +209,11 @@ class OwnershipService:
                 continue
             
             # Filter by type if specified
-            if resource_type and not resource_key.startswith(resource_type.value):
+            if resource_type and not resource_key.split(":")[1] == resource_type.value:
                 continue
             
-            # Extract resource ID from key
-            _, resource_id = resource_key.split(":", 1)
+            # Extract resource ID from key (format: tenant:type:id)
+            _, _, resource_id = resource_key.split(":", 2)
             owned.append(resource_id)
         
         logger.debug(
@@ -257,7 +257,7 @@ class OwnershipService:
             )
             return False
         
-        resource_key = f"{resource_type.value}:{resource_id}"
+        resource_key = f"{tenant_id}:{resource_type.value}:{resource_id}"
         
         # Check if already exists
         if resource_key in OwnershipService._ownership_db:
@@ -307,7 +307,7 @@ class OwnershipService:
             logger.error("No tenant context for ownership transfer")
             return False
         
-        resource_key = f"{resource_type.value}:{resource_id}"
+        resource_key = f"{tenant_id}:{resource_type.value}:{resource_id}"
         record = OwnershipService._ownership_db.get(resource_key)
         
         if not record:
@@ -376,7 +376,7 @@ class OwnershipService:
         if not tenant_context:
             return False
         
-        resource_key = f"{resource_type.value}:{resource_id}"
+        resource_key = f"{tenant_id}:{resource_type.value}:{resource_id}"
         record = OwnershipService._ownership_db.get(resource_key)
         
         if not record:
@@ -423,7 +423,7 @@ class OwnershipService:
         Returns:
             True if deleted successfully
         """
-        resource_key = f"{resource_type.value}:{resource_id}"
+        resource_key = f"{tenant_id}:{resource_type.value}:{resource_id}"
         
         if resource_key not in OwnershipService._ownership_db:
             logger.debug(f"Ownership record not found: {resource_key}")

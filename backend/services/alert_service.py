@@ -18,7 +18,7 @@ Alerts can be sent to:
 """
 
 from typing import Optional, Dict, Any, List, Callable
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from dataclasses import dataclass
 import logging
@@ -115,7 +115,7 @@ class AlertService:
         new_alerts = []
         
         # Get recent events (last 1 hour)
-        cutoff = datetime.utcnow() - timedelta(hours=1)
+        cutoff = datetime.now(tz=timezone.utc) - timedelta(hours=1)
         events = await AuditService.get_events(
             tenant_id=tenant_id,
             limit=1000
@@ -183,10 +183,10 @@ class AlertService:
         for user_email, user_events in by_user.items():
             if len(user_events) >= AlertService.FAILED_LOGIN_THRESHOLD:
                 alert = Alert(
-                    id=f"brute_{user_email}_{datetime.utcnow().isoformat()}",
+                    id=f"brute_{user_email}_{datetime.now(tz=timezone.utc).isoformat()}",
                     alert_type=AlertType.BRUTE_FORCE,
                     severity=AlertSeverity.CRITICAL,
-                    timestamp=datetime.utcnow().isoformat() + 'Z',
+                    timestamp=datetime.now(tz=timezone.utc).isoformat(),
                     tenant_id=tenant_id,
                     title=f"Brute Force Detected: {user_email}",
                     description=f"{len(user_events)} failed login attempts in 15 minutes",
@@ -314,10 +314,10 @@ class AlertService:
         for user_email, user_events in by_user.items():
             if len(user_events) >= AlertService.OFF_HOURS_ALERT_THRESHOLD:
                 alert = Alert(
-                    id=f"unusual_{user_email}_{datetime.utcnow().isoformat()}",
+                    id=f"unusual_{user_email}_{datetime.now(tz=timezone.utc).isoformat()}",
                     alert_type=AlertType.UNUSUAL_ACCESS_PATTERN,
                     severity=AlertSeverity.MEDIUM,
-                    timestamp=datetime.utcnow().isoformat() + 'Z',
+                    timestamp=datetime.now(tz=timezone.utc).isoformat(),
                     tenant_id=tenant_id,
                     title=f"Unusual Access Pattern: {user_email}",
                     description=f"{len(user_events)} off-hours access attempts detected",
@@ -361,10 +361,10 @@ class AlertService:
         for user_email, user_events in by_user.items():
             if len(user_events) >= AlertService.BULK_DELETE_THRESHOLD:
                 alert = Alert(
-                    id=f"bulk_delete_{user_email}_{datetime.utcnow().isoformat()}",
+                    id=f"bulk_delete_{user_email}_{datetime.now(tz=timezone.utc).isoformat()}",
                     alert_type=AlertType.BULK_DELETION,
                     severity=AlertSeverity.HIGH,
-                    timestamp=datetime.utcnow().isoformat() + 'Z',
+                    timestamp=datetime.now(tz=timezone.utc).isoformat(),
                     tenant_id=tenant_id,
                     title=f"Bulk Deletion: {user_email}",
                     description=f"{len(user_events)} items deleted in short time window",
@@ -396,10 +396,10 @@ class AlertService:
         for user_email, user_events in by_user_export.items():
             if len(user_events) >= AlertService.BULK_EXPORT_THRESHOLD:
                 alert = Alert(
-                    id=f"bulk_export_{user_email}_{datetime.utcnow().isoformat()}",
+                    id=f"bulk_export_{user_email}_{datetime.now(tz=timezone.utc).isoformat()}",
                     alert_type=AlertType.BULK_EXPORT,
                     severity=AlertSeverity.MEDIUM,
-                    timestamp=datetime.utcnow().isoformat() + 'Z',
+                    timestamp=datetime.now(tz=timezone.utc).isoformat(),
                     tenant_id=tenant_id,
                     title=f"Bulk Data Export: {user_email}",
                     description=f"{len(user_events)} items exported in short time",

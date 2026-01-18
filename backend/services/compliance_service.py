@@ -17,7 +17,7 @@ Report Types:
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from collections import defaultdict
 
@@ -67,7 +67,7 @@ class ComplianceReportService:
         )
         
         # Filter to access events in period
-        cutoff = datetime.utcnow() - timedelta(days=period_days)
+        cutoff = datetime.now(tz=timezone.utc) - timedelta(days=period_days)
         access_events = [
             e for e in events
             if e.event_type == AuditEventType.RESOURCE_READ
@@ -101,13 +101,13 @@ class ComplianceReportService:
             })
         
         report = ComplianceReport(
-            report_id='access_audit_' + datetime.utcnow().isoformat(),
+            report_id='access_audit_' + datetime.now(tz=timezone.utc).isoformat(),
             report_type='ACCESS_AUDIT',
-            generated_at=datetime.utcnow().isoformat() + 'Z',
+            generated_at=datetime.now(tz=timezone.utc).isoformat(),
             generated_by=None,
             tenant_id=tenant_id,
-            period_start=(datetime.utcnow() - timedelta(days=period_days)).isoformat() + 'Z',
-            period_end=datetime.utcnow().isoformat() + 'Z',
+            period_start=(datetime.now(tz=timezone.utc) - timedelta(days=period_days)).isoformat(),
+            period_end=datetime.now(tz=timezone.utc).isoformat(),
             summary=summary,
             details=details,
             metadata={'period_days': period_days, 'include_failed': include_failed}
@@ -140,7 +140,7 @@ class ComplianceReportService:
         )
         
         # Filter to modification events
-        cutoff = datetime.utcnow() - timedelta(days=period_days)
+        cutoff = datetime.now(tz=timezone.utc) - timedelta(days=period_days)
         change_events = [
             e for e in events
             if e.event_type in [
@@ -183,13 +183,13 @@ class ComplianceReportService:
                 })
         
         report = ComplianceReport(
-            report_id='data_change_' + datetime.utcnow().isoformat(),
+            report_id='data_change_' + datetime.now(tz=timezone.utc).isoformat(),
             report_type='DATA_CHANGE',
-            generated_at=datetime.utcnow().isoformat() + 'Z',
+            generated_at=datetime.now(tz=timezone.utc).isoformat(),
             generated_by=None,
             tenant_id=tenant_id,
-            period_start=(datetime.utcnow() - timedelta(days=period_days)).isoformat() + 'Z',
-            period_end=datetime.utcnow().isoformat() + 'Z',
+            period_start=(datetime.now(tz=timezone.utc) - timedelta(days=period_days)).isoformat(),
+            period_end=datetime.now(tz=timezone.utc).isoformat(),
             summary=summary,
             details=details,
             metadata={'period_days': period_days, 'resource_type': resource_type}
@@ -223,7 +223,7 @@ class ComplianceReportService:
         )
         
         # Filter to period
-        cutoff = datetime.utcnow() - timedelta(days=period_days)
+        cutoff = datetime.now(tz=timezone.utc) - timedelta(days=period_days)
         activity_events = [
             e for e in events
             if datetime.fromisoformat(e.timestamp.replace('Z', '+00:00')) > cutoff
@@ -273,13 +273,13 @@ class ComplianceReportService:
             details.append(user_details)
         
         report = ComplianceReport(
-            report_id='user_activity_' + datetime.utcnow().isoformat(),
+            report_id='user_activity_' + datetime.now(tz=timezone.utc).isoformat(),
             report_type='USER_ACTIVITY',
-            generated_at=datetime.utcnow().isoformat() + 'Z',
+            generated_at=datetime.now(tz=timezone.utc).isoformat(),
             generated_by=None,
             tenant_id=tenant_id,
-            period_start=(datetime.utcnow() - timedelta(days=period_days)).isoformat() + 'Z',
-            period_end=datetime.utcnow().isoformat() + 'Z',
+            period_start=(datetime.now(tz=timezone.utc) - timedelta(days=period_days)).isoformat(),
+            period_end=datetime.now(tz=timezone.utc).isoformat(),
             summary=summary,
             details=details,
             metadata={'period_days': period_days, 'user_email': user_email}
@@ -310,7 +310,7 @@ class ComplianceReportService:
         )
         
         # Filter to security events
-        cutoff = datetime.utcnow() - timedelta(days=period_days)
+        cutoff = datetime.now(tz=timezone.utc) - timedelta(days=period_days)
         security_events = [
             e for e in events
             if (e.event_type in [
@@ -358,13 +358,13 @@ class ComplianceReportService:
             })
         
         report = ComplianceReport(
-            report_id='security_' + datetime.utcnow().isoformat(),
+            report_id='security_' + datetime.now(tz=timezone.utc).isoformat(),
             report_type='SECURITY_EVENTS',
-            generated_at=datetime.utcnow().isoformat() + 'Z',
+            generated_at=datetime.now(tz=timezone.utc).isoformat(),
             generated_by=None,
             tenant_id=tenant_id,
-            period_start=(datetime.utcnow() - timedelta(days=period_days)).isoformat() + 'Z',
-            period_end=datetime.utcnow().isoformat() + 'Z',
+            period_start=(datetime.now(tz=timezone.utc) - timedelta(days=period_days)).isoformat(),
+            period_end=datetime.now(tz=timezone.utc).isoformat(),
             summary=summary,
             details=details,
             metadata={'period_days': period_days}
@@ -397,7 +397,7 @@ class ComplianceReportService:
         )
         
         # Filter to privacy-relevant events
-        cutoff = datetime.utcnow() - timedelta(days=period_days)
+        cutoff = datetime.now(tz=timezone.utc) - timedelta(days=period_days)
         privacy_events = [
             e for e in events
             if e.event_type in [
@@ -433,13 +433,13 @@ class ComplianceReportService:
             })
         
         report = ComplianceReport(
-            report_id='gdpr_' + datetime.utcnow().isoformat(),
+            report_id='gdpr_' + datetime.now(tz=timezone.utc).isoformat(),
             report_type='GDPR_PRIVACY',
-            generated_at=datetime.utcnow().isoformat() + 'Z',
+            generated_at=datetime.now(tz=timezone.utc).isoformat(),
             generated_by=None,
             tenant_id=tenant_id,
-            period_start=(datetime.utcnow() - timedelta(days=period_days)).isoformat() + 'Z',
-            period_end=datetime.utcnow().isoformat() + 'Z',
+            period_start=(datetime.now(tz=timezone.utc) - timedelta(days=period_days)).isoformat(),
+            period_end=datetime.now(tz=timezone.utc).isoformat(),
             summary=summary,
             details=details,
             metadata={'period_days': period_days, 'user_email': user_email}

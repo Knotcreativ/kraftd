@@ -10,7 +10,7 @@ Test Coverage: 45+ test cases across 9 test classes
 
 import pytest
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch, MagicMock
 
 from services.audit_service import (
@@ -107,7 +107,8 @@ class TestAuditServiceEventLogging:
             tenant_id="tenant-1",
             allowed=True,
             reason="Permission check passed",
-            ip_address="192.168.1.1"
+            ip_address="192.168.1.1",
+            user_agent="pytest-client"
         )
         
         assert event_id is not None
@@ -123,7 +124,8 @@ class TestAuditServiceEventLogging:
             tenant_id="tenant-1",
             allowed=False,
             reason="User is not the owner",
-            ip_address="192.168.1.1"
+            ip_address="192.168.1.1",
+            user_agent="pytest-client"
         )
         
         assert event_id is not None
@@ -138,7 +140,10 @@ class TestAuditServiceEventLogging:
             resource_id="doc-new",
             tenant_id="tenant-1",
             action="create",
-            changes={"title": "New Document", "owner": "user@example.com"}
+            reason="Creating new document",
+            changes={"title": "New Document", "owner": "user@example.com"},
+            ip_address="192.168.1.1",
+            user_agent="pytest-client"
         )
         
         assert event_id is not None
@@ -153,7 +158,10 @@ class TestAuditServiceEventLogging:
             resource_id="doc-123",
             tenant_id="tenant-1",
             action="update",
-            changes={"title": {"old": "Old", "new": "New"}}
+            reason="Updating document",
+            changes={"title": {"old": "Old", "new": "New"}},
+            ip_address="192.168.1.1",
+            user_agent="pytest-client"
         )
         
         assert event_id is not None
@@ -167,7 +175,10 @@ class TestAuditServiceEventLogging:
             resource_type="document",
             resource_id="doc-delete",
             tenant_id="tenant-1",
-            action="delete"
+            action="delete",
+            reason="Deleting document",
+            ip_address="192.168.1.1",
+            user_agent="pytest-client"
         )
         
         assert event_id is not None
@@ -181,7 +192,9 @@ class TestAuditServiceEventLogging:
             resource_type="database",
             resource_id="db-1",
             tenant_id="tenant-1",
-            error_message="Connection timeout"
+            error_message="Connection timeout",
+            ip_address="192.168.1.1",
+            user_agent="pytest-client"
         )
         
         assert event_id is not None
@@ -200,7 +213,10 @@ class TestAuditServiceEventLogging:
             result=AuditResult.SUCCESS,
             resource_type="user",
             resource_id="user@example.com",
-            allowed=True
+            allowed=True,
+            reason="Login successful",
+            ip_address="192.168.1.1",
+            user_agent="pytest-client"
         )
         
         await AuditService.log_event(event)
@@ -586,7 +602,7 @@ class TestAlertServiceUnusualPatterns:
     async def test_off_hours_access_detection(self):
         """Test detection of off-hours access patterns"""
         # Create off-hours timestamp (2 AM)
-        off_hours_time = datetime.utcnow().replace(hour=2, minute=0, second=0)
+        off_hours_time = datetime.now(tz=timezone.utc).replace(hour=2, minute=0, second=0)
         
         # Log multiple off-hours accesses (simulated)
         for i in range(4):
@@ -638,7 +654,7 @@ class TestAlertServiceManagement:
             id="test-alert-1",
             alert_type=AlertType.BRUTE_FORCE,
             severity=AlertSeverity.HIGH,
-            timestamp=datetime.utcnow().isoformat() + 'Z',
+            timestamp=datetime.now(tz=timezone.utc).isoformat() + 'Z',
             tenant_id="tenant-1",
             title="Test Alert",
             description="Test",
@@ -664,7 +680,7 @@ class TestAlertServiceManagement:
             id="test-alert-2",
             alert_type=AlertType.BRUTE_FORCE,
             severity=AlertSeverity.HIGH,
-            timestamp=datetime.utcnow().isoformat() + 'Z',
+            timestamp=datetime.now(tz=timezone.utc).isoformat() + 'Z',
             tenant_id="tenant-1",
             title="Test Alert 2",
             description="Test",
@@ -690,7 +706,7 @@ class TestAlertServiceManagement:
             id="critical-1",
             alert_type=AlertType.BRUTE_FORCE,
             severity=AlertSeverity.CRITICAL,
-            timestamp=datetime.utcnow().isoformat() + 'Z',
+            timestamp=datetime.now(tz=timezone.utc).isoformat() + 'Z',
             tenant_id="tenant-1",
             title="Critical",
             description="Test",

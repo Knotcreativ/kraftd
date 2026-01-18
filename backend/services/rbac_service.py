@@ -19,10 +19,12 @@ logger = logging.getLogger(__name__)
 
 class UserRole(str, Enum):
     """User role enumeration"""
-    ADMIN = "admin"       # Full system access
-    USER = "user"         # Standard user (default)
-    VIEWER = "viewer"     # Read-only access
-    GUEST = "guest"       # Unauthenticated access
+    ADMIN = "admin"               # Full system access
+    SYSTEM_ADMIN = "system_admin" # System administrator
+    TENANT_ADMIN = "tenant_admin" # Tenant administrator
+    USER = "user"                 # Standard user (default)
+    VIEWER = "viewer"             # Read-only access
+    GUEST = "guest"               # Unauthenticated access
 
 
 class Permission(str, Enum):

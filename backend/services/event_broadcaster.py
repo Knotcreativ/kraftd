@@ -7,7 +7,7 @@ Manages WebSocket connections and broadcasts events to subscribed clients.
 from typing import Dict, List, Set, Optional, Any
 from fastapi import WebSocket
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 import logging
 import uuid
@@ -24,8 +24,8 @@ class ClientConnection:
         self.user_id = user_id
         self.subscribed_topics: Set[str] = set()
         self.filters: Dict[str, Dict] = {}  # topic -> filter dict
-        self.connected_at = datetime.utcnow()
-        self.last_activity = datetime.utcnow()
+        self.connected_at = datetime.now(tz=timezone.utc)
+        self.last_activity = datetime.now(tz=timezone.utc)
         self.messages_received = 0
         self.messages_sent = 0
         self.errors = 0
@@ -40,7 +40,7 @@ class ClientConnection:
         try:
             await self.websocket.send_json(event)
             self.messages_sent += 1
-            self.last_activity = datetime.utcnow()
+            self.last_activity = datetime.now(tz=timezone.utc)
             return True
         except Exception as e:
             logger.warning(f"Failed to send to {self.client_id}: {e}")
@@ -57,7 +57,7 @@ class ClientConnection:
         try:
             data = await self.websocket.receive_json()
             self.messages_received += 1
-            self.last_activity = datetime.utcnow()
+            self.last_activity = datetime.now(tz=timezone.utc)
             return data
         except Exception as e:
             logger.debug(f"Client {self.client_id} disconnected or sent invalid data: {e}")
@@ -72,7 +72,7 @@ class ClientConnection:
     
     def is_active(self, timeout_seconds: int = 120) -> bool:
         """Check if client is still active (received message within timeout)"""
-        elapsed = (datetime.utcnow() - self.last_activity).total_seconds()
+        elapsed = (datetime.now(tz=timezone.utc) - self.last_activity).total_seconds()
         return elapsed < timeout_seconds
     
     def get_stats(self) -> dict:
@@ -112,7 +112,7 @@ class EventBroadcasterService:
         self.total_messages_received = 0
         self.total_errors = 0
         self.last_minute_errors = 0
-        self.last_error_cleanup = datetime.utcnow()
+        self.last_error_cleanup = datetime.now(tz=timezone.utc)
     
     def register_client(self, websocket: WebSocket, user_id: str) -> Optional[ClientConnection]:
         """
@@ -347,7 +347,7 @@ class EventBroadcasterService:
             logger.info(f"Cleaned up {len(inactive)} inactive clients")
         
         # Reset error counter every minute
-        now = datetime.utcnow()
+        now = datetime.now(tz=timezone.utc)
         if (now - self.last_error_cleanup).total_seconds() > 60:
             self.last_minute_errors = 0
             self.last_error_cleanup = now

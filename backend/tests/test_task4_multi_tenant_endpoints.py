@@ -23,7 +23,7 @@ class TestPhase1UserProfileRoutes:
     
     def setup_method(self):
         """Reset tenant context before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
     
     def test_list_profiles_requires_tenant_context(self):
         """Verify list_all_profiles endpoint requires tenant context"""
@@ -91,7 +91,7 @@ class TestPhase2AdminRoutes:
     
     def setup_method(self):
         """Reset tenant context before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
     
     def test_list_users_filters_by_tenant(self):
         """Verify list_all_users filters by tenant_id"""
@@ -138,7 +138,7 @@ class TestPhase3EventsRoutes:
     
     def setup_method(self):
         """Reset tenant context before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
     
     def test_get_price_events_requires_tenant(self):
         """Verify get_price_events requires tenant context"""
@@ -249,7 +249,7 @@ class TestPhase4SignalsRoutes:
     
     def setup_method(self):
         """Reset tenant context before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
     
     def test_get_trends_requires_tenant_context(self):
         """Verify get_trends requires valid tenant context"""
@@ -301,7 +301,7 @@ class TestPhase5TemplatesRoutes:
     
     def setup_method(self):
         """Reset tenant context before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
     
     def test_list_templates_requires_tenant_context(self):
         """Verify list_templates requires tenant context"""
@@ -352,7 +352,7 @@ class TestPhase6WebSocketRoutes:
     
     def setup_method(self):
         """Reset tenant context before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
     
     def test_websocket_alerts_requires_tenant_context(self):
         """Verify /ws/alerts requires tenant context on connection"""
@@ -441,7 +441,7 @@ class TestResponseMetadata:
     
     def setup_method(self):
         """Reset tenant context before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
     
     def test_list_profiles_response_includes_tenant_id(self):
         """Verify list_profiles response includes tenant_id"""
@@ -499,7 +499,7 @@ class TestCrossTenantPrevention:
     
     def setup_method(self):
         """Reset tenant context before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
     
     def test_tenant_a_cannot_access_tenant_b_data(self):
         """Verify Tenant A cannot access Tenant B data"""

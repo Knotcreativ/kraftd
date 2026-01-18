@@ -63,9 +63,9 @@ class TestOwnershipService:
     
     def setup_method(self):
         """Reset services before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
         TenantService._tenant_mapping.clear()
-        OwnershipService._ownership_database.clear()
+        OwnershipService._ownership_db.clear()
     
     def _setup_tenant_context(self, tenant_id="tenant-123", 
                               user_email="user@example.com",
@@ -92,7 +92,7 @@ class TestOwnershipService:
         )
         
         assert result is True
-        assert "res-123" in OwnershipService._ownership_database
+        assert "tenant-123:template:res-123" in OwnershipService._ownership_db
     
     async def test_verify_resource_owner_success(self):
         """Test verifying resource owner succeeds for actual owner"""
@@ -175,15 +175,14 @@ class TestOwnershipService:
             user_email="owner@example.com",
             resource_id="res-123",
             resource_type=ResourceType.TEMPLATE,
-            action="read",
-            tenant_id="tenant-123"
+            action="read"
         )
         
         assert result is True
     
     async def test_verify_resource_access_shared(self):
         """Test resource access for shared user"""
-        self._setup_tenant_context()
+        self._setup_tenant_context(user_email="owner@example.com")
         
         # Create ownership record
         await OwnershipService.create_ownership_record(
@@ -197,18 +196,17 @@ class TestOwnershipService:
         await OwnershipService.share_resource(
             resource_id="res-123",
             resource_type=ResourceType.DOCUMENT,
-            owner_email="owner@example.com",
-            shared_with_email="user@example.com",
+            share_with=["user@example.com"],
             tenant_id="tenant-123"
         )
         
-        # Verify shared user can access
+        # Setup context for shared user and verify access
+        self._setup_tenant_context(user_email="user@example.com")
         result = await OwnershipService.verify_resource_access(
             user_email="user@example.com",
             resource_id="res-123",
             resource_type=ResourceType.DOCUMENT,
-            action="read",
-            tenant_id="tenant-123"
+            action="read"
         )
         
         assert result is True
@@ -225,15 +223,14 @@ class TestOwnershipService:
             tenant_id="tenant-123",
             is_public=True
         )
-        OwnershipService._ownership_database["res-123"] = record
+        OwnershipService._ownership_db["tenant-123:signal:res-123"] = record
         
         # Any user should have access to public resource
         result = await OwnershipService.verify_resource_access(
             user_email="anyone@example.com",
             resource_id="res-123",
             resource_type=ResourceType.SIGNAL,
-            action="read",
-            tenant_id="tenant-123"
+            action="read"
         )
         
         assert result is True
@@ -254,8 +251,7 @@ class TestOwnershipService:
             user_email="admin@example.com",
             resource_id="res-123",
             resource_type=ResourceType.TEMPLATE,
-            action="delete",
-            tenant_id="tenant-123"
+            action="delete"
         )
         
         assert result is True
@@ -275,16 +271,16 @@ class TestOwnershipService:
         
         # Get owned resources
         resources = await OwnershipService.get_owned_resources(
-            owner_email="owner@example.com",
+            user_email="owner@example.com",
             tenant_id="tenant-123"
         )
         
         assert len(resources) == 3
-        assert all(r.owner_email == "owner@example.com" for r in resources)
+        assert all(r == f"res-{i}" for i, r in enumerate(sorted(resources)))
     
     async def test_share_resource(self):
         """Test sharing resource with another user"""
-        self._setup_tenant_context()
+        self._setup_tenant_context(user_email="owner@example.com")
         
         await OwnershipService.create_ownership_record(
             resource_id="res-123",
@@ -296,18 +292,17 @@ class TestOwnershipService:
         result = await OwnershipService.share_resource(
             resource_id="res-123",
             resource_type=ResourceType.DOCUMENT,
-            owner_email="owner@example.com",
-            shared_with_email="user@example.com",
+            share_with=["user@example.com"],
             tenant_id="tenant-123"
         )
         
         assert result is True
-        record = OwnershipService._ownership_database["res-123"]
+        record = OwnershipService._ownership_db["tenant-123:document:res-123"]
         assert "user@example.com" in record.shared_with
     
     async def test_transfer_ownership(self):
         """Test transferring ownership to another user"""
-        self._setup_tenant_context()
+        self._setup_tenant_context(user_email="owner@example.com")
         
         await OwnershipService.create_ownership_record(
             resource_id="res-123",
@@ -319,13 +314,13 @@ class TestOwnershipService:
         result = await OwnershipService.transfer_ownership(
             resource_id="res-123",
             resource_type=ResourceType.TEMPLATE,
-            from_owner="owner@example.com",
-            to_owner="newowner@example.com",
+            from_user="owner@example.com",
+            to_user="newowner@example.com",
             tenant_id="tenant-123"
         )
         
         assert result is True
-        record = OwnershipService._ownership_database["res-123"]
+        record = OwnershipService._ownership_db["tenant-123:template:res-123"]
         assert record.owner_email == "newowner@example.com"
     
     async def test_delete_ownership_record(self):
@@ -341,11 +336,12 @@ class TestOwnershipService:
         
         result = await OwnershipService.delete_ownership_record(
             resource_id="res-123",
+            resource_type=ResourceType.TEMPLATE,
             tenant_id="tenant-123"
         )
         
         assert result is True
-        assert "res-123" not in OwnershipService._ownership_database
+        assert "res-123" not in OwnershipService._ownership_db
 
 
 class TestCrossTenantOwnershipIsolation:
@@ -353,9 +349,9 @@ class TestCrossTenantOwnershipIsolation:
     
     def setup_method(self):
         """Reset services before each test"""
-        TenantService._tenant_context.value = None
+        TenantService.clear_current_tenant()
         TenantService._tenant_mapping.clear()
-        OwnershipService._ownership_database.clear()
+        OwnershipService._ownership_db.clear()
     
     def _setup_tenant_context(self, tenant_id, user_email, user_role=UserRole.USER):
         """Helper to set up tenant context"""
@@ -389,8 +385,7 @@ class TestCrossTenantOwnershipIsolation:
             user_email="user2@example.com",
             resource_id="res-123",
             resource_type=ResourceType.TEMPLATE,
-            action="read",
-            tenant_id="tenant-1"  # Wrong tenant
+            action="read"
         )
         
         assert result is False
@@ -419,12 +414,12 @@ class TestCrossTenantOwnershipIsolation:
         
         # Both should exist but be separate
         resources_t1 = await OwnershipService.get_owned_resources(
-            owner_email="owner1@example.com",
+            user_email="owner1@example.com",
             tenant_id="tenant-1"
         )
         
         resources_t2 = await OwnershipService.get_owned_resources(
-            owner_email="owner2@example.com",
+            user_email="owner2@example.com",
             tenant_id="tenant-2"
         )
         

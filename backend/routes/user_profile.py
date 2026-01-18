@@ -15,6 +15,7 @@ from models.user_preferences import (
     UserProfile,
     UserPreferencesResponse
 )
+from models.user import UserRole
 from services.profile_service import ProfileService
 from services.rbac_service import rbac_service
 from services.tenant_service import TenantService
@@ -71,9 +72,8 @@ async def get_user_profile(
         
         rbac_service.log_authorization_decision(
             user_email=email,
-            user_role=role,
-            resource="profile",
-            resource_id=email,
+            user_role=UserRole(role),
+            resource=f"profile:{email}",
             action="read",
             allowed=True
         )
@@ -162,8 +162,7 @@ async def update_user_profile(
         rbac_service.log_authorization_decision(
             user_email=email,
             user_role=role,
-            resource="profile",
-            resource_id=email,
+            resource=f"profile:{email}",
             action="update",
             allowed=True
         )
@@ -348,9 +347,8 @@ async def get_user_preferences(
         
         rbac_service.log_authorization_decision(
             user_email=email,
-            user_role=role,
-            resource="preferences",
-            resource_id=email,
+            user_role=UserRole(role),
+            resource=f"preferences:{email}",
             action="read",
             allowed=True
         )
@@ -413,8 +411,7 @@ async def update_user_preferences(
         rbac_service.log_authorization_decision(
             user_email=email,
             user_role=role,
-            resource="preferences",
-            resource_id=email,
+            resource=f"preferences:{email}",
             action="update",
             allowed=True
         )
@@ -518,9 +515,8 @@ async def list_all_profiles(
         
         rbac_service.log_authorization_decision(
             user_email=email,
-            user_role=role,
-            resource="profiles",
-            resource_id=f"tenant:{current_tenant}",
+            user_role=UserRole(role),
+            resource=f"profiles:tenant:{current_tenant}",
             action="list",
             allowed=True
         )
@@ -571,9 +567,8 @@ async def export_user_data(
         
         rbac_service.log_authorization_decision(
             user_email=email,
-            user_role=role,
-            resource="user-data",
-            resource_id=email,
+            user_role=UserRole(role),
+            resource=f"user-data:{email}",
             action="export",
             allowed=True
         )
