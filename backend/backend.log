@@ -2458,3 +2458,396 @@ RuntimeError: Failed to initialize KraftdAIAgent. Ensure AZURE_OPENAI_ENDPOINT a
 2026-01-18 17:55:28,486 - main - INFO - ============================================================
 2026-01-18 17:55:28,488 - metrics - INFO - Metrics exported to metrics_export.json
 2026-01-18 17:55:28,489 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 17:59:12,863 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 17:59:12,871 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 17:59:12,873 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 17:59:12,883 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 17:59:12,883 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 17:59:12,886 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 17:59:12,886 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 17:59:12,892 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 17:59:12,905 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 17:59:12,905 - main - INFO - ============================================================
+2026-01-18 17:59:12,906 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 17:59:12,906 - main - INFO - ============================================================
+2026-01-18 17:59:12,906 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 17:59:12,906 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 17:59:12,906 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 17:59:12,906 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 17:59:12,906 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 17:59:12,907 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 17:59:12,907 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 17:59:12,907 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 17:59:12,907 - main - INFO - [OK] Upload directory is writable
+2026-01-18 17:59:12,907 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 17:59:12,907 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 17:59:12,907 - main - INFO - ============================================================
+2026-01-18 17:59:12,907 - main - INFO - Startup Configuration:
+2026-01-18 17:59:12,907 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 17:59:12,907 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 17:59:12,907 - main - INFO -   Max Retries: 3
+2026-01-18 17:59:12,908 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 17:59:12,908 - main - INFO -   Metrics: Enabled
+2026-01-18 17:59:12,908 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 17:59:12,908 - main - INFO - ============================================================
+2026-01-18 17:59:12,908 - main - INFO - Startup completed successfully
+2026-01-18 17:59:12,908 - main - INFO - ============================================================
+2026-01-18 17:59:17,823 - main - INFO - ============================================================
+2026-01-18 17:59:17,824 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 17:59:17,824 - main - INFO - ============================================================
+2026-01-18 17:59:17,825 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 17:59:17,826 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 18:00:05,897 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:00:05,907 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:00:05,913 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:00:05,932 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:00:05,933 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:00:05,940 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:00:05,940 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:00:05,951 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:00:05,971 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:00:05,971 - main - INFO - ============================================================
+2026-01-18 18:00:05,972 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:00:05,972 - main - INFO - ============================================================
+2026-01-18 18:00:05,973 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:00:05,973 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:00:05,974 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:00:05,974 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:00:05,975 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:00:05,975 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:00:05,976 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:00:05,976 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:00:05,976 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:00:05,977 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:00:05,977 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:00:05,978 - main - INFO - ============================================================
+2026-01-18 18:00:05,978 - main - INFO - Startup Configuration:
+2026-01-18 18:00:05,978 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:00:05,978 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:00:05,978 - main - INFO -   Max Retries: 3
+2026-01-18 18:00:05,978 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:00:05,979 - main - INFO -   Metrics: Enabled
+2026-01-18 18:00:05,979 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:00:05,980 - main - INFO - ============================================================
+2026-01-18 18:00:05,980 - main - INFO - Startup completed successfully
+2026-01-18 18:00:05,980 - main - INFO - ============================================================
+2026-01-18 18:00:21,786 - main - INFO - ============================================================
+2026-01-18 18:00:21,788 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 18:00:21,788 - main - INFO - ============================================================
+2026-01-18 18:00:21,791 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 18:00:21,791 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 18:00:50,232 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:00:50,239 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:00:50,241 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:00:50,250 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:00:50,250 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:00:50,253 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:00:50,253 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:00:50,258 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:00:50,266 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:00:50,266 - main - INFO - ============================================================
+2026-01-18 18:00:50,266 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:00:50,266 - main - INFO - ============================================================
+2026-01-18 18:00:50,266 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:00:50,267 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:00:50,267 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:00:50,267 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:00:50,267 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:00:50,267 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:00:50,267 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:00:50,267 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:00:50,267 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:00:50,268 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:00:50,268 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:00:50,268 - main - INFO - ============================================================
+2026-01-18 18:00:50,268 - main - INFO - Startup Configuration:
+2026-01-18 18:00:50,268 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:00:50,269 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:00:50,269 - main - INFO -   Max Retries: 3
+2026-01-18 18:00:50,269 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:00:50,269 - main - INFO -   Metrics: Enabled
+2026-01-18 18:00:50,269 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:00:50,269 - main - INFO - ============================================================
+2026-01-18 18:00:50,269 - main - INFO - Startup completed successfully
+2026-01-18 18:00:50,269 - main - INFO - ============================================================
+2026-01-18 18:01:06,603 - main - INFO - ============================================================
+2026-01-18 18:01:06,604 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 18:01:06,605 - main - INFO - ============================================================
+2026-01-18 18:01:06,608 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 18:01:06,609 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 18:02:10,910 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:02:10,918 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:02:10,920 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:02:10,928 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:02:10,928 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:02:10,931 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:02:10,931 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:02:10,936 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:02:10,944 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:02:10,945 - main - INFO - ============================================================
+2026-01-18 18:02:10,945 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:02:10,945 - main - INFO - ============================================================
+2026-01-18 18:02:10,945 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:02:10,945 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:02:10,945 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:02:10,945 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:02:10,945 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:02:10,945 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:02:10,945 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:02:10,946 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:02:10,946 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:02:10,946 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:02:10,946 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:02:10,946 - main - INFO - ============================================================
+2026-01-18 18:02:10,946 - main - INFO - Startup Configuration:
+2026-01-18 18:02:10,946 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:02:10,946 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:02:10,946 - main - INFO -   Max Retries: 3
+2026-01-18 18:02:10,946 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:02:10,946 - main - INFO -   Metrics: Enabled
+2026-01-18 18:02:10,947 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:02:10,947 - main - INFO - ============================================================
+2026-01-18 18:02:10,947 - main - INFO - Startup completed successfully
+2026-01-18 18:02:10,947 - main - INFO - ============================================================
+2026-01-18 18:02:29,445 - main - INFO - ============================================================
+2026-01-18 18:02:29,445 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 18:02:29,446 - main - INFO - ============================================================
+2026-01-18 18:02:29,448 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 18:02:29,448 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 18:03:11,440 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:03:11,447 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:03:11,449 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:03:11,457 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:03:11,457 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:03:11,460 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:03:11,461 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:03:11,466 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:03:11,475 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:03:11,475 - main - INFO - ============================================================
+2026-01-18 18:03:11,475 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:03:11,476 - main - INFO - ============================================================
+2026-01-18 18:03:11,476 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:03:11,476 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:03:11,476 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:03:11,476 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:03:11,476 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:03:11,476 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:03:11,477 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:03:11,477 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:03:11,477 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:03:11,477 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:03:11,477 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:03:11,477 - main - INFO - ============================================================
+2026-01-18 18:03:11,477 - main - INFO - Startup Configuration:
+2026-01-18 18:03:11,477 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:03:11,478 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:03:11,478 - main - INFO -   Max Retries: 3
+2026-01-18 18:03:11,478 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:03:11,478 - main - INFO -   Metrics: Enabled
+2026-01-18 18:03:11,478 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:03:11,478 - main - INFO - ============================================================
+2026-01-18 18:03:11,478 - main - INFO - Startup completed successfully
+2026-01-18 18:03:11,478 - main - INFO - ============================================================
+2026-01-18 18:03:29,322 - main - INFO - ============================================================
+2026-01-18 18:03:29,322 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 18:03:29,322 - main - INFO - ============================================================
+2026-01-18 18:03:29,325 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 18:03:29,327 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 18:23:24,917 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:23:24,941 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:23:24,948 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:23:24,974 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:23:24,975 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:23:24,984 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:23:24,985 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:23:24,993 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:23:25,007 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:23:25,007 - main - INFO - ============================================================
+2026-01-18 18:23:25,008 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:23:25,009 - main - INFO - ============================================================
+2026-01-18 18:23:25,010 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:23:25,010 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:23:25,011 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:23:25,012 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:23:25,012 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:23:25,013 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:23:25,014 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:23:25,015 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:23:25,015 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:23:25,016 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:23:25,016 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:23:25,017 - main - INFO - ============================================================
+2026-01-18 18:23:25,017 - main - INFO - Startup Configuration:
+2026-01-18 18:23:25,017 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:23:25,017 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:23:25,017 - main - INFO -   Max Retries: 3
+2026-01-18 18:23:25,017 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:23:25,018 - main - INFO -   Metrics: Enabled
+2026-01-18 18:23:25,018 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:23:25,018 - main - INFO - ============================================================
+2026-01-18 18:23:25,019 - main - INFO - Startup completed successfully
+2026-01-18 18:23:25,019 - main - INFO - ============================================================
+2026-01-18 18:23:25,020 - main - INFO - ============================================================
+2026-01-18 18:23:25,021 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 18:23:25,021 - main - INFO - ============================================================
+2026-01-18 18:23:25,023 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 18:23:25,023 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 18:24:17,148 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:24:17,155 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:24:17,158 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:24:17,166 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:24:17,166 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:24:17,170 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:24:17,171 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:24:17,175 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:24:17,185 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:24:17,185 - main - INFO - ============================================================
+2026-01-18 18:24:17,186 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:24:17,186 - main - INFO - ============================================================
+2026-01-18 18:24:17,186 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:24:17,186 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:24:17,186 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:24:17,187 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:24:17,187 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:24:17,187 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:24:17,187 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:24:17,187 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:24:17,187 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:24:17,187 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:24:17,187 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:24:17,188 - main - INFO - ============================================================
+2026-01-18 18:24:17,188 - main - INFO - Startup Configuration:
+2026-01-18 18:24:17,188 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:24:17,188 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:24:17,188 - main - INFO -   Max Retries: 3
+2026-01-18 18:24:17,188 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:24:17,188 - main - INFO -   Metrics: Enabled
+2026-01-18 18:24:17,188 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:24:17,188 - main - INFO - ============================================================
+2026-01-18 18:24:17,188 - main - INFO - Startup completed successfully
+2026-01-18 18:24:17,189 - main - INFO - ============================================================
+2026-01-18 18:24:32,029 - main - INFO - ============================================================
+2026-01-18 18:24:32,030 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 18:24:32,031 - main - INFO - ============================================================
+2026-01-18 18:24:32,033 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 18:24:32,034 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 18:25:43,063 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:25:43,072 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:25:43,076 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:25:43,087 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:25:43,088 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:25:43,092 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:25:43,093 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:25:43,099 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:25:43,109 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:25:43,109 - main - INFO - ============================================================
+2026-01-18 18:25:43,109 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:25:43,109 - main - INFO - ============================================================
+2026-01-18 18:25:43,110 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:25:43,110 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:25:43,110 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:25:43,110 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:25:43,110 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:25:43,110 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:25:43,110 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:25:43,111 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:25:43,111 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:25:43,111 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:25:43,111 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:25:43,111 - main - INFO - ============================================================
+2026-01-18 18:25:43,111 - main - INFO - Startup Configuration:
+2026-01-18 18:25:43,111 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:25:43,112 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:25:43,112 - main - INFO -   Max Retries: 3
+2026-01-18 18:25:43,112 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:25:43,112 - main - INFO -   Metrics: Enabled
+2026-01-18 18:25:43,112 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:25:43,112 - main - INFO - ============================================================
+2026-01-18 18:25:43,112 - main - INFO - Startup completed successfully
+2026-01-18 18:25:43,112 - main - INFO - ============================================================
+2026-01-18 18:26:22,709 - __main__ - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:26:22,730 - __main__ - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:26:22,737 - __main__ - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:26:22,771 - __main__ - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:26:22,772 - __main__ - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:26:22,779 - __main__ - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:26:22,780 - __main__ - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:26:22,790 - __main__ - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:27:06,268 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:27:06,276 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:27:06,279 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:27:06,287 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:27:06,287 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:27:06,291 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:27:06,292 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:27:06,299 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:27:06,314 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:27:06,315 - main - INFO - ============================================================
+2026-01-18 18:27:06,315 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:27:06,316 - main - INFO - ============================================================
+2026-01-18 18:27:06,316 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:27:06,317 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:27:06,317 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:27:06,318 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:27:06,319 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:27:06,319 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:27:06,319 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:27:06,320 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:27:06,321 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:27:06,321 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:27:06,322 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:27:06,322 - main - INFO - ============================================================
+2026-01-18 18:27:06,323 - main - INFO - Startup Configuration:
+2026-01-18 18:27:06,323 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:27:06,323 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:27:06,324 - main - INFO -   Max Retries: 3
+2026-01-18 18:27:06,324 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:27:06,324 - main - INFO -   Metrics: Enabled
+2026-01-18 18:27:06,324 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:27:06,325 - main - INFO - ============================================================
+2026-01-18 18:27:06,325 - main - INFO - Startup completed successfully
+2026-01-18 18:27:06,325 - main - INFO - ============================================================
+2026-01-18 18:27:28,567 - main - INFO - ============================================================
+2026-01-18 18:27:28,568 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 18:27:28,568 - main - INFO - ============================================================
+2026-01-18 18:27:28,572 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 18:27:28,572 - main - INFO - [OK] Metrics exported successfully
+2026-01-18 18:45:53,429 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-18 18:45:53,442 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-18 18:45:53,447 - main - INFO - [OK] Agent API routes registered at /api/v1/agent
+2026-01-18 18:45:53,467 - main - INFO - [OK] Template routes registered at /api/v1/templates
+2026-01-18 18:45:53,468 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-18 18:45:53,474 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-18 18:45:53,475 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-18 18:45:53,482 - main - INFO - [OK] Advanced ML routes registered at /api/v1/ml/advanced
+2026-01-18 18:45:53,497 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-18 18:45:53,498 - main - INFO - ============================================================
+2026-01-18 18:45:53,498 - main - INFO - Starting Kraftd Docs Backend
+2026-01-18 18:45:53,499 - main - INFO - ============================================================
+2026-01-18 18:45:53,499 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-18 18:45:53,499 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-18 18:45:53,500 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-18 18:45:53,500 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-18 18:45:53,501 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-18 18:45:53,501 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-18 18:45:53,502 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-18 18:45:53,502 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-18 18:45:53,503 - main - INFO - [OK] Upload directory is writable
+2026-01-18 18:45:53,503 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-18 18:45:53,504 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-18 18:45:53,504 - main - INFO - ============================================================
+2026-01-18 18:45:53,505 - main - INFO - Startup Configuration:
+2026-01-18 18:45:53,505 - main - INFO -   Request Timeout: 30.0s
+2026-01-18 18:45:53,505 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-18 18:45:53,505 - main - INFO -   Max Retries: 3
+2026-01-18 18:45:53,506 - main - INFO -   Rate Limiting: Enabled
+2026-01-18 18:45:53,506 - main - INFO -   Metrics: Enabled
+2026-01-18 18:45:53,506 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-18 18:45:53,507 - main - INFO - ============================================================
+2026-01-18 18:45:53,507 - main - INFO - Startup completed successfully
+2026-01-18 18:45:53,507 - main - INFO - ============================================================
+2026-01-18 18:45:57,486 - main - INFO - ============================================================
+2026-01-18 18:45:57,487 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-18 18:45:57,487 - main - INFO - ============================================================
+2026-01-18 18:45:57,490 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-18 18:45:57,491 - main - INFO - [OK] Metrics exported successfully
