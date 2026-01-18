@@ -178,3 +178,30 @@ class UserRepository(BaseRepository):
         except Exception as e:
             logger.error(f"Error getting active users count: {e}")
             return 0
+    
+    async def create_user_from_dict(self, user_record: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Create user from complete dictionary record.
+        
+        Used by registration endpoint to create user with all fields.
+        
+        Args:
+            user_record: Complete user dictionary with all fields
+                Expected fields: id, email, name, hashed_password,
+                email_verified, marketing_opt_in, accepted_terms_at,
+                accepted_privacy_at, created_at, updated_at, status, is_active
+            
+        Returns:
+            Created user document with system fields
+            
+        Raises:
+            ValueError: If required fields missing or user already exists
+            Exception: If database error occurs
+        """
+        if not user_record.get("email"):
+            raise ValueError("User record must include 'email' field")
+        
+        partition_key = user_record.get("owner_email", user_record.get("email"))
+        logger.info(f"Creating user from dict: {user_record.get('email')}")
+        
+        return await self.create(user_record, partition_key)
