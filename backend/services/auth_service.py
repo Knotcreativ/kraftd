@@ -4,7 +4,7 @@ import logging
 import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-from models.user import User, TokenPayload
+from models.user import User, UserRole
 from services.secrets_manager import get_secrets_manager
 
 logger = logging.getLogger(__name__)
@@ -106,8 +106,19 @@ class AuthService:
             return None
     
     @staticmethod
-    def create_user(email: str, name: str, organization: str, password: str) -> User:
-        """Create a new user object (not persisted yet)"""
+    def create_user(email: str, name: str, organization: str, password: str, role: UserRole = UserRole.USER) -> User:
+        """Create a new user object (not persisted yet)
+        
+        Args:
+            email: User email
+            name: User name
+            organization: Organization name
+            password: Plain text password
+            role: User role (defaults to USER)
+            
+        Returns:
+            User object with hashed password
+        """
         hashed_password = AuthService.hash_password(password)
         now = datetime.utcnow()
         
@@ -115,8 +126,8 @@ class AuthService:
             id=email,  # Use email as ID for simplicity
             email=email,
             name=name,
-            organization=organization,
             hashed_password=hashed_password,
+            role=role,  # Set user role
             created_at=now,
             updated_at=now,
             is_active=True

@@ -1,16 +1,26 @@
 from pydantic import BaseModel, EmailStr, field_validator
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+from enum import Enum
+
+class UserRole(str, Enum):
+    """User role enumeration for role-based access control"""
+    ADMIN = "admin"       # Full system access
+    USER = "user"         # Standard user (default)
+    VIEWER = "viewer"     # Read-only access
+    GUEST = "guest"       # Unauthenticated access
 
 class User(BaseModel):
     """User model stored in Cosmos DB
     
-    Implements KRAFTD User Specification
+    Implements KRAFTD User Specification with role-based access control
     """
     id: str  # UUID-based
     email: str
     name: Optional[str] = None
     hashed_password: str
+    role: UserRole = UserRole.USER  # User role for RBAC
+    permissions: List[str] = []      # Custom permissions (future use)
     email_verified: bool = False
     marketing_opt_in: bool = False
     accepted_terms_at: Optional[datetime] = None

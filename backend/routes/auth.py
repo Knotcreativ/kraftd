@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Header, Request
 from pydantic import EmailStr, BaseModel
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
 from datetime import datetime, timedelta
 import uuid
 import logging
@@ -8,11 +8,13 @@ import logging
 from models.user import (
     UserRegister, UserLogin, UserProfile, TokenResponse,
     ForgotPasswordRequest, ResetPasswordRequest, PasswordResetResponse,
-    VerifyEmailRequest, VerifyEmailResponse
+    VerifyEmailRequest, VerifyEmailResponse, UserRole
 )
 from services.auth_service import AuthService
 from services.token_service import TokenService
 from services.email_service import EmailService
+from services.rbac_service import RBACService, Permission
+from middleware.rbac import get_current_user_with_role, require_permission
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,8 @@ verification_tokens: Dict[str, dict] = {}
 def get_current_user_email(authorization: str = Header(None)) -> str:
     """Extract and validate the current user from JWT token
     
-    Now uses TokenService for JTI tracking and revocation checking.
+    Deprecated: Use get_current_user_with_role from RBAC middleware instead.
+    This function kept for backward compatibility.
     """
     if not authorization:
         raise HTTPException(
