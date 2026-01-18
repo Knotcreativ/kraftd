@@ -14,9 +14,14 @@ Tests cover:
 import pytest
 import asyncio
 import json
+import sys
+from pathlib import Path
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from datetime import datetime
 from typing import List, Dict
+
+# Add backend directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import services
 from services.event_broadcaster import (
@@ -59,14 +64,13 @@ def sample_price_update():
     """Sample price update event"""
     return PriceUpdate(
         item_id="ITEM-001",
-        current_price=150.25,
+        price=150.25,
         previous_price=145.00,
-        price_change=5.25,
-        price_change_percent=3.62,
+        change_percent=3.62,
         volatility=2.5,
-        trend_direction="uptrend",
-        moving_avg_30=148.50,
-        moving_avg_90=147.25,
+        trend_direction=TrendDirection.UPTREND,
+        moving_average_7d=148.50,
+        moving_average_30d=147.25,
         timestamp=datetime.utcnow()
     )
 
@@ -75,33 +79,31 @@ def sample_price_update():
 def sample_risk_alert():
     """Sample risk alert event"""
     return RiskAlert(
-        item_id="ITEM-002",
-        supplier_id="SUPPLIER-001",
         risk_level=AlertLevel.HIGH,
         alert_type="PRICE_SPIKE",
         message="Significant price increase detected",
-        description="Item price increased 15% in last 24 hours",
-        impact="Budget impact of $5,000 if trend continues",
-        recommendation="Review supplier alternatives",
-        risk_score=75.5,
-        timestamp=datetime.utcnow(),
-        details={"trend": "upward", "days": 1}
+        details={
+            "item_id": "ITEM-002",
+            "supplier_id": "SUPPLIER-001",
+            "trend": "upward",
+            "days": 1
+        },
+        timestamp=datetime.utcnow()
     )
 
 
 @pytest.fixture
 def sample_anomaly():
     """Sample anomaly detection event"""
+    from models.streaming import AnomalyDetected
     return AnomalyDetected(
-        item_id="ITEM-003",
-        anomaly_type=AnomalyType.PRICE_SPIKE,
-        current_value=250.00,
-        expected_value=100.00,
-        deviation_percent=150.0,
+        anomaly_type=AnomalyType.PRICE_ANOMALY,
+        severity=AlertLevel.HIGH,
         z_score=3.5,
-        severity="CRITICAL",
-        timestamp=datetime.utcnow(),
-        details={"method": "z_score", "threshold": 2.5}
+        message="Price anomaly detected",
+        details={"method": "z_score", "threshold": 2.5},
+        item_id="ITEM-003",
+        timestamp=datetime.utcnow()
     )
 
 
