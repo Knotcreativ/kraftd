@@ -1,16 +1,13 @@
 import jwt
 import os
 import logging
+import bcrypt
 from datetime import datetime, timedelta
-from passlib.context import CryptContext
 from typing import Optional, Dict, Any
 from models.user import User, TokenPayload
 from services.secrets_manager import get_secrets_manager
 
 logger = logging.getLogger(__name__)
-
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT configuration
 ALGORITHM = "HS256"
@@ -28,13 +25,32 @@ class AuthService:
     
     @staticmethod
     def hash_password(password: str) -> str:
-        """Hash a password using bcrypt"""
-        return pwd_context.hash(password)
+        """Hash a password using bcrypt
+        
+        Note: bcrypt has a 72-byte limit. Passwords are encoded to UTF-8 bytes
+        and truncated to 72 bytes before hashing.
+        """
+        # Encode password to bytes and truncate to 72 bytes for bcrypt compatibility
+        password_bytes = password.encode('utf-8')[:72]
+        # Hash using bcrypt directly
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password_bytes, salt)
+        return hashed.decode('utf-8')
     
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
-        """Verify a password against its hash"""
-        return pwd_context.verify(plain_password, hashed_password)
+        """Verify a password against its hash
+        
+        Truncates password to 72 bytes for bcrypt compatibility.
+        """
+        # Encode password to bytes and truncate to 72 bytes for bcrypt compatibility
+        password_bytes = plain_password.encode('utf-8')[:72]
+        hashed_bytes = hashed_password.encode('utf-8')
+        try:
+            return bcrypt.checkpw(password_bytes, hashed_bytes)
+        except Exception as e:
+            logger.error(f"Error verifying password: {e}")
+            return False
     
     @staticmethod
     def create_access_token(email: str, expires_delta: Optional[timedelta] = None) -> str:

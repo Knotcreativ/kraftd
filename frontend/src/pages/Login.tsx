@@ -8,11 +8,18 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [isRegister, setIsRegister] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const { login, register } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (isRegister && !acceptedTerms) {
+      alert('Please accept the Terms of Service and Privacy Policy to continue')
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -66,10 +73,40 @@ export default function Login() {
             />
           </div>
 
+          {isRegister && (
+            <div className="form-group checkbox-group">
+              <input
+                id="terms"
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                disabled={isLoading}
+              />
+              <label htmlFor="terms" className="checkbox-label">
+                I agree to the{' '}
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => navigate('/terms-of-service')}
+                >
+                  Terms of Service
+                </button>
+                {' '}and{' '}
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => navigate('/privacy-policy')}
+                >
+                  Privacy Policy
+                </button>
+              </label>
+            </div>
+          )}
+
           <button
             type="submit"
             className="btn-primary"
-            disabled={isLoading}
+            disabled={isLoading || (isRegister && !acceptedTerms)}
           >
             {isLoading ? 'Processing...' : (isRegister ? 'Create Account' : 'Sign In')}
           </button>
