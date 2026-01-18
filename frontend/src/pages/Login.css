@@ -188,3 +188,56 @@
   font-size: 0.8rem;
   color: #999;
 }
+
+/* Success Screen Styles */
+.success-screen {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.success-icon {
+  font-size: 3.5rem;
+  color: #4caf50;
+  margin-bottom: 1rem;
+  width: 70px;
+  height: 70px;
+  background-color: #e8f5e9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.success-screen h2 {
+  margin: 1.5rem 0 0.5rem 0;
+  font-size: 1.75rem;
+  color: #333;
+}
+
+.success-message {
+  margin: 0.5rem 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.success-email {
+  margin: 1rem 0;
+  color: #667eea;
+  font-size: 0.95rem;
+  background-color: #f0f4ff;
+  padding: 0.75rem;
+  border-radius: 6px;
+}
+
+.success-note {
+  margin: 1rem 0;
+  color: #999;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.success-screen .btn-primary {
+  margin-top: 1.5rem;
+  width: 100%;
+}

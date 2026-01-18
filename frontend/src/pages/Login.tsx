@@ -12,6 +12,8 @@ export default function Login() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [registrationSuccess, setRegistrationSuccess] = useState(false)
+  const [successEmail, setSuccessEmail] = useState('')
   const { login, register } = useAuth()
   const navigate = useNavigate()
 
@@ -29,10 +31,12 @@ export default function Login() {
     try {
       if (isRegister) {
         await register(email, password, acceptedTerms, acceptedPrivacy, name || undefined)
+        setRegistrationSuccess(true)
+        setSuccessEmail(email)
       } else {
         await login(email, password)
+        navigate('/dashboard')
       }
-      navigate('/dashboard')
     } catch (error) {
       const message = error instanceof Error ? error.message : (isRegister ? 'Registration failed' : 'Login failed')
       setError(message)
@@ -50,6 +54,18 @@ export default function Login() {
     setName('')
     setAcceptedTerms(false)
     setAcceptedPrivacy(false)
+    setRegistrationSuccess(false)
+  }
+
+  const handleBackToLogin = () => {
+    setRegistrationSuccess(false)
+    setIsRegister(false)
+    setEmail('')
+    setPassword('')
+    setName('')
+    setAcceptedTerms(false)
+    setAcceptedPrivacy(false)
+    setError(null)
   }
 
   return (
@@ -60,115 +76,138 @@ export default function Login() {
           <p>Intelligent Procurement Management</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <h2>{isRegister ? 'Create Account' : 'Sign In'}</h2>
+        {registrationSuccess ? (
+          <div className="success-screen">
+            <div className="success-icon">✓</div>
+            <h2>Registration Successful!</h2>
+            <p className="success-message">
+              Your account has been created successfully.
+            </p>
+            <p className="success-email">
+              Email: <strong>{successEmail}</strong>
+            </p>
+            <p className="success-note">
+              You can now log in with your email and password.
+            </p>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={handleBackToLogin}
+            >
+              Go to Login
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="login-form">
+            <h2>{isRegister ? 'Create Account' : 'Sign In'}</h2>
 
-          {error && (
-            <div className="form-error">
-              <p>{error}</p>
+            {error && (
+              <div className="form-error">
+                <p>{error}</p>
+              </div>
+            )}
+
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+                disabled={isLoading}
+              />
             </div>
-          )}
 
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                disabled={isLoading}
+              />
+              {isRegister && <p className="form-hint">Password must be 8-128 characters, no spaces</p>}
+            </div>
+
+            {isRegister && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="name">Full Name (Optional)</label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your Name"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="form-group checkbox-group">
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    disabled={isLoading}
+                  />
+                  <label htmlFor="terms" className="checkbox-label">
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => navigate('/terms-of-service')}
+                    >
+                      Terms of Service
+                    </button>
+                  </label>
+                </div>
+
+                <div className="form-group checkbox-group">
+                  <input
+                    id="privacy"
+                    type="checkbox"
+                    checked={acceptedPrivacy}
+                    onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                    disabled={isLoading}
+                  />
+                  <label htmlFor="privacy" className="checkbox-label">
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => navigate('/privacy-policy')}
+                    >
+                      Privacy Policy
+                    </button>
+                  </label>
+                </div>
+              </>
+            )}
+
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isLoading || (isRegister && (!acceptedTerms || !acceptedPrivacy))}
+            >
+              {isLoading ? 'Processing...' : (isRegister ? 'Create Account' : 'Sign In')}
+            </button>
+
+            <button
+              type="button"
+              className="btn-link"
+              onClick={handleToggleMode}
               disabled={isLoading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              disabled={isLoading}
-            />
-            {isRegister && <p className="form-hint">Password must be 8-128 characters, no spaces</p>}
-          </div>
-
-          {isRegister && (
-            <>
-              <div className="form-group">
-                <label htmlFor="name">Full Name (Optional)</label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your Name"
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div className="form-group checkbox-group">
-                <input
-                  id="terms"
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  disabled={isLoading}
-                />
-                <label htmlFor="terms" className="checkbox-label">
-                  I agree to the{' '}
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => navigate('/terms-of-service')}
-                  >
-                    Terms of Service
-                  </button>
-                </label>
-              </div>
-
-              <div className="form-group checkbox-group">
-                <input
-                  id="privacy"
-                  type="checkbox"
-                  checked={acceptedPrivacy}
-                  onChange={(e) => setAcceptedPrivacy(e.target.checked)}
-                  disabled={isLoading}
-                />
-                <label htmlFor="privacy" className="checkbox-label">
-                  I agree to the{' '}
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => navigate('/privacy-policy')}
-                  >
-                    Privacy Policy
-                  </button>
-                </label>
-              </div>
-            </>
-          )}
-
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={isLoading || (isRegister && (!acceptedTerms || !acceptedPrivacy))}
-          >
-            {isLoading ? 'Processing...' : (isRegister ? 'Create Account' : 'Sign In')}
-          </button>
-
-          <button
-            type="button"
-            className="btn-link"
-            onClick={handleToggleMode}
-            disabled={isLoading}
-          >
-            {isRegister ? 'Already have an account? Sign In' : 'Need an account? Register'}
-          </button>
-        </form>
+            >
+              {isRegister ? 'Already have an account? Sign In' : 'Need an account? Register'}
+            </button>
+          </form>
+        )}
 
         <div className="login-footer">
           <p>Secure. Efficient. Intelligent.</p>
