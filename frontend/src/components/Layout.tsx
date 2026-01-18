@@ -26,6 +26,7 @@ export default function Layout({ children }: LayoutProps) {
           <a href="/streaming-dashboard" className="nav-link">Real-Time</a>
           <a href="/analytics" className="nav-link">Analytics</a>
           <a href="/dashboard-builder" className="nav-link">Custom Dashboard</a>
+          <a href="/alert-preferences" className="nav-link">Preferences</a>
           <a href="/profile" className="nav-link">Profile</a>
           <button className="nav-link logout" onClick={handleLogout}>Logout</button>
         </div>

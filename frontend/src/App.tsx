@@ -12,6 +12,7 @@ import DocumentReviewDetail from './components/DocumentReviewDetail'
 import { StreamingDashboard } from './pages/StreamingDashboard'
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
 import DashboardPreview from './components/DashboardPreview'
+import AlertPreferences from './components/AlertPreferences'
 import { apiClient } from './services/api'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -86,6 +87,16 @@ function AppContent() {
           <ProtectedRoute>
             <Layout>
               <DashboardPreview />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/alert-preferences"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AlertPreferences />
             </Layout>
           </ProtectedRoute>
         }
