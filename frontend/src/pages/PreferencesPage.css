@@ -1,0 +1,526 @@
+.preferences-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding-bottom: 40px;
+}
+
+.preferences-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header */
+.preferences-header {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.5s ease;
+}
+
+.preferences-header-content {
+  max-width: 600px;
+}
+
+.preferences-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.preferences-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Tab Navigation */
+.preferences-tabs {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.preferences-nav {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 2px solid #f0f0f0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.preference-tab {
+  flex: 1;
+  min-width: 140px;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  position: relative;
+}
+
+.preference-tab:hover {
+  background: #f8f9ff;
+  color: #667eea;
+}
+
+.preference-tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  background: #f8f9ff;
+}
+
+.tab-icon {
+  font-size: 18px;
+}
+
+.tab-label {
+  white-space: nowrap;
+}
+
+/* Content Area */
+.preferences-content {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.4s ease;
+}
+
+.preference-section {
+  animation: slideUp 0.3s ease;
+}
+
+.section-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.preference-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.section-description {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+/* Settings Cards */
+.notification-settings,
+.display-settings,
+.data-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.settings-card {
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.settings-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.settings-card p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.settings-card.warning {
+  border-left: 4px solid #ffa500;
+  background: #fff9f0;
+}
+
+.settings-card.danger {
+  border-left: 4px solid #ff4444;
+  background: #fff0f0;
+}
+
+/* Toggle Switch */
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.settings-toggle input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.toggle-label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.setting-hint {
+  font-size: 12px;
+  color: #999;
+  margin: 8px 0 0 0;
+  padding-left: 32px;
+}
+
+/* Theme Selector */
+.theme-selector {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-option:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.theme-option input[type='radio'] {
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.theme-label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.theme-option input[type='radio']:checked + .theme-label {
+  color: #667eea;
+}
+
+/* Buttons */
+.settings-button {
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+}
+
+.settings-button:hover {
+  background: #f8f9ff;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.settings-button.secondary {
+  background: #f8f9ff;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.settings-button.secondary:hover {
+  background: #667eea;
+  color: white;
+}
+
+.settings-button.danger {
+  border-color: #ff4444;
+  color: #ff4444;
+}
+
+.settings-button.danger:hover {
+  background: #ff4444;
+  color: white;
+}
+
+/* Footer */
+.preferences-footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.footer-text {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .preferences-page {
+    background: linear-gradient(135deg, #2a2a3e 0%, #1a1a2e 100%);
+  }
+
+  .preferences-header,
+  .preferences-tabs,
+  .preferences-content {
+    background: #1a1a2e;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .preferences-title {
+    color: #e0e0e0;
+  }
+
+  .preferences-subtitle {
+    color: #b0b0b0;
+  }
+
+  .preferences-nav {
+    border-bottom-color: #333;
+  }
+
+  .preference-tab {
+    color: #999;
+  }
+
+  .preference-tab:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #9db8ff;
+  }
+
+  .preference-tab.active {
+    color: #9db8ff;
+    border-bottom-color: #9db8ff;
+    background: rgba(102, 126, 234, 0.1);
+  }
+
+  .section-header {
+    border-bottom-color: #333;
+  }
+
+  .preference-section h2 {
+    color: #e0e0e0;
+  }
+
+  .section-description {
+    color: #b0b0b0;
+  }
+
+  .settings-card {
+    border-color: #333;
+    background: #252540;
+  }
+
+  .settings-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+
+  .settings-card h3 {
+    color: #e0e0e0;
+  }
+
+  .settings-card p {
+    color: #b0b0b0;
+  }
+
+  .settings-card.warning {
+    background: rgba(255, 165, 0, 0.1);
+  }
+
+  .settings-card.danger {
+    background: rgba(255, 68, 68, 0.1);
+  }
+
+  .toggle-label,
+  .theme-label {
+    color: #e0e0e0;
+  }
+
+  .theme-option {
+    border-color: #333;
+  }
+
+  .theme-option:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+  }
+
+  .settings-button {
+    border-color: #333;
+    background: transparent;
+    color: #e0e0e0;
+  }
+
+  .settings-button:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: #667eea;
+    color: #9db8ff;
+  }
+
+  .settings-button.secondary {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: #667eea;
+    color: #9db8ff;
+  }
+
+  .settings-button.secondary:hover {
+    background: #667eea;
+    color: white;
+  }
+
+  .footer-text {
+    color: #666;
+  }
+
+  .preferences-footer {
+    border-top-color: #333;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .preferences-header {
+    padding: 30px 20px;
+    margin-bottom: 20px;
+  }
+
+  .preferences-title {
+    font-size: 24px;
+  }
+
+  .preferences-content {
+    padding: 25px 20px;
+  }
+
+  .preferences-nav {
+    flex-direction: column;
+  }
+
+  .preference-tab {
+    min-width: auto;
+    padding: 12px 16px;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    margin-bottom: 0;
+  }
+
+  .preference-tab.active {
+    border-bottom: none;
+    border-left-color: #667eea;
+  }
+
+  .notification-settings,
+  .display-settings,
+  .data-settings {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .preferences-header {
+    padding: 20px 15px;
+  }
+
+  .preferences-title {
+    font-size: 20px;
+  }
+
+  .preferences-subtitle {
+    font-size: 14px;
+  }
+
+  .preferences-content {
+    padding: 20px 15px;
+  }
+
+  .section-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+  }
+
+  .preference-section h2 {
+    font-size: 18px;
+  }
+
+  .settings-card {
+    padding: 15px;
+  }
+
+  .theme-selector {
+    flex-direction: column;
+  }
+
+  .theme-option {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .settings-button {
+    width: 100%;
+  }
+}

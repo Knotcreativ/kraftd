@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react'
 import { useAuth } from '../context/AuthContext'
+import PageTransition from './PageTransition'
 import './Layout.css'
 
 interface LayoutProps {
@@ -22,17 +23,18 @@ export default function Layout({ children }: LayoutProps) {
           <p className="tagline">Intelligent Procurement Management</p>
         </div>
         <div className="navbar-menu">
-          <a href="/dashboard" className="nav-link">Dashboard</a>
-          <a href="/streaming-dashboard" className="nav-link">Real-Time</a>
-          <a href="/analytics" className="nav-link">Analytics</a>
-          <a href="/dashboard-builder" className="nav-link">Custom Dashboard</a>
-          <a href="/alert-preferences" className="nav-link">Preferences</a>
-          <a href="/profile" className="nav-link">Profile</a>
-          <button className="nav-link logout" onClick={handleLogout}>Logout</button>
+          <a href="/dashboard" className="nav-link">📊 Dashboard</a>
+          <a href="/streaming-dashboard" className="nav-link">📡 Real-Time</a>
+          <a href="/analytics" className="nav-link">📈 Analytics</a>
+          <a href="/dashboard/custom" className="nav-link">🛠️ Custom</a>
+          <a href="/preferences" className="nav-link">⚙️ Preferences</a>
+          <button className="nav-link logout" onClick={handleLogout}>🚪 Logout</button>
         </div>
       </nav>
       <main className="main-content">
-        {children}
+        <PageTransition>
+          {children}
+        </PageTransition>
       </main>
     </div>
   )

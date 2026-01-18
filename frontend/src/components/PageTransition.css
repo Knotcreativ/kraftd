@@ -1,0 +1,115 @@
+/* Page Transition Animation */
+.page-transition {
+  animation: pageEnter 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Prevent layout shift during transitions */
+.page-transition {
+  width: 100%;
+  height: auto;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Buttons and links get faster transitions */
+button,
+a,
+[role='button'] {
+  transition: all 0.2s ease;
+}
+
+/* Prevent transition on transform for performance */
+.page-transition * {
+  transition-property: background-color, color, border-color, box-shadow, opacity;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* Fade out animation (optional, for future use) */
+@keyframes pageExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Slide animations for different page types */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Specific animations for different pages */
+/* Analytics page slides up */
+.analytics-page {
+  animation: slideInUp 0.4s ease-out;
+}
+
+/* Preferences page slides from left */
+.preferences-page {
+  animation: slideInLeft 0.4s ease-out;
+}
+
+/* Dashboard slides from right */
+.dashboard-page {
+  animation: slideInRight 0.4s ease-out;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Disable smooth scroll on mobile for better performance */
+@media (max-width: 768px) {
+  html {
+    scroll-behavior: auto;
+  }
+}
