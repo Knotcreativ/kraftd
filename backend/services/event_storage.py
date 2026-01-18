@@ -108,6 +108,7 @@ class EventStorageService:
     async def query_events(
         self,
         event_type: EventType,
+        tenant_id: Optional[str] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         item_id: Optional[str] = None,
@@ -119,10 +120,11 @@ class EventStorageService:
         order_by: str = "DESC"
     ) -> Dict[str, Any]:
         """
-        Query events with multiple filters
+        Query events with multiple filters, scoped to tenant
 
         Args:
             event_type: Type of event to query
+            tenant_id: Tenant ID for filtering (required for multi-tenant isolation)
             start_date: Start date (YYYY-MM-DD format)
             end_date: End date (YYYY-MM-DD format)
             item_id: Filter by item_id
@@ -134,7 +136,7 @@ class EventStorageService:
             order_by: Sort order (ASC/DESC)
 
         Returns:
-            Dictionary with results and total count
+            Dictionary with results and total count, scoped to tenant
         """
         if self.events_container is None:
             return {"results": [], "total": 0, "limit": limit, "offset": offset}
@@ -143,6 +145,11 @@ class EventStorageService:
             # Build query
             where_clauses = [f"c.event_type = '{event_type.value}'"]
             parameters = []
+
+            # Tenant filtering (CRITICAL for multi-tenant isolation)
+            if tenant_id:
+                where_clauses.append("c.tenant_id = @tenant_id")
+                parameters.append(("@tenant_id", tenant_id))
 
             # Date range filter
             if start_date:
@@ -216,23 +223,25 @@ class EventStorageService:
         event_type: EventType,
         start_date: str,
         end_date: str,
+        tenant_id: Optional[str] = None,
         group_by: str = "day",  # day, week, month, hour
         item_id: Optional[str] = None,
         supplier_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
-        Aggregate events for charting (count, average, etc)
+        Aggregate events for charting (count, average, etc), scoped to tenant
 
         Args:
             event_type: Type of event
             start_date: Start date (YYYY-MM-DD)
             end_date: End date (YYYY-MM-DD)
+            tenant_id: Tenant ID for filtering (required for multi-tenant isolation)
             group_by: Grouping period (day, week, month, hour)
             item_id: Optional filter by item
             supplier_id: Optional filter by supplier
 
         Returns:
-            List of aggregated results
+            List of aggregated results scoped to tenant
         """
         if self.events_container is None:
             return []
@@ -244,6 +253,10 @@ class EventStorageService:
                 f"c.date >= '{start_date}'",
                 f"c.date <= '{end_date}'"
             ]
+
+            # Tenant filtering (CRITICAL for multi-tenant isolation)
+            if tenant_id:
+                where_clauses.append(f"c.tenant_id = '{tenant_id}'")
 
             if item_id:
                 where_clauses.append(f"c.item_id = '{item_id}'")
@@ -315,17 +328,19 @@ class EventStorageService:
     async def get_event_stats(
         self,
         start_date: str,
-        end_date: str
+        end_date: str,
+        tenant_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Get overall event statistics
+        Get overall event statistics, scoped to tenant
 
         Args:
             start_date: Start date (YYYY-MM-DD)
             end_date: End date (YYYY-MM-DD)
+            tenant_id: Tenant ID for filtering (required for multi-tenant isolation)
 
         Returns:
-            Dictionary with event counts by type
+            Dictionary with event counts by type, scoped to tenant
         """
         if self.events_container is None:
             return {}
@@ -334,12 +349,15 @@ class EventStorageService:
             stats = {}
 
             for event_type in EventType:
+                # Build query with tenant filter
+                where = f"c.event_type = '{event_type.value}' AND c.date >= '{start_date}' AND c.date <= '{end_date}'"
+                if tenant_id:
+                    where += f" AND c.tenant_id = '{tenant_id}'"
+                
                 query = f"""
                     SELECT COUNT(1) as count
                     FROM c
-                    WHERE c.event_type = '{event_type.value}'
-                    AND c.date >= '{start_date}'
-                    AND c.date <= '{end_date}'
+                    WHERE {where}
                 """
                 result = list(self.events_container.query_items(query=query))
                 stats[event_type.value] = result[0]["count"] if result else 0

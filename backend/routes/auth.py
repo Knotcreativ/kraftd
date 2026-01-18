@@ -14,6 +14,8 @@ from services.auth_service import AuthService
 from services.token_service import TokenService
 from services.email_service import EmailService
 from services.rbac_service import RBACService, Permission
+from services.audit_service import AuditService, AuditEventType, AuditEvent, AuditResult
+from services.tenant_service import TenantService
 from middleware.rbac import get_current_user_with_role, require_permission
 
 logger = logging.getLogger(__name__)
@@ -113,6 +115,30 @@ async def register(user_data: UserRegister, request: Request):
     
     logger.info(f"User registered: {user.email}")
     
+    # Log registration event for audit trail
+    try:
+        tenant_id = TenantService.get_current_tenant() or "default"
+        await AuditService.log_event(
+            AuditEvent(
+                id=None,
+                tenant_id=tenant_id,
+                timestamp=None,
+                user_email=user.email,
+                user_role="user",
+                event_type=AuditEventType.REGISTER,
+                action="register",
+                result=AuditResult.SUCCESS,
+                resource_type="user",
+                resource_id=user.email,
+                allowed=True,
+                reason="User registration successful",
+                ip_address=client_ip,
+                user_agent=user_agent
+            )
+        )
+    except Exception as e:
+        logger.error(f"Error logging registration audit event: {e}")
+    
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -122,9 +148,27 @@ async def register(user_data: UserRegister, request: Request):
 @router.post("/login", response_model=TokenResponse)
 async def login(user_data: UserLogin, request: Request):
     """Login user and return JWT tokens with JTI tracking"""
+    # Get client IP and user agent for audit logging (at the start)
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("User-Agent")
+    tenant_id = TenantService.get_current_tenant() or "default"
+    
     # Find user
     user = users_db.get(user_data.email)
     if user is None:
+        # Log failed login (user not found)
+        try:
+            await AuditService.log_login(
+                user_email=user_data.email,
+                success=False,
+                tenant_id=tenant_id,
+                ip_address=client_ip,
+                user_agent=user_agent,
+                reason="User not found"
+            )
+        except Exception as e:
+            logger.error(f"Error logging failed login: {e}")
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
@@ -132,6 +176,19 @@ async def login(user_data: UserLogin, request: Request):
     
     # Verify password
     if not AuthService.verify_password(user_data.password, user.hashed_password):
+        # Log failed login (invalid password)
+        try:
+            await AuditService.log_login(
+                user_email=user_data.email,
+                success=False,
+                tenant_id=tenant_id,
+                ip_address=client_ip,
+                user_agent=user_agent,
+                reason="Invalid password"
+            )
+        except Exception as e:
+            logger.error(f"Error logging failed login: {e}")
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
@@ -139,14 +196,23 @@ async def login(user_data: UserLogin, request: Request):
     
     # Check if active
     if not user.is_active:
+        # Log failed login (account disabled)
+        try:
+            await AuditService.log_login(
+                user_email=user_data.email,
+                success=False,
+                tenant_id=tenant_id,
+                ip_address=client_ip,
+                user_agent=user_agent,
+                reason="Account disabled"
+            )
+        except Exception as e:
+            logger.error(f"Error logging failed login: {e}")
+        
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is disabled"
         )
-    
-    # Get client IP and user agent for audit logging
-    client_ip = request.client.host if request.client else None
-    user_agent = request.headers.get("User-Agent")
     
     # Generate tokens with JTI tracking (new TokenService)
     access_token, access_jti = TokenService.create_access_token(
@@ -162,6 +228,18 @@ async def login(user_data: UserLogin, request: Request):
     )
     
     logger.info(f"User logged in: {user.email}")
+    
+    # Log successful login
+    try:
+        await AuditService.log_login(
+            user_email=user.email,
+            success=True,
+            tenant_id=tenant_id,
+            ip_address=client_ip,
+            user_agent=user_agent
+        )
+    except Exception as e:
+        logger.error(f"Error logging login audit event: {e}")
     
     return TokenResponse(
         access_token=access_token,
@@ -218,6 +296,30 @@ async def refresh(refresh_token: str, request: Request):
     
     logger.info(f"Token refreshed for user: {email}")
     
+    # Log token refresh event
+    try:
+        tenant_id = TenantService.get_current_tenant() or "default"
+        await AuditService.log_event(
+            AuditEvent(
+                id=None,
+                tenant_id=tenant_id,
+                timestamp=None,
+                user_email=email,
+                user_role="user",
+                event_type=AuditEventType.TOKEN_REFRESH,
+                action="refresh",
+                result=AuditResult.SUCCESS,
+                resource_type="token",
+                resource_id="access_token",
+                allowed=True,
+                reason="Token refresh successful",
+                ip_address=client_ip,
+                user_agent=user_agent
+            )
+        )
+    except Exception as e:
+        logger.error(f"Error logging token refresh audit event: {e}")
+    
     return TokenResponse(
         access_token=new_access_token,
         refresh_token=new_refresh_token,
@@ -225,7 +327,7 @@ async def refresh(refresh_token: str, request: Request):
     )
 
 @router.post("/logout", response_model=dict)
-async def logout(email: str = Depends(get_current_user_email)):
+async def logout(email: str = Depends(get_current_user_email), request: Request = None):
     """Logout user by revoking all their active tokens
     
     Revokes all active tokens for the user, effectively logging them out
@@ -234,6 +336,33 @@ async def logout(email: str = Depends(get_current_user_email)):
     revoked_count = TokenService.revoke_user_tokens(email, reason="User logout")
     
     logger.info(f"User logged out: {email} ({revoked_count} tokens revoked)")
+    
+    # Log logout event
+    try:
+        client_ip = request.client.host if request and request.client else None
+        user_agent = request.headers.get("User-Agent") if request else None
+        tenant_id = TenantService.get_current_tenant() or "default"
+        
+        await AuditService.log_event(
+            AuditEvent(
+                id=None,
+                tenant_id=tenant_id,
+                timestamp=None,
+                user_email=email,
+                user_role="user",
+                event_type=AuditEventType.LOGOUT,
+                action="logout",
+                result=AuditResult.SUCCESS,
+                resource_type="user",
+                resource_id=email,
+                allowed=True,
+                reason="User logout successful",
+                ip_address=client_ip,
+                user_agent=user_agent
+            )
+        )
+    except Exception as e:
+        logger.error(f"Error logging logout audit event: {e}")
     
     return {
         "message": "Successfully logged out",

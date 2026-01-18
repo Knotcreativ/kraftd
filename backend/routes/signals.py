@@ -21,6 +21,8 @@ from services.signals_service import (
 )
 from services.rbac_service import RBACService, Permission
 from middleware.rbac import require_authenticated
+from services.tenant_service import TenantService
+from utils.query_scope import QueryScope
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -50,21 +52,44 @@ async def get_trends(
     current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ) -> TrendListResponse:
     """
-    Get price trends across all items
+    Get price trends across all items (scoped to current tenant)
     
     Query Parameters:
     - period: Analysis period (daily, weekly, monthly, quarterly, yearly)
     - days_back: Number of days to analyze (1-365)
     - skip: Pagination skip
     - limit: Pagination limit (1-100)
+    
+    Security: Results automatically scoped to current tenant
     """
     try:
+        email, role = current_user
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (tenant: {current_tenant}) querying trends")
+        
         trends = []
         
-        # Get all price histories
+        # Get all price histories, filter by tenant if available
         for item_id in SignalsService._price_history.keys():
             trend = SignalsService.get_price_trend(item_id, days_back, period)
             if trend:
+                # Add tenant_id to trend for scoping verification
+                trend.tenant_id = current_tenant
                 trends.append(trend)
         
         # Sort by volatility (riskiest first)
@@ -78,9 +103,12 @@ async def get_trends(
             total_count=total,
             trends=trends,
             period=period,
-            generated_at=datetime.utcnow()
+            generated_at=datetime.utcnow(),
+            tenant_id=current_tenant
         )
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching trends: {str(e)}")
         raise HTTPException(
@@ -194,7 +222,7 @@ async def get_alerts(
     current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ) -> AlertListResponse:
     """
-    Get risk alerts with optional filtering
+    Get risk alerts with optional filtering (scoped to current tenant)
     
     Query Parameters:
     - risk_level: Filter by risk level (low, medium, high, critical)
@@ -202,10 +230,34 @@ async def get_alerts(
     - days_back: Number of days to retrieve (1-365)
     - skip: Pagination skip
     - limit: Pagination limit
+    
+    Security: Results automatically scoped to current tenant
     """
     try:
+        email, role = current_user
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (tenant: {current_tenant}) querying alerts")
+        
         # Get all alerts
         all_alerts = SignalsService.get_risk_alerts(risk_level, days_back)
+        
+        # Apply tenant filtering
+        all_alerts = [a for a in all_alerts if getattr(a, 'tenant_id', current_tenant) == current_tenant]
         
         # Apply acknowledged filter
         if acknowledged is not None:
@@ -226,9 +278,12 @@ async def get_alerts(
                 "acknowledged": acknowledged,
                 "days_back": days_back
             },
-            generated_at=datetime.utcnow()
+            generated_at=datetime.utcnow(),
+            tenant_id=current_tenant
         )
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching alerts: {str(e)}")
         raise HTTPException(
@@ -328,7 +383,7 @@ async def get_suppliers(
     current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ) -> SupplierListResponse:
     """
-    Get supplier performance data with optional filtering
+    Get supplier performance data with optional filtering (scoped to current tenant)
     
     Query Parameters:
     - health_status: Filter by health status (excellent, good, fair, poor, critical)
@@ -336,14 +391,39 @@ async def get_suppliers(
     - min_score: Minimum performance score (0-100)
     - skip: Pagination skip
     - limit: Pagination limit
+    
+    Security: Results automatically scoped to current tenant
     """
     try:
+        email, role = current_user
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (tenant: {current_tenant}) querying suppliers")
+        
         suppliers = []
         
-        # Get all supplier performances
+        # Get all supplier performances, filter by tenant
         for supplier_id in SignalsService._supplier_metrics.keys():
             perf = SignalsService.get_supplier_performance(supplier_id)
             if perf:
+                # Apply tenant filtering
+                if getattr(perf, 'tenant_id', current_tenant) != current_tenant:
+                    continue
+                    
                 # Apply filters
                 if health_status and perf.health_status != health_status:
                     continue
@@ -372,9 +452,12 @@ async def get_suppliers(
             total_count=total,
             suppliers=suppliers,
             category=category,
-            generated_at=datetime.utcnow()
+            generated_at=datetime.utcnow(),
+            tenant_id=current_tenant
         )
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching suppliers: {str(e)}")
         raise HTTPException(

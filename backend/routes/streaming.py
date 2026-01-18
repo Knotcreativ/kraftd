@@ -17,6 +17,8 @@ import asyncio
 import json
 from datetime import datetime
 
+from services.tenant_service import TenantService
+from utils.query_scope import QueryScope
 from models.streaming import (
     SubscriptionRequest,
     UnsubscriptionRequest,
@@ -128,6 +130,18 @@ async def websocket_alerts(
         logger.warning(f"WebSocket /alerts connection rejected: {str(e)}")
         return
     
+    # Get tenant context
+    try:
+        current_tenant = TenantService.get_current_tenant()
+        if not current_tenant:
+            await websocket.close(code=4001, reason="No tenant context found")
+            logger.warning(f"WebSocket /alerts connection rejected: No tenant context for {email}")
+            return
+    except Exception as e:
+        await websocket.close(code=4001, reason="Failed to retrieve tenant context")
+        logger.error(f"Error retrieving tenant context for {email}: {e}")
+        return
+    
     # Check permission to subscribe to alerts
     if not rbac_service.has_permission(role, Permission.ALERTS_READ):
         await websocket.close(code=4003, reason="Forbidden: Insufficient permissions")
@@ -142,7 +156,7 @@ async def websocket_alerts(
         await websocket.close(code=4029, reason="Connection limit reached")
         return
     
-    logger.info(f"User {email} (role: {role}) connected to /ws/alerts")
+    logger.info(f"User {email} (tenant: {current_tenant}, role: {role}) connected to /ws/alerts")
     
     # Log authorization decision
     rbac_service.log_authorization_decision(
@@ -165,7 +179,7 @@ async def websocket_alerts(
             try:
                 req = SubscriptionRequest(**data)
             except Exception as e:
-                logger.warning(f"Invalid message from {client.client_id}: {e}")
+                logger.warning(f"Invalid message from {client.client_id} (tenant: {current_tenant}): {e}")
                 await client.send_event({
                     "type": "error",
                     "message": "Invalid message format",
@@ -173,17 +187,22 @@ async def websocket_alerts(
                 })
                 continue
             
-            # Handle actions
+            # Handle actions with tenant scoping
             if req.action == "subscribe":
+                # Add tenant_id to filters for scoped subscription
+                filters = req.filters or {}
+                filters["tenant_id"] = current_tenant
+                
                 broadcaster.subscribe(
                     client.client_id,
                     "alerts",
-                    filters=req.filters
+                    filters=filters
                 )
                 await client.send_event({
                     "type": "subscription_confirmed",
                     "topic": "alerts",
-                    "filters": req.filters
+                    "filters": filters,
+                    "tenant_id": current_tenant
                 })
             
             elif req.action == "unsubscribe":
@@ -194,10 +213,10 @@ async def websocket_alerts(
                 })
     
     except WebSocketDisconnect:
-        logger.info(f"Client {client.client_id} disconnected from /ws/alerts")
+        logger.info(f"Client {client.client_id} disconnected from /ws/alerts (tenant: {current_tenant})")
     
     except Exception as e:
-        logger.error(f"Error in /ws/alerts for {client.client_id}: {e}")
+        logger.error(f"Error in /ws/alerts for {client.client_id} (tenant: {current_tenant}): {e}")
     
     finally:
         broadcaster.unregister_client(client.client_id)
@@ -224,6 +243,18 @@ async def websocket_prices(
         email, role = await verify_websocket_token(token)
     except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
+        return
+    
+    # Get tenant context
+    try:
+        current_tenant = TenantService.get_current_tenant()
+        if not current_tenant:
+            await websocket.close(code=4001, reason="No tenant context found")
+            logger.warning(f"WebSocket /prices connection rejected: No tenant context for {email}")
+            return
+    except Exception as e:
+        await websocket.close(code=4001, reason="Failed to retrieve tenant context")
+        logger.error(f"Error retrieving tenant context for {email}: {e}")
         return
     
     # Check RBAC permissions
@@ -255,7 +286,7 @@ async def websocket_prices(
         allowed=True
     )
     
-    logger.info(f"Client {client.client_id} connected to /ws/prices")
+    logger.info(f"User {email} (tenant: {current_tenant}, role: {role}) connected to /ws/prices")
     
     try:
         while True:
@@ -266,19 +297,24 @@ async def websocket_prices(
             try:
                 req = SubscriptionRequest(**data)
             except Exception as e:
-                logger.warning(f"Invalid message from {client.client_id}: {e}")
+                logger.warning(f"Invalid message from {client.client_id} (tenant: {current_tenant}): {e}")
                 continue
             
             if req.action == "subscribe":
+                # Add tenant_id to filters for scoped subscription
+                filters = {"item_id": req.items} if req.items else {}
+                filters["tenant_id"] = current_tenant
+                
                 broadcaster.subscribe(
                     client.client_id,
                     "prices",
-                    filters={"item_id": req.items} if req.items else None
+                    filters=filters
                 )
                 await client.send_event({
                     "type": "subscription_confirmed",
                     "topic": "prices",
-                    "items": req.items
+                    "items": req.items,
+                    "tenant_id": current_tenant
                 })
             
             elif req.action == "unsubscribe":
@@ -289,7 +325,7 @@ async def websocket_prices(
                 })
     
     except WebSocketDisconnect:
-        logger.info(f"Client {client.client_id} disconnected from /ws/prices")
+        logger.info(f"Client {client.client_id} disconnected from /ws/prices (tenant: {current_tenant})")
     
     finally:
         broadcaster.unregister_client(client.client_id)
@@ -316,6 +352,18 @@ async def websocket_signals(
         email, role = await verify_websocket_token(token)
     except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
+        return
+    
+    # Get tenant context
+    try:
+        current_tenant = TenantService.get_current_tenant()
+        if not current_tenant:
+            await websocket.close(code=4001, reason="No tenant context found")
+            logger.warning(f"WebSocket /signals connection rejected: No tenant context for {email}")
+            return
+    except Exception as e:
+        await websocket.close(code=4001, reason="Failed to retrieve tenant context")
+        logger.error(f"Error retrieving tenant context for {email}: {e}")
         return
     
     # Check RBAC permissions
@@ -347,7 +395,7 @@ async def websocket_signals(
         allowed=True
     )
     
-    logger.info(f"Client {client.client_id} connected to /ws/signals")
+    logger.info(f"User {email} (tenant: {current_tenant}, role: {role}) connected to /ws/signals")
     
     try:
         while True:
@@ -358,19 +406,24 @@ async def websocket_signals(
             try:
                 req = SubscriptionRequest(**data)
             except Exception as e:
-                logger.warning(f"Invalid message from {client.client_id}: {e}")
+                logger.warning(f"Invalid message from {client.client_id} (tenant: {current_tenant}): {e}")
                 continue
             
             if req.action == "subscribe":
+                # Add tenant_id to filters for scoped subscription
+                filters = {"supplier_id": req.suppliers} if req.suppliers else {}
+                filters["tenant_id"] = current_tenant
+                
                 broadcaster.subscribe(
                     client.client_id,
                     "signals",
-                    filters={"supplier_id": req.suppliers} if req.suppliers else None
+                    filters=filters
                 )
                 await client.send_event({
                     "type": "subscription_confirmed",
                     "topic": "signals",
-                    "suppliers": req.suppliers
+                    "suppliers": req.suppliers,
+                    "tenant_id": current_tenant
                 })
             
             elif req.action == "unsubscribe":
@@ -381,7 +434,7 @@ async def websocket_signals(
                 })
     
     except WebSocketDisconnect:
-        logger.info(f"Client {client.client_id} disconnected from /ws/signals")
+        logger.info(f"Client {client.client_id} disconnected from /ws/signals (tenant: {current_tenant})")
     
     finally:
         broadcaster.unregister_client(client.client_id)
@@ -408,6 +461,18 @@ async def websocket_anomalies(
         email, role = await verify_websocket_token(token)
     except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
+        return
+    
+    # Get tenant context
+    try:
+        current_tenant = TenantService.get_current_tenant()
+        if not current_tenant:
+            await websocket.close(code=4001, reason="No tenant context found")
+            logger.warning(f"WebSocket /anomalies connection rejected: No tenant context for {email}")
+            return
+    except Exception as e:
+        await websocket.close(code=4001, reason="Failed to retrieve tenant context")
+        logger.error(f"Error retrieving tenant context for {email}: {e}")
         return
     
     # Check RBAC permissions
@@ -439,7 +504,7 @@ async def websocket_anomalies(
         allowed=True
     )
     
-    logger.info(f"Client {client.client_id} connected to /ws/anomalies")
+    logger.info(f"User {email} (tenant: {current_tenant}, role: {role}) connected to /ws/anomalies")
     
     try:
         while True:
@@ -450,22 +515,27 @@ async def websocket_anomalies(
             try:
                 req = SubscriptionRequest(**data)
             except Exception as e:
-                logger.warning(f"Invalid message from {client.client_id}: {e}")
+                logger.warning(f"Invalid message from {client.client_id} (tenant: {current_tenant}): {e}")
                 continue
             
             if req.action == "subscribe":
+                # Add tenant_id to filters for scoped subscription
+                filters = {
+                    "anomaly_type": req.anomaly_types,
+                    "sensitivity": req.sensitivity,
+                    "tenant_id": current_tenant
+                } if req.anomaly_types else {"tenant_id": current_tenant}
+                
                 broadcaster.subscribe(
                     client.client_id,
                     "anomalies",
-                    filters={
-                        "anomaly_type": req.anomaly_types,
-                        "sensitivity": req.sensitivity
-                    } if req.anomaly_types else None
+                    filters=filters
                 )
                 await client.send_event({
                     "type": "subscription_confirmed",
                     "topic": "anomalies",
-                    "anomaly_types": req.anomaly_types
+                    "anomaly_types": req.anomaly_types,
+                    "tenant_id": current_tenant
                 })
             
             elif req.action == "unsubscribe":
@@ -476,7 +546,7 @@ async def websocket_anomalies(
                 })
     
     except WebSocketDisconnect:
-        logger.info(f"Client {client.client_id} disconnected from /ws/anomalies")
+        logger.info(f"Client {client.client_id} disconnected from /ws/anomalies (tenant: {current_tenant})")
     
     finally:
         broadcaster.unregister_client(client.client_id)
@@ -503,6 +573,18 @@ async def websocket_trends(
         email, role = await verify_websocket_token(token)
     except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
+        return
+    
+    # Get tenant context
+    try:
+        current_tenant = TenantService.get_current_tenant()
+        if not current_tenant:
+            await websocket.close(code=4001, reason="No tenant context found")
+            logger.warning(f"WebSocket /trends connection rejected: No tenant context for {email}")
+            return
+    except Exception as e:
+        await websocket.close(code=4001, reason="Failed to retrieve tenant context")
+        logger.error(f"Error retrieving tenant context for {email}: {e}")
         return
     
     # Check RBAC permissions
@@ -534,7 +616,7 @@ async def websocket_trends(
         allowed=True
     )
     
-    logger.info(f"Client {client.client_id} connected to /ws/trends")
+    logger.info(f"User {email} (tenant: {current_tenant}, role: {role}) connected to /ws/trends")
     
     try:
         while True:
@@ -545,19 +627,24 @@ async def websocket_trends(
             try:
                 req = SubscriptionRequest(**data)
             except Exception as e:
-                logger.warning(f"Invalid message from {client.client_id}: {e}")
+                logger.warning(f"Invalid message from {client.client_id} (tenant: {current_tenant}): {e}")
                 continue
             
             if req.action == "subscribe":
+                # Add tenant_id to filters for scoped subscription
+                filters = {"item_id": req.items} if req.items else {}
+                filters["tenant_id"] = current_tenant
+                
                 broadcaster.subscribe(
                     client.client_id,
                     "trends",
-                    filters={"item_id": req.items} if req.items else None
+                    filters=filters
                 )
                 await client.send_event({
                     "type": "subscription_confirmed",
                     "topic": "trends",
-                    "items": req.items
+                    "items": req.items,
+                    "tenant_id": current_tenant
                 })
             
             elif req.action == "unsubscribe":
@@ -568,7 +655,7 @@ async def websocket_trends(
                 })
     
     except WebSocketDisconnect:
-        logger.info(f"Client {client.client_id} disconnected from /ws/trends")
+        logger.info(f"Client {client.client_id} disconnected from /ws/trends (tenant: {current_tenant})")
     
     finally:
         broadcaster.unregister_client(client.client_id)
@@ -591,6 +678,18 @@ async def websocket_health(
         email, role = await verify_websocket_token(token)
     except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
+        return
+    
+    # Get tenant context
+    try:
+        current_tenant = TenantService.get_current_tenant()
+        if not current_tenant:
+            await websocket.close(code=4001, reason="No tenant context found")
+            logger.warning(f"WebSocket /health connection rejected: No tenant context for {email}")
+            return
+    except Exception as e:
+        await websocket.close(code=4001, reason="Failed to retrieve tenant context")
+        logger.error(f"Error retrieving tenant context for {email}: {e}")
         return
     
     # Check RBAC permissions
@@ -622,11 +721,11 @@ async def websocket_health(
         allowed=True
     )
     
-    logger.info(f"Client {client.client_id} connected to /ws/health")
+    logger.info(f"User {email} (tenant: {current_tenant}, role: {role}) connected to /ws/health")
     
     try:
-        # Subscribe to health topic
-        broadcaster.subscribe(client.client_id, "health")
+        # Subscribe to health topic with tenant scoping
+        broadcaster.subscribe(client.client_id, "health", filters={"tenant_id": current_tenant})
         
         # Send initial health check
         stats = broadcaster.get_stats()
@@ -637,7 +736,8 @@ async def websocket_health(
             "active_connections": stats["active_connections"],
             "messages_sent_total": stats["messages_sent_total"],
             "errors_last_minute": stats["errors_last_minute"],
-            "avg_latency_ms": 45.2
+            "avg_latency_ms": 45.2,
+            "tenant_id": current_tenant
         })
         
         # Send health checks every 30 seconds
@@ -649,7 +749,7 @@ async def websocket_health(
                     break
                 
                 # Client sent pong or other message - just acknowledge
-                logger.debug(f"Health check response from {client.client_id}")
+                logger.debug(f"Health check response from {client.client_id} (tenant: {current_tenant})")
             
             except asyncio.TimeoutError:
                 # Time to send health check
@@ -661,14 +761,15 @@ async def websocket_health(
                     "active_connections": stats["active_connections"],
                     "messages_sent_total": stats["messages_sent_total"],
                     "errors_last_minute": stats["errors_last_minute"],
-                    "avg_latency_ms": 45.2
+                    "avg_latency_ms": 45.2,
+                    "tenant_id": current_tenant
                 })
     
     except WebSocketDisconnect:
-        logger.info(f"Client {client.client_id} disconnected from /ws/health")
+        logger.info(f"Client {client.client_id} disconnected from /ws/health (tenant: {current_tenant})")
     
     except Exception as e:
-        logger.error(f"Error in /ws/health for {client.client_id}: {e}")
+        logger.error(f"Error in /ws/health for {client.client_id} (tenant: {current_tenant}): {e}")
     
     finally:
         broadcaster.unregister_client(client.client_id)

@@ -42,6 +42,14 @@ MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "25"))  # Per MASTER IN
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FILE = os.getenv("LOG_FILE", "backend.log")
 
+# Cosmos DB Configuration (Task 8 Phase 5)
+COSMOS_DB_ENDPOINT = os.getenv("COSMOS_DB_ENDPOINT")  # https://<account>.documents.azure.com:443/
+COSMOS_DB_KEY = os.getenv("COSMOS_DB_KEY")  # Primary key
+COSMOS_DB_NAME = os.getenv("COSMOS_DB_NAME", "kraftd_audit")  # Database name
+COSMOS_DB_AUDIT_CONTAINER = os.getenv("COSMOS_DB_AUDIT_CONTAINER", "audit_events")  # Collection name
+COSMOS_DB_THROUGHPUT = int(os.getenv("COSMOS_DB_THROUGHPUT", "400"))  # RU/s for container
+COSMOS_DB_TTL_DAYS = int(os.getenv("COSMOS_DB_TTL_DAYS", "2555"))  # 7 years default
+
 # Environment
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")  # development, staging, production
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"

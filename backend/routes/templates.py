@@ -22,6 +22,9 @@ from uuid import uuid4
 from fastapi import APIRouter, Header, HTTPException, Query, Body, Depends
 from pydantic import BaseModel
 
+from services.tenant_service import TenantService
+from utils.query_scope import QueryScope
+
 from models.template import (
     Template, TemplateCategory, TemplateFormat,
     TemplateCreateRequest, TemplateUpdateRequest,
@@ -83,6 +86,20 @@ async def list_templates(
     try:
         email, role = current_user
         
+        # Get tenant context
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(403, "No tenant context found")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error retrieving tenant context: {e}")
+            raise HTTPException(403, "Failed to retrieve tenant context")
+        
+        # Log request with tenant context
+        logger.info(f"User {email} (tenant: {current_tenant}) listing templates (category: {category})")
+        
         # Get filtered templates from storage
         templates = TemplateStorageService.get_templates(
             category=category,
@@ -90,22 +107,30 @@ async def list_templates(
             active_only=active_only
         )
         
-        # Apply pagination
-        total_count = len(templates)
-        templates = templates[skip : skip + limit]
+        # Apply tenant filtering - only templates created by users in same tenant
+        filtered_templates = QueryScope.filter_by_tenant(
+            templates, current_tenant, 'tenant_id'
+        )
         
-        logger.info(f"Listed {len(templates)} templates (total: {total_count}) by user {email}")
+        # Apply pagination
+        total_count = len(filtered_templates)
+        paginated_templates = filtered_templates[skip : skip + limit]
+        
+        logger.info(f"Listed {len(paginated_templates)} templates (total: {total_count}) for tenant {current_tenant}")
         
         return TemplateListResponse(
             total_count=total_count,
-            templates=templates,
+            templates=paginated_templates,
             filters_applied={
                 "category": str(category) if category else None,
                 "created_by": created_by,
-                "active_only": active_only
+                "active_only": active_only,
+                "tenant_id": current_tenant
             }
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error listing templates: {e}")
         raise HTTPException(
@@ -131,6 +156,17 @@ async def get_template(
     try:
         email, role = current_user
         
+        # Get tenant context
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(403, "No tenant context found")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error retrieving tenant context: {e}")
+            raise HTTPException(403, "Failed to retrieve tenant context")
+        
         template = TemplateStorageService.get_template(template_id)
         
         if not template:
@@ -140,7 +176,16 @@ async def get_template(
                 detail=f"Template '{template_id}' not found"
             )
         
-        logger.debug(f"Retrieved template: {template_id} by user {email}")
+        # Verify template belongs to current tenant
+        template_tenant = getattr(template, 'tenant_id', current_tenant)
+        if template_tenant != current_tenant:
+            logger.warning(f"Cross-tenant access attempt: {email} (tenant: {current_tenant}) tried to access template from tenant {template_tenant}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Template '{template_id}' not found"
+            )
+        
+        logger.debug(f"Retrieved template: {template_id} by user {email} (tenant: {current_tenant})")
         return template
         
     except HTTPException:
@@ -170,19 +215,37 @@ async def get_templates_by_category(
     try:
         email, role = current_user
         
+        # Get tenant context
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(403, "No tenant context found")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error retrieving tenant context: {e}")
+            raise HTTPException(403, "Failed to retrieve tenant context")
+        
         templates = TemplateStorageService.get_templates(
             category=category,
             active_only=True
         )
         
-        logger.info(f"Retrieved {len(templates)} templates in category {category} by user {email}")
-        
-        return TemplateListResponse(
-            total_count=len(templates),
-            templates=templates,
-            filters_applied={"category": str(category)}
+        # Apply tenant filtering
+        filtered_templates = QueryScope.filter_by_tenant(
+            templates, current_tenant, 'tenant_id'
         )
         
+        logger.info(f"Retrieved {len(filtered_templates)} templates in category {category} for tenant {current_tenant} by user {email}")
+        
+        return TemplateListResponse(
+            total_count=len(filtered_templates),
+            templates=filtered_templates,
+            filters_applied={"category": str(category), "tenant_id": current_tenant}
+        )
+        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error retrieving templates by category: {e}")
         raise HTTPException(

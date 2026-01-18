@@ -367,30 +367,46 @@ class ProfileService:
             logger.error(f"Error updating preferences for {email}: {e}")
             raise
     
-    async def get_all_profiles(self, skip: int = 0, limit: int = 10) -> list:
+    async def get_all_profiles(self, skip: int = 0, limit: int = 10, tenant_id: Optional[str] = None) -> list:
         """
         Get all user profiles (admin operation)
+        
+        Filters profiles by tenant if tenant_id is provided.
         
         Args:
             skip: Number of profiles to skip
             limit: Maximum number of profiles to return
+            tenant_id: Optional tenant ID to filter profiles
             
         Returns:
-            List of UserProfile objects
+            List of UserProfile objects filtered by tenant if provided
         """
         if not self.profiles_container:
             logger.warning("Profiles container not initialized")
             return []
         
         try:
-            query = "SELECT * FROM c ORDER BY c.created_at DESC OFFSET @skip LIMIT @limit"
-            items = list(self.profiles_container.query_items(
-                query=query,
-                parameters=[
-                    {"name": "@skip", "value": skip},
-                    {"name": "@limit", "value": limit}
-                ]
-            ))
+            # If tenant_id provided, filter by tenant_id field
+            if tenant_id:
+                query = "SELECT * FROM c WHERE c.tenant_id = @tenant_id ORDER BY c.created_at DESC OFFSET @skip LIMIT @limit"
+                items = list(self.profiles_container.query_items(
+                    query=query,
+                    parameters=[
+                        {"name": "@tenant_id", "value": tenant_id},
+                        {"name": "@skip", "value": skip},
+                        {"name": "@limit", "value": limit}
+                    ]
+                ))
+            else:
+                # Without tenant filtering (use with caution - admin only)
+                query = "SELECT * FROM c ORDER BY c.created_at DESC OFFSET @skip LIMIT @limit"
+                items = list(self.profiles_container.query_items(
+                    query=query,
+                    parameters=[
+                        {"name": "@skip", "value": skip},
+                        {"name": "@limit", "value": limit}
+                    ]
+                ))
             
             # Remove Cosmos DB system fields
             profiles = []
@@ -402,7 +418,8 @@ class ProfileService:
                 item.pop("_ts", None)
                 profiles.append(UserProfile(**item))
             
-            logger.info(f"Retrieved {len(profiles)} profiles (skip={skip}, limit={limit})")
+            tenant_context = f"tenant:{tenant_id}" if tenant_id else "all"
+            logger.info(f"Retrieved {len(profiles)} profiles from {tenant_context} (skip={skip}, limit={limit})")
             return profiles
             
         except Exception as e:

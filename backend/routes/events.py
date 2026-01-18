@@ -21,6 +21,8 @@ from services.event_storage import EventStorageService, EventType, get_event_sto
 from models.user import UserRole
 from services.rbac_service import RBACService, Permission
 from middleware.rbac import require_authenticated
+from services.tenant_service import TenantService
+from utils.query_scope import QueryScope
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +106,7 @@ def get_pagination(
     "/prices",
     response_model=EventQueryResponse,
     summary="Get historical price data",
-    description="Retrieve historical commodity price events with optional filters"
+    description="Retrieve historical commodity price events with optional filters (scoped to current tenant)"
 )
 async def get_price_events(
     item_id: Optional[str] = Query(None, description="Filter by item ID"),
@@ -116,7 +118,7 @@ async def get_price_events(
     storage: EventStorageService = Depends(get_event_storage_service)
 ):
     """
-    Get historical price events
+    Get historical price events for current tenant
 
     **Filters:**
     - item_id: Specific commodity item
@@ -127,19 +129,39 @@ async def get_price_events(
     - limit: 1-1000 results per page (default: 100)
     - offset: Results to skip (default: 0)
 
+    **Security:** Results are automatically scoped to current tenant.
+    
     **Returns:** List of price events with metadata
     """
     try:
         email, role = current_user
-        logger.info(f"User {email} (role: {role}) querying price events")
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (role: {role}, tenant: {current_tenant}) querying price events")
+        
         # Get and validate dates
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
             start_date, end_date = dates
 
-        # Query events
+        # Query events with tenant scoping
         result = await storage.query_events(
             event_type=EventType.PRICE,
+            tenant_id=current_tenant,
             start_date=start_date,
             end_date=end_date,
             item_id=item_id,
@@ -155,10 +177,13 @@ async def get_price_events(
             query_info={
                 "item_id": item_id,
                 "start_date": start_date,
-                "end_date": end_date
+                "end_date": end_date,
+                "tenant_id": current_tenant
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get price events: {e}")
         raise HTTPException(
@@ -202,7 +227,23 @@ async def get_alert_events(
     """
     try:
         email, role = current_user
-        logger.info(f"User {email} (role: {role}) querying alert events")
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (role: {role}, tenant: {current_tenant}) querying alert events")
         
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
@@ -210,6 +251,7 @@ async def get_alert_events(
 
         result = await storage.query_events(
             event_type=EventType.ALERT,
+            tenant_id=current_tenant,
             start_date=start_date,
             end_date=end_date,
             item_id=item_id,
@@ -229,10 +271,13 @@ async def get_alert_events(
                 "supplier_id": supplier_id,
                 "risk_level": risk_level,
                 "start_date": start_date,
-                "end_date": end_date
+                "end_date": end_date,
+                "tenant_id": current_tenant
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get alert events: {e}")
         raise HTTPException(
@@ -276,7 +321,23 @@ async def get_anomaly_events(
     """
     try:
         email, role = current_user
-        logger.info(f"User {email} (role: {role}) querying anomaly events")
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (role: {role}, tenant: {current_tenant}) querying anomaly events")
         
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
@@ -284,6 +345,7 @@ async def get_anomaly_events(
 
         result = await storage.query_events(
             event_type=EventType.ANOMALY,
+            tenant_id=current_tenant,
             start_date=start_date,
             end_date=end_date,
             item_id=item_id,
@@ -303,10 +365,13 @@ async def get_anomaly_events(
                 "supplier_id": supplier_id,
                 "severity": severity,
                 "start_date": start_date,
-                "end_date": end_date
+                "end_date": end_date,
+                "tenant_id": current_tenant
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get anomaly events: {e}")
         raise HTTPException(
@@ -348,12 +413,30 @@ async def get_signal_events(
         email, role = current_user
         logger.info(f"User {email} (role: {role}) querying supplier signals")
         
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (role: {role}, tenant: {current_tenant}) querying supplier signals")
+        
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
             start_date, end_date = dates
 
         result = await storage.query_events(
             event_type=EventType.SIGNAL,
+            tenant_id=current_tenant,
             start_date=start_date,
             end_date=end_date,
             supplier_id=supplier_id,
@@ -369,10 +452,13 @@ async def get_signal_events(
             query_info={
                 "supplier_id": supplier_id,
                 "start_date": start_date,
-                "end_date": end_date
+                "end_date": end_date,
+                "tenant_id": current_tenant
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get signal events: {e}")
         raise HTTPException(
@@ -412,7 +498,23 @@ async def get_trend_events(
     """
     try:
         email, role = current_user
-        logger.info(f"User {email} (role: {role}) querying trend events")
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (role: {role}, tenant: {current_tenant}) querying trend events")
         
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
@@ -420,6 +522,7 @@ async def get_trend_events(
 
         result = await storage.query_events(
             event_type=EventType.TREND,
+            tenant_id=current_tenant,
             start_date=start_date,
             end_date=end_date,
             item_id=item_id,
@@ -435,10 +538,13 @@ async def get_trend_events(
             query_info={
                 "item_id": item_id,
                 "start_date": start_date,
-                "end_date": end_date
+                "end_date": end_date,
+                "tenant_id": current_tenant
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get trend events: {e}")
         raise HTTPException(
@@ -470,13 +576,29 @@ async def get_event_stats(
     """
     try:
         email, role = current_user
-        logger.info(f"User {email} (role: {role}) querying event statistics")
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (role: {role}, tenant: {current_tenant}) querying event statistics")
         
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
             start_date, end_date = dates
 
-        stats = await storage.get_event_stats(start_date, end_date)
+        stats = await storage.get_event_stats(start_date, end_date, tenant_id=current_tenant)
 
         return EventStatsResponse(
             price=stats.get("price", 0),
@@ -490,6 +612,8 @@ async def get_event_stats(
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get event stats: {e}")
         raise HTTPException(
@@ -527,7 +651,23 @@ async def get_aggregated_events(
     """
     try:
         email, role = current_user
-        logger.info(f"User {email} (role: {role}) querying aggregated {event_type} events")
+        
+        # Get current tenant context for scoping
+        try:
+            current_tenant = TenantService.get_current_tenant()
+            if not current_tenant:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="No tenant context found"
+                )
+        except Exception as e:
+            logger.error(f"Error getting tenant context: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Failed to retrieve tenant context"
+            )
+        
+        logger.info(f"User {email} (role: {role}, tenant: {current_tenant}) querying aggregated {event_type} events")
         
         # Validate event type
         try:
@@ -544,6 +684,7 @@ async def get_aggregated_events(
 
         results = await storage.aggregate_events(
             event_type=event_enum,
+            tenant_id=current_tenant,
             start_date=start_date,
             end_date=end_date,
             group_by=group_by,
