@@ -411,3 +411,7 @@ def can_user_access(
         True if user has permission
     """
     return RBACService.has_permission(user_role, permission)
+
+
+# Global singleton instance
+rbac_service = RBACService()

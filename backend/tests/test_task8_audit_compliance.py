@@ -13,13 +13,13 @@ import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 
-from backend.services.audit_service import (
+from services.audit_service import (
     AuditService,
     AuditEvent,
     AuditEventType,
     AuditResult
 )
-from backend.services.compliance_service import (
+from services.compliance_service import (
     ComplianceReportService,
     ComplianceReport
 )
