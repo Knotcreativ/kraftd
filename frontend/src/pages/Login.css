@@ -42,8 +42,6 @@
   font-size: 1.5rem;
   color: #333;
 }
-
-.form-group {
   margin-bottom: 1.5rem;
 }
 
@@ -240,4 +238,53 @@
 .success-screen .btn-primary {
   margin-top: 1.5rem;
   width: 100%;
+}
+
+/* Form Header Tabs */
+.form-header {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #eee;
+}
+
+.form-header h2 {
+  flex: 1;
+  margin: 0 0 -2px 0;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #999;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-header h2.active {
+  color: #333;
+  border-bottom-color: #667eea;
+}
+
+.form-header h2:hover:not(.active) {
+  color: #666;
+  background-color: #f9f9f9;
+}
+
+/* Form Toggle */
+.form-toggle {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.form-toggle p {
+  margin: 0 0 0.75rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.form-toggle .btn-link {
+  font-size: 0.95rem;
+  font-weight: 500;
 }

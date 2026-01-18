@@ -99,7 +99,10 @@ export default function Login() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="login-form">
-            <h2>{isRegister ? 'Create Account' : 'Sign In'}</h2>
+            <div className="form-header">
+              <h2 className={!isRegister ? 'active' : ''}>Sign In</h2>
+              <h2 className={isRegister ? 'active' : ''}>Create Account</h2>
+            </div>
 
             {error && (
               <div className="form-error">
@@ -117,6 +120,7 @@ export default function Login() {
                 placeholder="your@email.com"
                 required
                 disabled={isLoading}
+                autoComplete={isRegister ? 'off' : 'email'}
               />
             </div>
 
@@ -130,8 +134,10 @@ export default function Login() {
                 placeholder="••••••••"
                 required
                 disabled={isLoading}
+                autoComplete={isRegister ? 'off' : 'current-password'}
               />
               {isRegister && <p className="form-hint">Password must be 8-128 characters, no spaces</p>}
+              {!isRegister && <p className="form-hint">Enter your email and password to sign in</p>}
             </div>
 
             {isRegister && (
@@ -145,6 +151,7 @@ export default function Login() {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your Name"
                     disabled={isLoading}
+                    autoComplete="off"
                   />
                 </div>
 
@@ -198,14 +205,17 @@ export default function Login() {
               {isLoading ? 'Processing...' : (isRegister ? 'Create Account' : 'Sign In')}
             </button>
 
-            <button
-              type="button"
-              className="btn-link"
-              onClick={handleToggleMode}
-              disabled={isLoading}
-            >
-              {isRegister ? 'Already have an account? Sign In' : 'Need an account? Register'}
-            </button>
+            <div className="form-toggle">
+              <p>{isRegister ? 'Already have an account?' : "Don't have an account?"}</p>
+              <button
+                type="button"
+                className="btn-link"
+                onClick={handleToggleMode}
+                disabled={isLoading}
+              >
+                {isRegister ? 'Sign In' : 'Register'}
+              </button>
+            </div>
           </form>
         )}
 

@@ -1,18 +1,27 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { apiClient } from '../services/api'
 import { Document } from '../types'
 import './Dashboard.css'
 
 export default function Dashboard() {
+  const navigate = useNavigate()
+  const { isAuthenticated, logout } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
 
+  // Check authentication on mount
   useEffect(() => {
-    loadDocuments()
-  }, [])
+    if (!isAuthenticated) {
+      navigate('/login')
+    } else {
+      loadDocuments()
+    }
+  }, [isAuthenticated, navigate])
 
   const loadDocuments = async () => {
     setIsLoading(true)
@@ -51,9 +60,21 @@ export default function Dashboard() {
     }
   }
 
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
   return (
     <div className="dashboard">
-      <h1>Documents & Procurement Management</h1>
+      <header className="dashboard-header">
+        <div className="header-content">
+          <h1>Documents & Procurement Management</h1>
+          <button onClick={handleLogout} className="btn-logout">
+            Logout
+          </button>
+        </div>
+      </header>
 
       <div className="dashboard-content">
         <div className="upload-section">
