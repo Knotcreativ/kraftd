@@ -5,7 +5,7 @@ Part of Phase 5: Signals Intelligence layer.
 """
 
 import logging
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from fastapi import APIRouter, Depends, Query, HTTPException, status, Header
 
 from models.signals import (
@@ -14,10 +14,13 @@ from models.signals import (
     SignalsErrorResponse, RiskLevel, SupplierHealthStatus, AnalysisPeriod,
     PricePoint, PriceTrend
 )
+from models.user import UserRole
 from services.signals_service import (
     SignalsService, TrendAnalysisService, RiskScoringService,
     SupplierAnalyticsService, AnomalyDetectionService
 )
+from services.rbac_service import RBACService, Permission
+from middleware.rbac import require_authenticated
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -35,40 +38,6 @@ router = APIRouter(
 
 
 # ============================================================================
-# Dependency: Verify Bearer Token
-# ============================================================================
-
-def verify_bearer_token(authorization: Optional[str] = Header(None)) -> str:
-    """Verify Bearer token is present and valid format.
-    
-    Args:
-        authorization: Authorization header value
-        
-    Returns:
-        Bearer token
-        
-    Raises:
-        HTTPException: If token is missing or invalid
-    """
-    if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing authorization header",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authorization header format. Expected: Authorization: Bearer <token>",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    return parts[1]
-
-
-# ============================================================================
 # Price Trend Endpoints
 # ============================================================================
 
@@ -78,7 +47,7 @@ async def get_trends(
     days_back: int = Query(90, ge=1, le=365),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ) -> TrendListResponse:
     """
     Get price trends across all items
@@ -125,7 +94,7 @@ async def get_item_trend(
     item_id: str = Query(..., min_length=1),
     period: AnalysisPeriod = Query(AnalysisPeriod.MONTHLY),
     days_back: int = Query(90, ge=1, le=365),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ) -> PriceTrend:
     """
     Get price trend for a specific item
@@ -163,7 +132,7 @@ async def query_trends(
     request: TrendQueryRequest,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ) -> TrendListResponse:
     """
     Advanced trend query with multiple filters
@@ -222,7 +191,7 @@ async def get_alerts(
     days_back: int = Query(30, ge=1, le=365),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ) -> AlertListResponse:
     """
     Get risk alerts with optional filtering
@@ -271,7 +240,7 @@ async def get_alerts(
 @router.get("/alerts/{alert_id}")
 async def get_alert_detail(
     alert_id: str = Query(..., min_length=1),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Get detailed information about a specific alert
@@ -302,7 +271,7 @@ async def get_alert_detail(
 @router.post("/alerts/{alert_id}/acknowledge")
 async def acknowledge_alert(
     alert_id: str,
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Acknowledge a risk alert
@@ -314,6 +283,8 @@ async def acknowledge_alert(
     - success: Boolean indicating acknowledgment was recorded
     """
     try:
+        email, role = current_user
+        
         if alert_id not in SignalsService._risk_alerts:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -323,9 +294,9 @@ async def acknowledge_alert(
         alert = SignalsService._risk_alerts[alert_id]
         alert.acknowledged = True
         alert.acknowledged_at = datetime.utcnow()
-        alert.acknowledged_by = auth
+        alert.acknowledged_by = email
         
-        logger.info(f"Alert {alert_id} acknowledged by {auth}")
+        logger.info(f"Alert {alert_id} acknowledged by {email} (role: {role})")
         
         return {
             "success": True,
@@ -354,7 +325,7 @@ async def get_suppliers(
     min_score: float = Query(0, ge=0, le=100),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ) -> SupplierListResponse:
     """
     Get supplier performance data with optional filtering
@@ -415,7 +386,7 @@ async def get_suppliers(
 @router.get("/suppliers/{supplier_id}")
 async def get_supplier_detail(
     supplier_id: str = Query(..., min_length=1),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Get detailed performance analysis for a supplier
@@ -451,7 +422,7 @@ async def get_supplier_detail(
 @router.post("/predictions")
 async def get_predictions(
     request: PredictionRequest,
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Get price predictions for an item
@@ -519,7 +490,7 @@ async def get_predictions(
 async def detect_anomalies(
     item_id: str = Query(..., min_length=1),
     threshold_std_dev: float = Query(2.5, ge=1.0, le=5.0),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Detect anomalies in price data
@@ -580,7 +551,7 @@ async def detect_anomalies(
 async def ingest_real_time_price(
     item_id: str = Query(..., description="Item/Product ID"),
     price: float = Query(..., gt=0, description="Current price"),
-    auth: str = Depends(verify_bearer_token)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Ingest a real-time price point and broadcast to connected WebSocket clients
@@ -700,3 +671,5 @@ async def signals_health():
         "service": "signals-intelligence",
         "timestamp": datetime.utcnow()
     }
+
+

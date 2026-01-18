@@ -11,12 +11,15 @@ All models operate on KraftdDocument procurement metadata.
 
 from fastapi import APIRouter, HTTPException, Depends, Body, Query, Header
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Tuple
 import logging
 from datetime import datetime
 import jwt
 
 from services.auth_service import AuthService
+from models.user import UserRole
+from services.rbac_service import RBACService, Permission
+from middleware.rbac import require_authenticated
 from ml.mobility_clustering import (
     MobilityFeatureExtractor,
     MobilityClusteringModel,
@@ -33,36 +36,6 @@ from ml.supplier_ecosystem import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/ml/advanced", tags=["advanced-ml"])
-
-
-# ============================================================================
-# Authentication
-# ============================================================================
-
-
-async def verify_token(authorization: Optional[str] = Header(None)) -> dict:
-    """
-    Verify Bearer token from Authorization header.
-    Returns user info or raises 401 Unauthorized.
-    Uses the same AuthService as the main auth routes.
-    """
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing authorization header")
-    
-    try:
-        scheme, token = authorization.split(" ")
-        if scheme.lower() != "bearer":
-            raise HTTPException(status_code=401, detail="Invalid authorization scheme")
-        
-        # Use AuthService to verify token
-        auth_service = AuthService()
-        payload = auth_service.verify_token(token)
-        return {"user_id": payload.get("sub"), "email": payload.get("email")}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.warning(f"Token verification failed: {e}")
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 # ============================================================================
@@ -150,7 +123,7 @@ class SupplierEcosystemResponse(BaseModel):
 @router.post("/mobility/analyze")
 async def analyze_mobility(
     request: MobilityAnalysisRequest = Body(...),
-    current_user: dict = Depends(verify_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
 ) -> MobilityAnalysisResponse:
     """
     Analyze supply chain mobility patterns.
@@ -224,7 +197,7 @@ async def analyze_mobility(
 @router.post("/mobility/corridors")
 async def identify_corridors(
     request: MobilityAnalysisRequest = Body(...),
-    current_user: dict = Depends(verify_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
 ) -> Dict:
     """
     Identify emerging and under-served mobility corridors.
@@ -272,7 +245,7 @@ async def identify_corridors(
 @router.post("/pricing/index")
 async def calculate_pricing_index(
     request: PricingIndexRequest = Body(...),
-    current_user: dict = Depends(verify_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
 ) -> PricingIndexResponse:
     """
     Calculate pricing index from procurement data.
@@ -345,7 +318,7 @@ async def composite_pricing_index(
         ["electronics", "materials", "components"],
         description="Categories to include"
     ),
-    current_user: dict = Depends(verify_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
 ) -> Dict:
     """
     Build composite pricing index across multiple categories.
@@ -382,7 +355,7 @@ async def composite_pricing_index(
 @router.post("/suppliers/ecosystem")
 async def analyze_supplier_ecosystem(
     request: SupplierEcosystemRequest = Body(...),
-    current_user: dict = Depends(verify_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
 ) -> SupplierEcosystemResponse:
     """
     Analyze supplier ecosystem health and success potential.
@@ -463,7 +436,7 @@ async def analyze_supplier_ecosystem(
 async def investment_opportunities(
     request: SupplierEcosystemRequest = Body(...),
     min_score: float = Query(70, description="Minimum investment score"),
-    current_user: dict = Depends(verify_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
 ) -> Dict:
     """
     Identify high-potential suppliers for investment/expansion.
@@ -505,3 +478,5 @@ async def investment_opportunities(
     except Exception as e:
         logger.error(f"Investment opportunities error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+

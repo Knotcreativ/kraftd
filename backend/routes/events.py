@@ -13,12 +13,14 @@ Endpoints:
 
 from fastapi import APIRouter, Query, Depends, HTTPException, status
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from pydantic import BaseModel, Field
 import logging
 
 from services.event_storage import EventStorageService, EventType, get_event_storage_service
-from services.security_service import verify_bearer_token
+from models.user import UserRole
+from services.rbac_service import RBACService, Permission
+from middleware.rbac import require_authenticated
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +112,7 @@ async def get_price_events(
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    token_data: dict = Depends(verify_bearer_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
     storage: EventStorageService = Depends(get_event_storage_service)
 ):
     """
@@ -128,6 +130,8 @@ async def get_price_events(
     **Returns:** List of price events with metadata
     """
     try:
+        email, role = current_user
+        logger.info(f"User {email} (role: {role}) querying price events")
         # Get and validate dates
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
@@ -181,7 +185,7 @@ async def get_alert_events(
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    token_data: dict = Depends(verify_bearer_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
     storage: EventStorageService = Depends(get_event_storage_service)
 ):
     """
@@ -197,6 +201,9 @@ async def get_alert_events(
     **Returns:** List of alert events with metadata
     """
     try:
+        email, role = current_user
+        logger.info(f"User {email} (role: {role}) querying alert events")
+        
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
             start_date, end_date = dates
@@ -252,7 +259,7 @@ async def get_anomaly_events(
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    token_data: dict = Depends(verify_bearer_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
     storage: EventStorageService = Depends(get_event_storage_service)
 ):
     """
@@ -268,6 +275,9 @@ async def get_anomaly_events(
     **Returns:** List of anomaly events with Z-scores and severity
     """
     try:
+        email, role = current_user
+        logger.info(f"User {email} (role: {role}) querying anomaly events")
+        
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
             start_date, end_date = dates
@@ -321,7 +331,7 @@ async def get_signal_events(
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    token_data: dict = Depends(verify_bearer_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
     storage: EventStorageService = Depends(get_event_storage_service)
 ):
     """
@@ -335,6 +345,9 @@ async def get_signal_events(
     **Returns:** List of supplier signal events with value changes
     """
     try:
+        email, role = current_user
+        logger.info(f"User {email} (role: {role}) querying supplier signals")
+        
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
             start_date, end_date = dates
@@ -384,7 +397,7 @@ async def get_trend_events(
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    token_data: dict = Depends(verify_bearer_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
     storage: EventStorageService = Depends(get_event_storage_service)
 ):
     """
@@ -398,6 +411,9 @@ async def get_trend_events(
     **Returns:** List of trend events with direction and confidence
     """
     try:
+        email, role = current_user
+        logger.info(f"User {email} (role: {role}) querying trend events")
+        
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
             start_date, end_date = dates
@@ -444,7 +460,7 @@ async def get_trend_events(
 async def get_event_stats(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
-    token_data: dict = Depends(verify_bearer_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
     storage: EventStorageService = Depends(get_event_storage_service)
 ):
     """
@@ -453,6 +469,9 @@ async def get_event_stats(
     Returns total counts for each event type in the specified date range
     """
     try:
+        email, role = current_user
+        logger.info(f"User {email} (role: {role}) querying event statistics")
+        
         if not start_date or not end_date:
             dates = get_date_range(start_date, end_date)
             start_date, end_date = dates
@@ -492,7 +511,7 @@ async def get_aggregated_events(
     group_by: str = Query("day", description="Grouping period (day, week, month, hour)"),
     item_id: Optional[str] = Query(None, description="Filter by item ID"),
     supplier_id: Optional[str] = Query(None, description="Filter by supplier ID"),
-    token_data: dict = Depends(verify_bearer_token),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated()),
     storage: EventStorageService = Depends(get_event_storage_service)
 ):
     """
@@ -507,6 +526,9 @@ async def get_aggregated_events(
     **Returns:** Aggregated data points with counts, averages, etc.
     """
     try:
+        email, role = current_user
+        logger.info(f"User {email} (role: {role}) querying aggregated {event_type} events")
+        
         # Validate event type
         try:
             event_enum = EventType(event_type)
@@ -543,3 +565,5 @@ async def get_aggregated_events(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve aggregated events"
         )
+
+

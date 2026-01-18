@@ -5,11 +5,15 @@ Exposes the KraftdAI Agent via FastAPI endpoints for document analysis, chat, an
 
 from fastapi import APIRouter, HTTPException, status, Header, Depends
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 from datetime import datetime
 import logging
 import json
 import uuid
+
+from models.user import UserRole
+from services.rbac_service import RBACService, Permission
+from middleware.rbac import require_authenticated, require_permission
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -242,8 +246,8 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
 )
 async def analyze_document(
     request: AgentAnalyzeRequest,
-    authorization: str = Header(None),
-    agent = Depends(get_agent)
+    agent=Depends(get_agent),
+    current_user: Tuple[str, UserRole] = Depends(require_permission(Permission.DOCUMENTS_READ))
 ):
     """
     Analyze a document using the Kraftd AI agent.
@@ -256,8 +260,8 @@ async def analyze_document(
     
     Args:
         request: AgentAnalyzeRequest with document_id and analysis parameters
-        authorization: Bearer token for authentication
         agent: Injected agent instance
+        current_user: Authenticated user from RBAC
     
     Returns:
         AgentAnalyzeResponse with analysis results
@@ -268,10 +272,10 @@ async def analyze_document(
     request_id = str(uuid.uuid4())
     start_time = datetime.now()
     
+    email, role = current_user
+    
     try:
-        # Validate authorization
-        user_email = get_current_user_email(authorization)
-        logger.info(f"[{request_id}] User {user_email} requesting document analysis: {request.document_id}")
+        logger.info(f"[{request_id}] User {email} (role: {role}) requesting document analysis: {request.document_id}")
         
         # Validate document_id format
         if not request.document_id or len(request.document_id) < 3:
@@ -307,7 +311,18 @@ Provide:
         
         processing_time = (datetime.now() - start_time).total_seconds() * 1000
         
-        logger.info(f"[{request_id}] Analysis completed in {processing_time:.0f}ms")
+        logger.info(f"[{request_id}] Analysis completed in {processing_time:.0f}ms by {email}")
+        
+        # Log authorization decision
+        rbac_service = RBACService()
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="document",
+            resource_id=request.document_id,
+            action="analyze",
+            allowed=True
+        )
         
         return AgentAnalyzeResponse(
             status="success",
@@ -343,8 +358,8 @@ Provide:
 )
 async def chat_with_agent(
     request: AgentChatRequest,
-    authorization: str = Header(None),
-    agent = Depends(get_agent)
+    agent=Depends(get_agent),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Chat with the Kraftd AI agent.
@@ -354,8 +369,8 @@ async def chat_with_agent(
     
     Args:
         request: AgentChatRequest with message and optional conversation_id
-        authorization: Bearer token for authentication
         agent: Injected agent instance
+        current_user: Authenticated user from RBAC
     
     Returns:
         AgentChatResponse with agent's response
@@ -367,10 +382,10 @@ async def chat_with_agent(
     start_time = datetime.now()
     conversation_id = request.conversation_id or str(uuid.uuid4())
     
+    email, role = current_user
+    
     try:
-        # Validate authorization
-        user_email = get_current_user_email(authorization)
-        logger.info(f"[{request_id}] User {user_email} chatting with agent: conversation_id={conversation_id}")
+        logger.info(f"[{request_id}] User {email} (role: {role}) chatting with agent: conversation_id={conversation_id}")
         
         # Validate message
         if not request.message or len(request.message.strip()) < 1:
@@ -402,13 +417,24 @@ async def chat_with_agent(
         
         # Save conversation
         try:
-            await agent._save_conversation(conversation_id, request.message, response, {"user_email": user_email})
+            await agent._save_conversation(conversation_id, request.message, response, {"user_email": email})
         except Exception as e:
             logger.warning(f"[{request_id}] Could not save conversation: {e}")
         
         processing_time = (datetime.now() - start_time).total_seconds() * 1000
         
-        logger.info(f"[{request_id}] Chat completed in {processing_time:.0f}ms")
+        logger.info(f"[{request_id}] Chat completed in {processing_time:.0f}ms by {email}")
+        
+        # Log authorization decision
+        rbac_service = RBACService()
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="agent",
+            resource_id="chat",
+            action="interact",
+            allowed=True
+        )
         
         return AgentChatResponse(
             status="success",
@@ -444,8 +470,8 @@ async def chat_with_agent(
     description="Check if the agent is available and see what capabilities it offers."
 )
 async def get_agent_status(
-    authorization: str = Header(None),
-    agent = Depends(get_agent)
+    agent=Depends(get_agent),
+    current_user: Optional[Tuple[str, UserRole]] = Depends(require_authenticated())
 ):
     """
     Get the current status of the Kraftd AI agent.
@@ -457,8 +483,8 @@ async def get_agent_status(
         - Uptime metrics
     
     Args:
-        authorization: Bearer token for authentication (optional for status)
         agent: Injected agent instance
+        current_user: Optional authenticated user from RBAC
     
     Returns:
         AgentStatusResponse with agent status and capabilities
@@ -467,10 +493,12 @@ async def get_agent_status(
         HTTPException: If agent is not available
     """
     try:
-        # For status, authorization is optional (allow info endpoint)
-        if authorization:
-            user_email = get_current_user_email(authorization)
-            logger.debug(f"User {user_email} checking agent status")
+        # current_user is optional for status endpoint
+        if current_user:
+            email, role = current_user
+            logger.debug(f"User {email} (role: {role}) checking agent status")
+        else:
+            logger.debug("Anonymous user checking agent status")
         
         # Get agent info
         capabilities = [

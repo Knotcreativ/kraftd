@@ -6,15 +6,18 @@ Exposes trained ML models through REST API endpoints
 
 from fastapi import APIRouter, HTTPException, Depends, Body
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 import numpy as np
 import pandas as pd
 import logging
 
 from models import ModelRegistry, RiskScorePredictorModel
+from models.user import UserRole
 from document_processing.orchestrator import ExtractionPipeline
 from ml.data_pipeline import MetadataFeatureExtractor, DataPipelineProcessor, FeatureSet
 from ml.training import MLTrainingPipeline
+from services.rbac_service import RBACService, Permission
+from middleware.rbac import require_authenticated, require_permission
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +119,7 @@ def get_reliability_grade(score: float) -> str:
 # ===== API Endpoints =====
 
 @router.post("/risk/predict", response_model=RiskPredictionResponse)
-async def predict_risk_score(request: RiskPredictionRequest) -> RiskPredictionResponse:
+async def predict_risk_score(request: RiskPredictionRequest, current_user: Tuple[str, UserRole] = Depends(require_authenticated())) -> RiskPredictionResponse:
     """
     Predict document risk score
     
@@ -173,7 +176,7 @@ async def predict_risk_score(request: RiskPredictionRequest) -> RiskPredictionRe
 
 
 @router.post("/price/predict", response_model=PricePredictionResponse)
-async def predict_price(request: PricePredictionRequest) -> PricePredictionResponse:
+async def predict_price(request: PricePredictionRequest, current_user: Tuple[str, UserRole] = Depends(require_authenticated())) -> PricePredictionResponse:
     """
     Predict fair price for line item
     
@@ -405,3 +408,4 @@ async def retrain_models(documents: List[Dict[str, Any]] = Body(...)):
 # Register router in main.py with:
 # from routes.ml_predictions import router as ml_router
 # app.include_router(ml_router, dependencies=[Depends(verify_token)])
+

@@ -11,7 +11,7 @@ Provides 6 WebSocket endpoints for real-time streaming of:
 """
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query, HTTPException
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 import logging
 import asyncio
 import json
@@ -28,8 +28,11 @@ from models.streaming import (
     TrendChange,
     HealthCheck
 )
+from models.user import UserRole
 from services.event_broadcaster import broadcaster
 from services.auth_service import AuthService
+from services.rbac_service import RBACService, Permission
+from middleware.rbac import require_authenticated
 
 logger = logging.getLogger(__name__)
 

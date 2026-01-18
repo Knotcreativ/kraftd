@@ -15,11 +15,11 @@ Routes:
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Tuple
 from datetime import datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, Header, HTTPException, Query, Body
+from fastapi import APIRouter, Header, HTTPException, Query, Body, Depends
 from pydantic import BaseModel
 
 from models.template import (
@@ -28,8 +28,13 @@ from models.template import (
     TemplateGenerateRequest, TemplateGenerateResponse,
     TemplateListResponse, TemplateErrorResponse
 )
+from models.user import UserRole
 from services.template_storage import TemplateStorageService, initialize_sample_templates
 from services.template_service import TemplateService, TemplateValidationService
+from services.rbac_service import RBACService, Permission
+from middleware.rbac import (
+    get_current_user_with_role, require_permission, require_authenticated
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,34 +52,6 @@ if not _initialized:
         logger.warning(f"Could not initialize sample templates: {e}")
 
 
-def verify_bearer_token(authorization: Optional[str] = Header(None)) -> str:
-    """Verify Bearer token is present and valid format.
-    
-    Args:
-        authorization: Authorization header value
-        
-    Returns:
-        Bearer token
-        
-    Raises:
-        HTTPException: If token is missing or invalid
-    """
-    if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing authorization header",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authorization header format. Expected: Authorization: Bearer <token>",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    return parts[1]
 
 
 # ============================================================================
@@ -83,12 +60,12 @@ def verify_bearer_token(authorization: Optional[str] = Header(None)) -> str:
 
 @router.get("", response_model=TemplateListResponse)
 async def list_templates(
-    authorization: str = Header(...),
     category: Optional[TemplateCategory] = Query(None),
     created_by: Optional[str] = Query(None),
     active_only: bool = Query(True),
     skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100)
+    limit: int = Query(50, ge=1, le=100),
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     List all templates with optional filtering
@@ -104,8 +81,7 @@ async def list_templates(
       TemplateListResponse with templates array and metadata
     """
     try:
-        # Verify bearer token
-        verify_bearer_token(authorization)
+        email, role = current_user
         
         # Get filtered templates from storage
         templates = TemplateStorageService.get_templates(
@@ -118,7 +94,7 @@ async def list_templates(
         total_count = len(templates)
         templates = templates[skip : skip + limit]
         
-        logger.info(f"Listed {len(templates)} templates (total: {total_count})")
+        logger.info(f"Listed {len(templates)} templates (total: {total_count}) by user {email}")
         
         return TemplateListResponse(
             total_count=total_count,
@@ -141,7 +117,7 @@ async def list_templates(
 @router.get("/{template_id}", response_model=Template)
 async def get_template(
     template_id: str,
-    authorization: str = Header(...)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Get a specific template by ID
@@ -153,19 +129,18 @@ async def get_template(
       Template object with all details
     """
     try:
-        # Verify bearer token
-        verify_bearer_token(authorization)
+        email, role = current_user
         
         template = TemplateStorageService.get_template(template_id)
         
         if not template:
-            logger.warning(f"Template not found: {template_id}")
+            logger.warning(f"Template not found: {template_id} (requested by {email})")
             raise HTTPException(
                 status_code=404,
                 detail=f"Template '{template_id}' not found"
             )
         
-        logger.debug(f"Retrieved template: {template_id}")
+        logger.debug(f"Retrieved template: {template_id} by user {email}")
         return template
         
     except HTTPException:
@@ -181,7 +156,7 @@ async def get_template(
 @router.get("/category/{category}", response_model=TemplateListResponse)
 async def get_templates_by_category(
     category: TemplateCategory,
-    authorization: Optional[str] = Header(None)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Get all templates in a specific category
@@ -193,12 +168,14 @@ async def get_templates_by_category(
       TemplateListResponse with matching templates
     """
     try:
+        email, role = current_user
+        
         templates = TemplateStorageService.get_templates(
             category=category,
             active_only=True
         )
         
-        logger.info(f"Retrieved {len(templates)} templates in category {category}")
+        logger.info(f"Retrieved {len(templates)} templates in category {category} by user {email}")
         
         return TemplateListResponse(
             total_count=len(templates),
@@ -221,7 +198,7 @@ async def get_templates_by_category(
 @router.post("", response_model=Template, status_code=201)
 async def create_template(
     request: TemplateCreateRequest = Body(...),
-    authorization: Optional[str] = Header(None)
+    current_user: Tuple[str, UserRole] = Depends(require_permission(Permission.TEMPLATES_CREATE))
 ):
     """
     Create a new template
@@ -245,21 +222,33 @@ async def create_template(
       Created Template object with ID and metadata
     """
     try:
+        email, role = current_user
+        
         # Validate Jinja2 syntax
         validation = TemplateValidationService.validate_jinja2_syntax(request.content)
         if not validation["valid"]:
-            logger.warning(f"Invalid template syntax: {validation['error']}")
+            logger.warning(f"Invalid template syntax: {validation['error']} (by {email})")
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid template syntax: {validation['error']}"
             )
         
-        # Create template
-        # In real app, would extract user_id from JWT token
-        user_id = "admin"  # TODO: Extract from authorization header
-        template = TemplateStorageService.create_template(request, user_id)
+        # Create template - use current user's email as creator
+        template = TemplateStorageService.create_template(request, email)
         
-        logger.info(f"Template created: {template.id} by {user_id}")
+        logger.info(f"Template created: {template.id} by {email} (role: {role})")
+        
+        # Log authorization decision
+        rbac_service = RBACService()
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="template",
+            resource_id=template.id,
+            action="create",
+            allowed=True
+        )
+        
         return template
         
     except HTTPException:
@@ -276,7 +265,7 @@ async def create_template(
 async def update_template(
     template_id: str,
     request: TemplateUpdateRequest = Body(...),
-    authorization: Optional[str] = Header(None)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Update an existing template
@@ -289,6 +278,8 @@ async def update_template(
       Updated Template object
     """
     try:
+        email, role = current_user
+        
         # Check if template exists
         template = TemplateStorageService.get_template(template_id)
         if not template:
@@ -296,6 +287,27 @@ async def update_template(
                 status_code=404,
                 detail=f"Template '{template_id}' not found"
             )
+        
+        # Authorization: Admin can update any template, User can only update own
+        rbac_service = RBACService()
+        
+        # Check if user has permission to update
+        if role != UserRole.ADMIN:
+            # Check ownership for non-admin users
+            if template.created_by != email:
+                logger.warning(f"Unauthorized template update attempt: {email} tried to update {template_id} created by {template.created_by}")
+                rbac_service.log_authorization_decision(
+                    user_email=email,
+                    user_role=role,
+                    resource="template",
+                    resource_id=template_id,
+                    action="update",
+                    allowed=False
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail="You do not have permission to update this template"
+                )
         
         # Validate new content if provided
         if request.content:
@@ -308,7 +320,18 @@ async def update_template(
         
         # Update template
         updated = TemplateStorageService.update_template(template_id, request)
-        logger.info(f"Template updated: {template_id}")
+        
+        logger.info(f"Template updated: {template_id} by {email} (role: {role})")
+        
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="template",
+            resource_id=template_id,
+            action="update",
+            allowed=True
+        )
+        
         return updated
         
     except HTTPException:
@@ -328,7 +351,7 @@ async def update_template(
 @router.delete("/{template_id}", status_code=204)
 async def delete_template(
     template_id: str,
-    authorization: Optional[str] = Header(None)
+    current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
     Delete a template
@@ -337,6 +360,36 @@ async def delete_template(
       template_id: Template UUID
     """
     try:
+        email, role = current_user
+        
+        # Get template to check ownership
+        template = TemplateStorageService.get_template(template_id)
+        if not template:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Template '{template_id}' not found"
+            )
+        
+        # Authorization: Admin can delete any template, User can only delete own
+        rbac_service = RBACService()
+        
+        if role != UserRole.ADMIN:
+            # Check ownership for non-admin users
+            if template.created_by != email:
+                logger.warning(f"Unauthorized template deletion attempt: {email} tried to delete {template_id} created by {template.created_by}")
+                rbac_service.log_authorization_decision(
+                    user_email=email,
+                    user_role=role,
+                    resource="template",
+                    resource_id=template_id,
+                    action="delete",
+                    allowed=False
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail="You do not have permission to delete this template"
+                )
+        
         success = TemplateStorageService.delete_template(template_id)
         
         if not success:
@@ -345,7 +398,16 @@ async def delete_template(
                 detail=f"Template '{template_id}' not found"
             )
         
-        logger.info(f"Template deleted: {template_id}")
+        logger.info(f"Template deleted: {template_id} by {email} (role: {role})")
+        
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="template",
+            resource_id=template_id,
+            action="delete",
+            allowed=True
+        )
         
     except HTTPException:
         raise
@@ -361,7 +423,7 @@ async def delete_template(
 async def duplicate_template(
     template_id: str,
     new_name: str = Query(..., min_length=1, max_length=100),
-    authorization: Optional[str] = Header(None)
+    current_user: Tuple[str, UserRole] = Depends(require_permission(Permission.TEMPLATES_CREATE))
 ):
     """
     Create a copy of an existing template
@@ -373,9 +435,18 @@ async def duplicate_template(
       New Template object
     """
     try:
-        user_id = "admin"  # TODO: Extract from authorization header
+        email, role = current_user
+        
+        # Check template exists
+        template = TemplateStorageService.get_template(template_id)
+        if not template:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Template '{template_id}' not found"
+            )
+        
         duplicated = TemplateStorageService.duplicate_template(
-            template_id, new_name, user_id
+            template_id, new_name, email
         )
         
         if not duplicated:
@@ -384,7 +455,18 @@ async def duplicate_template(
                 detail=f"Template '{template_id}' not found"
             )
         
-        logger.info(f"Template duplicated: {template_id} -> {duplicated.id}")
+        logger.info(f"Template duplicated: {template_id} -> {duplicated.id} by {email} (role: {role})")
+        
+        rbac_service = RBACService()
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="template",
+            resource_id=duplicated.id,
+            action="duplicate",
+            allowed=True
+        )
+        
         return duplicated
         
     except HTTPException:
@@ -405,7 +487,7 @@ async def duplicate_template(
 async def generate_document(
     template_id: str,
     request: TemplateGenerateRequest = Body(...),
-    authorization: Optional[str] = Header(None)
+    current_user: Tuple[str, UserRole] = Depends(require_permission(Permission.DOCUMENTS_CREATE))
 ):
     """
     Generate a document from a template
@@ -448,10 +530,12 @@ async def generate_document(
       Generated document with content
     """
     try:
+        email, role = current_user
+        
         # Get template
         template = TemplateStorageService.get_template(template_id)
         if not template:
-            logger.warning(f"Template not found: {template_id}")
+            logger.warning(f"Template not found: {template_id} (requested by {email})")
             raise HTTPException(
                 status_code=404,
                 detail=f"Template '{template_id}' not found"
