@@ -23,3 +23,6 @@ python-dotenv
 email-validator
 sendgrid
 sendgrid-python
+pytest
+pytest-cov
+pytest-asyncio
