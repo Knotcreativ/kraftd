@@ -58,6 +58,14 @@ except Exception as e:
     logger.warning(f"Agent routes not available: {e}")
     AGENT_ROUTES_AVAILABLE = False
 
+# Import Template Routes (Phase 4: Document Templates)
+try:
+    from routes.templates import router as templates_router
+    TEMPLATE_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Template routes not available: {e}")
+    TEMPLATE_ROUTES_AVAILABLE = False
+
 # Export Tracking Service (Three-stage recording)
 from services.export_tracking_service import (
     initialize_export_tracking, get_export_tracking_service, ExportStage
@@ -928,6 +936,13 @@ if AGENT_ROUTES_AVAILABLE:
     logger.info("[OK] Agent API routes registered at /api/v1/agent")
 else:
     logger.warning("[WARN] Agent API routes not available - agent functionality disabled")
+
+# ===== Template Routes (Phase 4: Document Generation) =====
+if TEMPLATE_ROUTES_AVAILABLE:
+    app.include_router(templates_router)
+    logger.info("[OK] Template routes registered at /api/v1/templates")
+else:
+    logger.warning("[WARN] Template routes not available - document generation disabled")
 
 # ===== Health Check Endpoint =====
 @app.get("/api/v1/health")
