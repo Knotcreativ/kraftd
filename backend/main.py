@@ -13,6 +13,9 @@ import asyncio
 import sys
 import json
 
+# Setup logging
+logger = logging.getLogger(__name__)
+
 from document_processing import (
     PDFProcessor, WordProcessor, ExcelProcessor, ImageProcessor,
     DocumentExtractor, DocumentType, KraftdDocument, DocumentStatus,

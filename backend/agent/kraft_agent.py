@@ -1020,11 +1020,12 @@ When processing documents: Use tools to upload → extract → validate → anal
         
         return min(1.0, agent_score + learning_bonus)
     
-
+    def _calculate_quotation_score(self, quotation: dict) -> float:
         """Calculate a composite score for quotation comparison."""
         score = 100
         
         # Adjust for price (lower is better, but not linearly)
+        total_price = quotation.get("total_price", 0)
         if total_price > 0:
             score -= (total_price / 10000) * 10  # Adjust scaling as needed
         
