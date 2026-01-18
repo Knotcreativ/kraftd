@@ -29,25 +29,14 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
-      - name: Create virtual environment
+      - name: Build and Test
         run: |
           cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           python -m venv venv
           source venv/bin/activate
           python -m pip install --upgrade pip
-      
-      - name: Install dependencies
-        run: |
-          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          source venv/bin/activate
           pip install -r requirements.txt
-      
-      - name: Run tests
-        run: |
-          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          source venv/bin/activate
           python -m pytest tests/ -v --tb=short
-        continue-on-error: false  # Fail if tests fail
       
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
@@ -72,13 +61,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
-      - name: Install dependencies
+      - name: Install and Deploy
         run: |
           cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
-      - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
