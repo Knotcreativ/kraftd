@@ -159,11 +159,11 @@ export default function DocumentReviewDetail() {
         editedData,
         transformationInstructions,
         {
-          documentTemplate,
+          documentTemplate: documentTemplate as string,
           templateCustomization,
           use_ai_template_generation: true,
-          aiSummary: aiSummary // Pass the AI summary for context
-        }
+          ...(aiSummary && { aiSummary })
+        } as any
       )
       
       // Handle file download

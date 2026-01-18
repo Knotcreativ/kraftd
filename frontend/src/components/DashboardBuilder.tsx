@@ -311,7 +311,7 @@ const DashboardBuilder: React.FC<DashboardBuilderProps> = ({ onProfileChange, on
           // Edit Mode - Draggable
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="dashboard-widgets" type="WIDGET">
-              {(provided, snapshot) => (
+              {(provided: any, snapshot: any) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
@@ -325,7 +325,7 @@ const DashboardBuilder: React.FC<DashboardBuilderProps> = ({ onProfileChange, on
                   ) : (
                     activeProfile.widgets.map((widget, index) => (
                       <Draggable key={widget.id} draggableId={widget.id} index={index}>
-                        {(provided, snapshot) => (
+                        {(provided: any, snapshot: any) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}

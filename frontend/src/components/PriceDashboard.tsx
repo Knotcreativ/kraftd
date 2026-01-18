@@ -105,15 +105,15 @@ export const PriceDashboard: React.FC = () => {
               <div className="technical-indicators">
                 <div className="indicator">
                   <label>7D MA</label>
-                  <value>${price.moving_average_7d.toFixed(2)}</value>
+                  <div className="value">${price.moving_average_7d.toFixed(2)}</div>
                 </div>
                 <div className="indicator">
                   <label>30D MA</label>
-                  <value>${price.moving_average_30d.toFixed(2)}</value>
+                  <div className="value">${price.moving_average_30d.toFixed(2)}</div>
                 </div>
                 <div className="indicator">
                   <label>Volatility</label>
-                  <value>{price.volatility.toFixed(2)}%</value>
+                  <div className="value">{price.volatility.toFixed(2)}%</div>
                 </div>
               </div>
 

@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useWebSocket, TrendData } from '../hooks/useWebSocket';
+import { useWebSocket, TrendChange } from '../hooks/useWebSocket';
 import '../styles/TrendAnalysis.css';
 
 export const TrendAnalysis: React.FC = () => {

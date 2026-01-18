@@ -14,7 +14,7 @@ interface FilterState {
 }
 
 interface FilterPanelProps {
-  onFilterChange: (filters: FilterState) => void;
+  onFilterChange?: (filters: FilterState) => void;
   items?: string[];
   suppliers?: string[];
 }
@@ -54,7 +54,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
   // Notify parent component when filters change
   useEffect(() => {
-    onFilterChange(filters);
+    onFilterChange?.(filters);
   }, [filters]);
 
   const handleDateChange = (field: 'startDate' | 'endDate', date: Date | null) => {

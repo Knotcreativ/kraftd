@@ -17,6 +17,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# ===== Windows AsyncIO Event Loop Setup =====
+# On Windows, use ProactorEventLoop for better subprocess and socket handling
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 # Setup logging
 logger = logging.getLogger(__name__)
 

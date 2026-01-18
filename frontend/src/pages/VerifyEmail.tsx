@@ -30,10 +30,10 @@ export default function VerifyEmail() {
       setError('')
       setMessage('Verifying your email...')
       
-      const response = await api.verifyEmail(verificationToken)
+      const response = await api?.verifyEmail(verificationToken)
       
       setSuccess(true)
-      setMessage(response.message || 'Email verified successfully!')
+      setMessage(response?.message || 'Email verified successfully!')
       
       // Redirect to login after 2 seconds
       setTimeout(() => {

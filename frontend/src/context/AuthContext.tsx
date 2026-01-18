@@ -6,6 +6,9 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
+  user?: any
+  token?: string | null
+  api?: typeof apiClient
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, acceptTerms: boolean, acceptPrivacy: boolean, name?: string) => Promise<void>
   logout: () => void
@@ -18,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [user, setUser] = useState<any>(null)
 
   // Check if user is already authenticated on mount
   useEffect(() => {
@@ -76,7 +80,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isLoading, error, login, register, logout, clearError }}
+      value={{ 
+        isAuthenticated, 
+        isLoading, 
+        error, 
+        user, 
+        token: localStorage.getItem('accessToken'),
+        api: apiClient,
+        login, 
+        register, 
+        logout, 
+        clearError 
+      }}
     >
       {children}
     </AuthContext.Provider>

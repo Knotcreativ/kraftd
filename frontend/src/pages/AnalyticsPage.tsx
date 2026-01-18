@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import Breadcrumb from '../components/Breadcrumb';
 import FilterPanel from '../components/FilterPanel';
-import AnalyticsCharts from '../components/AnalyticsCharts';
 import './AnalyticsPage.css';
 
-type AnalyticsView = 'overview' | 'charts' | 'dashboard';
+type AnalyticsView = 'overview' | 'charts';
 
 /**
  * Analytics Page
- * Comprehensive analytics dashboard with charts, filters, and insights
- * Integrates filtering, charting, and data visualization components
+ * Comprehensive analytics dashboard with charts and filters
  */
 const AnalyticsPage: React.FC = () => {
   const [activeView, setActiveView] = useState<AnalyticsView>('overview');
@@ -45,13 +43,6 @@ const AnalyticsPage: React.FC = () => {
               📈 Charts
             </button>
             <button
-              className={`view-toggle ${activeView === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveView('dashboard')}
-              title="Dashboard"
-            >
-              🎛️ Dashboard
-            </button>
-            <button
               className="filter-toggle"
               onClick={() => setShowFilters(!showFilters)}
               title="Toggle Filters"
@@ -75,7 +66,7 @@ const AnalyticsPage: React.FC = () => {
               <div className="analytics-view">
                 <section className="analytics-section">
                   <h2>Key Metrics Overview</h2>
-                  <AnalyticsDashboard />
+                  <div className="placeholder">Analytics overview coming soon</div>
                 </section>
               </div>
             )}
@@ -84,19 +75,7 @@ const AnalyticsPage: React.FC = () => {
               <div className="analytics-view">
                 <section className="analytics-section">
                   <h2>Detailed Charts & Visualizations</h2>
-                  <AnalyticsCharts />
-                </section>
-              </div>
-            )}
-
-            {activeView === 'dashboard' && (
-              <div className="analytics-view">
-                <section className="analytics-section">
-                  <h2>Complete Dashboard</h2>
-                  <div className="dashboard-preview">
-                    <AnalyticsDashboard />
-                    <AnalyticsCharts />
-                  </div>
+                  <div className="placeholder">Analytics charts coming soon</div>
                 </section>
               </div>
             )}
