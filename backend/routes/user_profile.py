@@ -49,7 +49,7 @@ def get_profile_service() -> ProfileService:
 
 @router.get("/profile", response_model=UserProfile)
 async def get_user_profile(
-    current_user: Tuple[str, str] = Depends(require_authenticated()),
+    current_user: Tuple[str, str] = Depends(require_authenticated),
     request: Request = None
 ):
     """
@@ -110,7 +110,7 @@ async def get_user_profile(
 @router.put("/profile", response_model=UserProfile)
 async def update_user_profile(
     profile_data: ProfileUpdate,
-    current_user: Tuple[str, str] = Depends(require_authenticated()),
+    current_user: Tuple[str, str] = Depends(require_authenticated),
     request: Request = None
 ):
     """
@@ -216,7 +216,7 @@ async def update_user_profile(
 @router.post("/profile/avatar", response_model=dict)
 async def upload_profile_avatar(
     file: UploadFile = File(...),
-    current_user: Tuple[str, str] = Depends(require_authenticated())
+    current_user: Tuple[str, str] = Depends(require_authenticated)
 ):
     """
     Upload user profile avatar
@@ -332,7 +332,7 @@ async def upload_profile_avatar(
 
 @router.get("/preferences", response_model=UserPreferencesResponse)
 async def get_user_preferences(
-    current_user: Tuple[str, str] = Depends(require_authenticated())
+    current_user: Tuple[str, str] = Depends(require_authenticated)
 ):
     """
     Get current user's preferences
@@ -368,7 +368,7 @@ async def get_user_preferences(
 @router.put("/preferences", response_model=UserPreferencesResponse)
 async def update_user_preferences(
     preferences_data: Preferences,
-    current_user: Tuple[str, str] = Depends(require_authenticated())
+    current_user: Tuple[str, str] = Depends(require_authenticated)
 ):
     """
     Update current user's preferences
@@ -474,7 +474,7 @@ async def update_user_preferences(
 async def list_all_profiles(
     skip: int = 0,
     limit: int = 10,
-    current_user: Tuple[str, str] = Depends(require_authenticated())
+    current_user: Tuple[str, str] = Depends(require_authenticated)
 ):
     """
     List all user profiles within current tenant (admin only)
@@ -537,7 +537,7 @@ async def list_all_profiles(
 
 @router.get("/export")
 async def export_user_data(
-    current_user: Tuple[str, str] = Depends(require_authenticated())
+    current_user: Tuple[str, str] = Depends(require_authenticated)
 ):
     """
     Export all user data (GDPR compliance)
@@ -588,3 +588,4 @@ async def export_user_data(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to export user data"
         )
+
