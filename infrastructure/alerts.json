@@ -78,7 +78,8 @@
               "metricName": "Http5xx",
               "operator": "GreaterThan",
               "threshold": 50,
-              "timeAggregation": "Count"
+              "timeAggregation": "Count",
+              "criterionType": "StaticThresholdCriterion"
             }
           ]
         },
@@ -114,7 +115,8 @@
               "metricName": "ResponseTime",
               "operator": "GreaterThan",
               "threshold": 2000,
-              "timeAggregation": "Average"
+              "timeAggregation": "Average",
+              "criterionType": "StaticThresholdCriterion"
             }
           ]
         },
@@ -150,7 +152,8 @@
               "metricName": "CpuTime",
               "operator": "GreaterThan",
               "threshold": 80,
-              "timeAggregation": "Average"
+              "timeAggregation": "Average",
+              "criterionType": "StaticThresholdCriterion"
             }
           ]
         },
@@ -186,7 +189,8 @@
               "metricName": "MemoryPercentage",
               "operator": "GreaterThan",
               "threshold": 80,
-              "timeAggregation": "Average"
+              "timeAggregation": "Average",
+              "criterionType": "StaticThresholdCriterion"
             }
           ]
         },
@@ -222,7 +226,8 @@
               "metricName": "HealthStatus",
               "operator": "LessThan",
               "threshold": 1,
-              "timeAggregation": "Average"
+              "timeAggregation": "Average",
+              "criterionType": "StaticThresholdCriterion"
             }
           ]
         },

@@ -550,7 +550,7 @@ async def register(user_data: UserRegister):
             "email": user_data.email,
             "name": user_data.name,
             "hashed_password": hashed_password,
-            "email_verified": False,
+            "email_verified": True,
             "marketing_opt_in": user_data.marketingOptIn,
             "accepted_terms_at": now.isoformat(),
             "accepted_privacy_at": now.isoformat(),
@@ -558,7 +558,7 @@ async def register(user_data: UserRegister):
             "privacy_version": "v1.0",
             "created_at": now.isoformat(),
             "updated_at": now.isoformat(),
-            "status": "pending_verification",
+            "status": "active",
             "is_active": True,
             "owner_email": user_data.email  # For Cosmos DB partition
         }
@@ -581,11 +581,11 @@ async def register(user_data: UserRegister):
         
         # ===== SUCCESS RESPONSE =====
         # Per specification: return success, not tokens
-        # Email verification needed before login
+        # NOTE: Email verification temporarily skipped for MVP
         
         return {
             "status": "success",
-            "message": "Verification email sent"
+            "message": "Registration successful. You can now login."
         }
     
     except HTTPException:
@@ -683,20 +683,21 @@ async def login(user_data: UserLogin):
             )
         
         # ===== KRAFTD SPEC: CHECK EMAIL VERIFICATION =====
-        # Per specification: User cannot login if email not verified
-        if isinstance(user, dict):
-            email_verified = user.get("email_verified", False)
-        else:
-            email_verified = getattr(user, "email_verified", False)
-        
-        if not email_verified:
-            raise HTTPException(
-                status_code=403,
-                detail={
-                    "error": "EMAIL_NOT_VERIFIED",
-                    "message": "Please verify your email before logging in."
-                }
-            )
+        # NOTE: Email verification temporarily skipped for MVP
+        # Will be re-enabled after email service is configured
+        # if isinstance(user, dict):
+        #     email_verified = user.get("email_verified", False)
+        # else:
+        #     email_verified = getattr(user, "email_verified", False)
+        # 
+        # if not email_verified:
+        #     raise HTTPException(
+        #         status_code=403,
+        #         detail={
+        #             "error": "EMAIL_NOT_VERIFIED",
+        #             "message": "Please verify your email before logging in."
+        #         }
+        #     )
         
         # Check if active
         if isinstance(user, dict):

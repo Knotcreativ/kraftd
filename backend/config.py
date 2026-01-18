@@ -36,7 +36,7 @@ CONNECTION_POOL_TIMEOUT = float(os.getenv("CONNECTION_POOL_TIMEOUT", "30"))
 
 # Storage Configuration
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/kraftd_uploads")
-MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))
+MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "25"))  # Per MASTER INPUT SPECIFICATION
 
 # Logging Configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

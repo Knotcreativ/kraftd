@@ -9,3 +9,100 @@ local.settings.json
 __blobstorage__
 __queuestorage__
 __azurite_db*__.json
+
+# Documentation cleanup - keep only official docs in /docs folder
+# Remove outdated root-level markdown files
+/**/[A-Z]*_*.md
+*COMPLETION*.md
+*DEPLOYMENT*.md
+*IMPLEMENTATION*.md
+*VERIFICATION*.md
+*PHASE_*.md
+*PRIORITY*.md
+*ANALYSIS*.md
+*INSPECTION*.md
+*REVIEW*.md
+*SUMMARY*.md
+*STATUS*.md
+*CHECKLIST*.md
+*RUNBOOK*.md
+*REPORT*.md
+*ROADMAP*.md
+
+# But keep these:
+!README.md
+!README_PHASE_1.md
+!/docs/**
+
+# Python test and validation files in root (should be in backend/tests)
+/test_*.py
+/validate_*.py
+/STEP*.py
+/SESSION_*.py
+/run_tests.py
+
+# But preserve backend tests
+!/backend/tests/**
+!/backend/test_*.py
+
+# Build and cache
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+htmlcov/
+.coverage
+.tox/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node
+node_modules/
+dist/
+build/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production
+
+# OS
+Thumbs.db
+.DS_Store
+*.tmp

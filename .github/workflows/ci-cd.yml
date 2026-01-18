@@ -160,7 +160,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-      url: https://${{ secrets.AZURE_APP_SERVICE_NAME }}.azurewebsites.net
+      url: ${{ format('https://{0}.azurewebsites.net', env.AZURE_APP_SERVICE_NAME) }}
     
     steps:
       - name: Checkout code

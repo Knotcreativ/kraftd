@@ -9,7 +9,7 @@ Comprehensive testing of backend API, frontend connectivity, and end-to-end flow
 param(
     [string]$ApiUrl = "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1",
     [string]$TestEmail = "test-integration@example.com",
-    [string]$TestPassword = "TestPass123!"
+    [securestring]$TestPassword = (ConvertTo-SecureString "TestPass123!" -AsPlainText -Force)
 )
 
 Write-Host ""
@@ -211,10 +211,10 @@ $profileUrl = "$ApiUrl/users/profile"
 Write-Host "  GET $profileUrl" -ForegroundColor Gray
 
 try {
-    $profile = Invoke-RestMethod -Uri $profileUrl -Method GET -Headers $authHeaders -TimeoutSec 10
+    $userProfile = Invoke-RestMethod -Uri $profileUrl -Method GET -Headers $authHeaders -TimeoutSec 10
     Write-Host "  [OK] Profile Retrieved" -ForegroundColor Green
-    Write-Host "     Email: $($profile.email)" -ForegroundColor Gray
-    Write-Host "     User ID: $($profile.user_id)" -ForegroundColor Gray
+    Write-Host "     Email: $($userProfile.email)" -ForegroundColor Gray
+    Write-Host "     User ID: $($userProfile.user_id)" -ForegroundColor Gray
     
     $testResults += @{
         Test = "Get User Profile"

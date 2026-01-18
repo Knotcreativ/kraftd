@@ -1,130 +1,141 @@
-metadata:
-  description: 'Deploy Cosmos DB for KraftdIntel application'
+metadata description = 'Deploy Cosmos DB for KraftdIntel application'
 
-parameters:
-  accountName:
-    type: string
-    metadata:
-      description: 'Cosmos DB account name'
-    minLength: 3
-    maxLength: 44
+@minLength(3)
+@maxLength(44)
+@metadata({
+  description: 'Cosmos DB account name'
+})
+param accountName string
 
-  databaseName:
-    type: string
-    defaultValue: 'kraftdintel'
-    metadata:
-      description: 'Database name'
+@metadata({
+  description: 'Database name'
+})
+param databaseName string = 'kraftdintel'
 
-  containerName:
-    type: string
-    defaultValue: 'documents'
-    metadata:
-      description: 'Container name'
+@metadata({
+  description: 'Container name'
+})
+param containerName string = 'documents'
 
-  partitionKeyPath:
-    type: string
-    defaultValue: '/owner_email'
-    metadata:
-      description: 'Partition key path'
+@metadata({
+  description: 'Partition key path'
+})
+param partitionKeyPath string = '/owner_email'
 
-  location:
-    type: string
-    defaultValue: '[resourceGroup().location]'
-    metadata:
-      description: 'Azure region'
+@metadata({
+  description: 'Azure region'
+})
+param location string = resourceGroup().location
 
-  throughput:
-    type: int
-    defaultValue: 400
-    minValue: 400
-    maxValue: 1000000
-    metadata:
-      description: 'Provisioned throughput (RU/s)'
+@minValue(400)
+@maxValue(1000000)
+@metadata({
+  description: 'Provisioned throughput (RU/s)'
+})
+param throughput int = 400
 
-  environment:
-    type: string
-    defaultValue: 'dev'
-    allowedValues:
-      - 'dev'
-      - 'staging'
-      - 'prod'
+@allowed([
+  'dev'
+  'staging'
+  'prod'
+])
+@metadata({
+  description: 'Environment type'
+})
+param environment string = 'dev'
 
-resources:
-  # Cosmos DB Account
-  - type: Microsoft.DocumentDB/databaseAccounts
-    apiVersion: '2021-10-15'
-    name: '[parameters(''accountName'')]'
-    location: '[parameters(''location'')]'
-    kind: GlobalDocumentDB
-    properties:
-      databaseAccountOfferType: Standard
-      consistencyPolicy:
-        defaultConsistencyLevel: Session
-        maxIntervalInSeconds: 5
-        maxStalenessPrefix: 100
-      locations:
-        - locationName: '[parameters(''location'')]'
-          failoverPriority: 0
-          isZoneRedundant: false
-      enableMultipleWriteLocations: false
-      enableFreeTier: false
-      capabilities:
-        - name: EnableServerless
-    tags:
-      environment: '[parameters(''environment'')]'
+// Cosmos DB Account
+resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
+  name: accountName
+  location: location
+  kind: 'GlobalDocumentDB'
+  properties: {
+    databaseAccountOfferType: 'Standard'
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Session'
+      maxIntervalInSeconds: 5
+      maxStalenessPrefix: 100
+    }
+    locations: [
+      {
+        locationName: location
+        failoverPriority: 0
+        isZoneRedundant: false
+      }
+    ]
+    enableMultipleWriteLocations: false
+    enableFreeTier: false
+    capabilities: [
+      {
+        name: 'EnableServerless'
+      }
+    ]
+  }
+  tags: {
+    environment: environment
+  }
+}
 
-  # Database
-  - type: Microsoft.DocumentDB/databaseAccounts/sqlDatabases
-    apiVersion: '2021-10-15'
-    name: '[concat(parameters(''accountName''), ''/'', parameters(''databaseName''))]'
-    properties:
-      resource:
-        id: '[parameters(''databaseName'')]'
-      options:
-        throughput: '[parameters(''throughput'')]'
-    dependsOn:
-      - '[resourceId(''Microsoft.DocumentDB/databaseAccounts'', parameters(''accountName''))]'
+// Database
+resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2021-10-15' = {
+  parent: cosmosDbAccount
+  name: databaseName
+  properties: {
+    resource: {
+      id: databaseName
+    }
+    options: {
+      throughput: throughput
+    }
+  }
+}
 
-  # Container with TTL and indexes
-  - type: Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers
-    apiVersion: '2021-10-15'
-    name: '[concat(parameters(''accountName''), ''/'', parameters(''databaseName''), ''/'', parameters(''containerName''))]'
-    properties:
-      resource:
-        id: '[parameters(''containerName'')]'
-        partitionKey:
-          paths:
-            - '[parameters(''partitionKeyPath'')]'
-          kind: Hash
-        indexingPolicy:
-          indexingMode: Consistent
-          includedPaths:
-            - path: /*
-              indexes:
-                - kind: Range
-                  dataType: String
-                  precision: -1
-                - kind: Range
-                  dataType: Number
-                  precision: -1
-          excludedPaths:
-            - path: /''_etag''/?
-        defaultTtl: 7776000  # 90 days in seconds
-        conflictResolutionPolicy:
-          mode: LastWriterWins
-          conflictResolutionPath: /_ts
-    dependsOn:
-      - '[resourceId(''Microsoft.DocumentDB/databaseAccounts/sqlDatabases'', parameters(''accountName''), parameters(''databaseName''))]'
+// Container with TTL and indexes
+resource container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2021-10-15' = {
+  parent: database
+  name: containerName
+  properties: {
+    resource: {
+      id: containerName
+      partitionKey: {
+        paths: [
+          partitionKeyPath
+        ]
+        kind: 'Hash'
+      }
+      indexingPolicy: {
+        indexingMode: 'Consistent'
+        includedPaths: [
+          {
+            path: '/*'
+            indexes: [
+              {
+                kind: 'Range'
+                dataType: 'String'
+                precision: -1
+              }
+              {
+                kind: 'Range'
+                dataType: 'Number'
+                precision: -1
+              }
+            ]
+          }
+        ]
+        excludedPaths: [
+          {
+            path: '/_etag/?'
+          }
+        ]
+      }
+      defaultTtl: 7776000
+      conflictResolutionPolicy: {
+        mode: 'LastWriterWins'
+        conflictResolutionPath: '/_ts'
+      }
+    }
+  }
+}
 
-outputs:
-  cosmosDbEndpoint:
-    type: string
-    value: '[reference(resourceId(''Microsoft.DocumentDB/databaseAccounts'', parameters(''accountName'')), ''2021-10-15'').documentEndpoint]'
-    metadata:
-      description: 'Cosmos DB endpoint URL'
-
-  cosmosDbAccountKey:
-    type: string
-    value: '[listKeys(resourceId(''Microsoft.DocumentDB/databaseAccounts'', parameters(''accountName'')), ''2021-10-15'').primaryMasterKey]'
-    metadata:
-      description: 'Cosmos DB primary account key'
+@description('Cosmos DB endpoint URL')
+output cosmosDbEndpoint string = cosmosDbAccount.properties.documentEndpoint

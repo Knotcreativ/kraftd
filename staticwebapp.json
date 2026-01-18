@@ -1,0 +1,24 @@
+{
+  "name": "kraftdintel-web",
+  "resourceGroup": "kraftdintel-rg",
+  "region": "westeurope",
+  "sku": "Free",
+  "source": {
+    "provider": "github",
+    "owner": "Knotcreativ",
+    "repo": "kraftd",
+    "branch": "main"
+  },
+  "buildConfiguration": {
+    "appLocation": "frontend",
+    "outputLocation": "dist",
+    "buildPreset": "vite"
+  },
+  "environmentVariables": {
+    "VITE_API_URL": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1"
+  },
+  "expectedUrl": "https://kraftdintel-web.azurestaticapps.net",
+  "backendApiUrl": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1",
+  "status": "Pending - Creating in Azure Portal",
+  "createdAt": "2026-01-17T00:00:00Z"
+}
