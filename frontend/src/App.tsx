@@ -9,6 +9,7 @@ import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Layout from './components/Layout'
 import DocumentReviewDetail from './components/DocumentReviewDetail'
+import StreamingDashboard from './pages/StreamingDashboard'
 import { apiClient } from './services/api'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,16 @@ function AppContent() {
           <ProtectedRoute>
             <Layout>
               <DocumentReviewDetail />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/streaming-dashboard"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <StreamingDashboard />
             </Layout>
           </ProtectedRoute>
         }

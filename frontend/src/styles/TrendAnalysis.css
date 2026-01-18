@@ -1,0 +1,283 @@
+/* Trend Analysis Component Styles */
+
+.trend-analysis {
+  padding: 20px 0;
+}
+
+.trends-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.trends-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.trends-stats {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  color: #666;
+}
+
+.stat strong {
+  color: #333;
+  font-weight: 700;
+}
+
+.trends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.trend-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-top: 4px solid #667eea;
+  border-radius: 8px;
+  padding: 18px;
+  transition: all 0.3s ease;
+  animation: slideIn 0.3s ease;
+}
+
+.trend-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.trend-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.trend-item-id h4 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.trend-direction-badge {
+  padding: 8px 14px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.trend-message {
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.confidence-meter {
+  margin: 18px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.confidence-meter label {
+  display: block;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.confidence-bar {
+  height: 24px;
+  background: #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  border: 1px solid #d0d0d0;
+}
+
+.confidence-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.confidence-value {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #333;
+  text-align: right;
+}
+
+.forecast-display {
+  display: grid;
+  gap: 10px;
+  margin: 15px 0;
+  padding: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+}
+
+.forecast-item {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 12px;
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+}
+
+.forecast-item label {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.forecast-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.trend-timestamp {
+  color: #999;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 12px 0;
+  padding: 12px 0;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.trend-details {
+  margin: 12px 0;
+}
+
+details {
+  cursor: pointer;
+  user-select: none;
+}
+
+summary {
+  font-weight: 700;
+  color: #667eea;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+summary:hover {
+  background: #f0f0f0;
+  color: #764ba2;
+}
+
+details[open] summary {
+  background: #e8eaf6;
+  color: #764ba2;
+}
+
+.details-content {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.key {
+  font-weight: 600;
+  color: #666;
+  min-width: 120px;
+}
+
+.value {
+  color: #666;
+  text-align: right;
+  flex: 1;
+  word-break: break-word;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-state p {
+  margin: 10px 0;
+  color: #999;
+  font-size: 1.1rem;
+}
+
+.text-muted {
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .trends-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .trends-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trend-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
