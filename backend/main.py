@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -49,6 +49,14 @@ from services.secrets_manager import get_secrets_manager
 # Import repositories
 from repositories import UserRepository, DocumentRepository
 from repositories.document_repository import DocumentStatus as RepoDocumentStatus
+
+# Import Agent Routes
+try:
+    from routes.agent import router as agent_router
+    AGENT_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Agent routes not available: {e}")
+    AGENT_ROUTES_AVAILABLE = False
 
 # Export Tracking Service (Three-stage recording)
 from services.export_tracking_service import (
@@ -914,6 +922,13 @@ async def validate_token(authorization: str = None):
             detail="Token validation failed"
         )
 
+# ===== Agent API Routes =====
+if AGENT_ROUTES_AVAILABLE:
+    app.include_router(agent_router, prefix="/api/v1")
+    logger.info("[OK] Agent API routes registered at /api/v1/agent")
+else:
+    logger.warning("[WARN] Agent API routes not available - agent functionality disabled")
+
 # ===== Health Check Endpoint =====
 @app.get("/api/v1/health")
 async def health_check():
@@ -1713,7 +1728,7 @@ class FeedbackRequest(BaseModel):
 async def submit_export_feedback(
     export_workflow_id: str,
     feedback_request: FeedbackRequest,
-    current_user: dict = Depends(get_current_user)
+    authorization: str = None
 ):
     """
     Submit user feedback after export completion.
@@ -1726,13 +1741,14 @@ async def submit_export_feedback(
     Args:
         export_workflow_id: Export workflow ID (from Stage 1)
         feedback_request: User's feedback and rating
-        current_user: Authenticated user
+        authorization: Bearer token for authentication
         
     Returns:
         Confirmation with feedback ID and learning status
     """
     try:
-        owner_email = current_user.get("email")
+        # Get current user email from authorization header
+        owner_email = get_current_user_email(authorization) if authorization else "unknown@example.com"
         
         # Validate rating
         if not 1 <= feedback_request.satisfaction_rating <= 5:
