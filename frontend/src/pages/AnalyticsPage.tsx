@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Breadcrumb from '../components/Breadcrumb';
 import FilterPanel from '../components/FilterPanel';
 import AnalyticsCharts from '../components/AnalyticsCharts';
-import AnalyticsDashboard from '../components/AnalyticsDashboard';
 import './AnalyticsPage.css';
 
 type AnalyticsView = 'overview' | 'charts' | 'dashboard';

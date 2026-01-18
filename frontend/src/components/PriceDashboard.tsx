@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useWebSocket, PriceUpdate } from '../../hooks/useWebSocket';
+import { useWebSocket, PriceUpdate } from '../hooks/useWebSocket';
 import '../styles/PriceDashboard.css';
 
 interface PriceData {

@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useWebSocket, SupplierSignal } from '../../hooks/useWebSocket';
+import { useWebSocket, SupplierSignal } from '../hooks/useWebSocket';
 import '../styles/SupplierSignals.css';
 
 export const SupplierSignals: React.FC = () => {

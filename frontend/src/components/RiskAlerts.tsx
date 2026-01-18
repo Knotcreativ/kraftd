@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useWebSocket, RiskAlert } from '../../hooks/useWebSocket';
+import { useWebSocket, RiskAlert } from '../hooks/useWebSocket';
 import '../styles/RiskAlerts.css';
 
 export const RiskAlerts: React.FC = () => {

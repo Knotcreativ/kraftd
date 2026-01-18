@@ -12,6 +12,10 @@ import logging
 import asyncio
 import sys
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -97,6 +101,14 @@ try:
 except Exception as e:
     logger.warning(f"Events routes not available: {e}")
     EVENTS_ROUTES_AVAILABLE = False
+
+# Import Advanced ML Routes (Phase 11: Advanced Analytics)
+try:
+    from routes.advanced_ml import router as advanced_ml_router
+    ADVANCED_ML_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Advanced ML routes not available: {e}")
+    ADVANCED_ML_ROUTES_AVAILABLE = False
 
 # Export Tracking Service (Three-stage recording)
 from services.export_tracking_service import (
@@ -1003,6 +1015,13 @@ if EVENTS_ROUTES_AVAILABLE:
     logger.info("[OK] Events routes registered at /api/v1/events")
 else:
     logger.warning("[WARN] Events routes not available - historical data disabled")
+
+# ===== Advanced ML Routes (Phase 11: Advanced Analytics) =====
+if ADVANCED_ML_ROUTES_AVAILABLE:
+    app.include_router(advanced_ml_router, prefix="/api/v1")
+    logger.info("[OK] Advanced ML routes registered at /api/v1/ml/advanced")
+else:
+    logger.warning("[WARN] Advanced ML routes not available - advanced analytics disabled")
 
 # ===== Health Check Endpoint =====
 @app.get("/api/v1/health")

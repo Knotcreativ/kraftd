@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useWebSocket, AnomalyDetected } from '../../hooks/useWebSocket';
+import { useWebSocket, AnomalyDetected } from '../hooks/useWebSocket';
 import '../styles/AnomalyDetection.css';
 
 export const AnomalyDetection: React.FC = () => {
