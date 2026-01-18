@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Header
-from pydantic import EmailStr
+from fastapi import APIRouter, HTTPException, status, Depends, Header, Request
+from pydantic import EmailStr, BaseModel
 from typing import Optional, Dict
 from datetime import datetime, timedelta
 import uuid
@@ -11,6 +11,7 @@ from models.user import (
     VerifyEmailRequest, VerifyEmailResponse
 )
 from services.auth_service import AuthService
+from services.token_service import TokenService
 from services.email_service import EmailService
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,10 @@ reset_tokens: Dict[str, dict] = {}
 verification_tokens: Dict[str, dict] = {}
 
 def get_current_user_email(authorization: str = Header(None)) -> str:
-    """Extract and validate the current user from JWT token"""
+    """Extract and validate the current user from JWT token
+    
+    Now uses TokenService for JTI tracking and revocation checking.
+    """
     if not authorization:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -45,7 +49,9 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
         )
     
     token = parts[1]
-    payload = AuthService.verify_token(token)
+    
+    # Use TokenService for verification (includes revocation checking)
+    payload = TokenService.verify_token(token, check_revocation=True)
     
     if payload is None:
         raise HTTPException(
@@ -65,8 +71,8 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
     return email
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserRegister):
-    """Register a new user"""
+async def register(user_data: UserRegister, request: Request):
+    """Register a new user with token generation"""
     # Check if user already exists
     if user_data.email in users_db:
         raise HTTPException(
@@ -85,9 +91,24 @@ async def register(user_data: UserRegister):
     # Store user
     users_db[user.email] = user
     
-    # Generate tokens
-    access_token = AuthService.create_access_token(user.email)
-    refresh_token = AuthService.create_refresh_token(user.email)
+    # Get client IP and user agent for audit logging
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("User-Agent")
+    
+    # Generate tokens with JTI tracking (new TokenService)
+    access_token, access_jti = TokenService.create_access_token(
+        user.email,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+    refresh_token, refresh_jti = TokenService.create_refresh_token(
+        user.email,
+        parent_jti=access_jti,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+    
+    logger.info(f"User registered: {user.email}")
     
     return TokenResponse(
         access_token=access_token,
@@ -96,8 +117,8 @@ async def register(user_data: UserRegister):
     )
 
 @router.post("/login", response_model=TokenResponse)
-async def login(user_data: UserLogin):
-    """Login user and return JWT tokens"""
+async def login(user_data: UserLogin, request: Request):
+    """Login user and return JWT tokens with JTI tracking"""
     # Find user
     user = users_db.get(user_data.email)
     if user is None:
@@ -120,9 +141,24 @@ async def login(user_data: UserLogin):
             detail="User account is disabled"
         )
     
-    # Generate tokens
-    access_token = AuthService.create_access_token(user.email)
-    refresh_token = AuthService.create_refresh_token(user.email)
+    # Get client IP and user agent for audit logging
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("User-Agent")
+    
+    # Generate tokens with JTI tracking (new TokenService)
+    access_token, access_jti = TokenService.create_access_token(
+        user.email,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+    refresh_token, refresh_jti = TokenService.create_refresh_token(
+        user.email,
+        parent_jti=access_jti,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+    
+    logger.info(f"User logged in: {user.email}")
     
     return TokenResponse(
         access_token=access_token,
@@ -131,14 +167,41 @@ async def login(user_data: UserLogin):
     )
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(refresh_token: str):
-    """Refresh access token using refresh token"""
-    payload = AuthService.verify_token(refresh_token)
+async def refresh(refresh_token: str, request: Request):
+    """Refresh access token using refresh token with rotation
     
-    if payload is None or payload.get("type") != "refresh":
+    Implements refresh token rotation:
+    1. Validates the refresh token
+    2. Invalidates the old refresh token
+    3. Issues new access and refresh tokens
+    
+    This prevents token reuse attacks.
+    """
+    # Get client IP and user agent for audit logging
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("User-Agent")
+    
+    # Perform token rotation
+    result = TokenService.rotate_refresh_token(
+        refresh_token,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+    
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token"
+        )
+    
+    new_access_token, new_access_jti, new_refresh_token, new_refresh_jti = result
+    
+    # Extract user email for final validation
+    payload = TokenService.verify_token(new_access_token)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Failed to validate new tokens"
         )
     
     email = payload.get("sub")
@@ -150,15 +213,29 @@ async def refresh(refresh_token: str):
             detail="User not found or inactive"
         )
     
-    # Generate new access token
-    access_token = AuthService.create_access_token(email)
-    new_refresh_token = AuthService.create_refresh_token(email)
+    logger.info(f"Token refreshed for user: {email}")
     
     return TokenResponse(
-        access_token=access_token,
+        access_token=new_access_token,
         refresh_token=new_refresh_token,
         expires_in=3600
     )
+
+@router.post("/logout", response_model=dict)
+async def logout(email: str = Depends(get_current_user_email)):
+    """Logout user by revoking all their active tokens
+    
+    Revokes all active tokens for the user, effectively logging them out
+    from all sessions.
+    """
+    revoked_count = TokenService.revoke_user_tokens(email, reason="User logout")
+    
+    logger.info(f"User logged out: {email} ({revoked_count} tokens revoked)")
+    
+    return {
+        "message": "Successfully logged out",
+        "tokens_revoked": revoked_count
+    }
 
 @router.get("/profile", response_model=UserProfile)
 async def get_profile(email: str = Depends(get_current_user_email)):
