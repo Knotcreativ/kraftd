@@ -74,6 +74,14 @@ except Exception as e:
     logger.warning(f"Template routes not available: {e}")
     TEMPLATE_ROUTES_AVAILABLE = False
 
+# Import Signals Routes (Phase 5: Signals Intelligence)
+try:
+    from routes.signals import router as signals_router
+    SIGNALS_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Signals routes not available: {e}")
+    SIGNALS_ROUTES_AVAILABLE = False
+
 # Export Tracking Service (Three-stage recording)
 from services.export_tracking_service import (
     initialize_export_tracking, get_export_tracking_service, ExportStage
@@ -958,6 +966,13 @@ if TEMPLATE_ROUTES_AVAILABLE:
     logger.info("[OK] Template routes registered at /api/v1/templates")
 else:
     logger.warning("[WARN] Template routes not available - document generation disabled")
+
+# ===== Signals Routes (Phase 5: Signals Intelligence) =====
+if SIGNALS_ROUTES_AVAILABLE:
+    app.include_router(signals_router)
+    logger.info("[OK] Signals routes registered at /api/v1/signals")
+else:
+    logger.warning("[WARN] Signals routes not available - signals intelligence disabled")
 
 # ===== Health Check Endpoint =====
 @app.get("/api/v1/health")
