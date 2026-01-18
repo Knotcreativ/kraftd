@@ -39,20 +39,57 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/ws", tags=["websocket-streaming"])
 
 auth_service = AuthService()
+rbac_service = RBACService()
 
 
 # ============= UTILITY FUNCTIONS =============
 
-async def get_current_user_from_token(token: str) -> Optional[str]:
-    """Extract user ID from Bearer token"""
+async def verify_websocket_token(token: Optional[str]) -> Tuple[str, UserRole]:
+    """
+    Extract user email and role from Bearer token for WebSocket.
+    
+    Args:
+        token: Bearer token from query parameter
+        
+    Returns:
+        Tuple of (email, role)
+        
+    Raises:
+        ValueError: If token is invalid or missing
+    """
+    if not token:
+        raise ValueError("Missing token in query parameter")
+    
     try:
-        if not token.startswith("Bearer "):
-            return None
-        token = token.replace("Bearer ", "")
+        # Extract token from "Bearer <token>" format if present
+        if token.startswith("Bearer "):
+            token = token.replace("Bearer ", "")
+        
+        # Verify token using AuthService
         payload = auth_service.verify_token(token)
-        return payload.get("sub")
+        email = payload.get("email") or payload.get("sub")
+        
+        # Get user role (for now, default to USER if not in token)
+        # In production, would fetch from database
+        role_str = payload.get("role", "USER")
+        role = UserRole[role_str.upper()] if role_str else UserRole.USER
+        
+        return email, role
+        
     except Exception as e:
-        logger.warning(f"Token verification failed: {e}")
+        logger.warning(f"WebSocket token verification failed: {e}")
+        raise ValueError(f"Invalid token: {str(e)}")
+
+
+async def get_current_user_from_token(token: str) -> Optional[str]:
+    """
+    Legacy function for backward compatibility.
+    Extract user email from Bearer token.
+    """
+    try:
+        email, role = await verify_websocket_token(token)
+        return email
+    except ValueError:
         return None
 
 
@@ -65,6 +102,9 @@ async def websocket_alerts(
 ) -> None:
     """
     WebSocket endpoint for risk alerts
+    
+    Query Parameters:
+    - token: Bearer token for authentication (can be "Bearer <token>" or just "<token>")
     
     Clients can subscribe to:
     - By risk level: CRITICAL, HIGH, MEDIUM, LOW
@@ -80,21 +120,39 @@ async def websocket_alerts(
     }
     """
     
-    # Authenticate
-    user_id = await get_current_user_from_token(token)
-    if not user_id:
-        await websocket.close(code=4001, reason="Unauthorized")
+    # Authenticate with RBAC
+    try:
+        email, role = await verify_websocket_token(token)
+    except ValueError as e:
+        await websocket.close(code=4001, reason=f"Unauthorized: {str(e)}")
+        logger.warning(f"WebSocket /alerts connection rejected: {str(e)}")
+        return
+    
+    # Check permission to subscribe to alerts
+    if not rbac_service.has_permission(role, Permission.ALERTS_READ):
+        await websocket.close(code=4003, reason="Forbidden: Insufficient permissions")
+        logger.warning(f"User {email} (role: {role}) denied access to /ws/alerts - missing ALERTS_READ permission")
         return
     
     # Accept connection
     await websocket.accept()
-    client = broadcaster.register_client(websocket, user_id)
+    client = broadcaster.register_client(websocket, email)
     
     if not client:
         await websocket.close(code=4029, reason="Connection limit reached")
         return
     
-    logger.info(f"Client {client.client_id} connected to /ws/alerts")
+    logger.info(f"User {email} (role: {role}) connected to /ws/alerts")
+    
+    # Log authorization decision
+    rbac_service.log_authorization_decision(
+        user_email=email,
+        user_role=role,
+        resource="websocket",
+        resource_id="alerts",
+        action="subscribe",
+        allowed=True
+    )
     
     try:
         # Message loop
@@ -161,18 +219,41 @@ async def websocket_prices(
     }
     """
     
-    # Authenticate
-    user_id = await get_current_user_from_token(token)
-    if not user_id:
+    # Authenticate and verify permissions
+    try:
+        email, role = await verify_websocket_token(token)
+    except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
         return
     
+    # Check RBAC permissions
+    if not rbac_service.has_permission(role, Permission.PRICES_READ):
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="websocket",
+            resource_id="prices",
+            action="subscribe",
+            allowed=False
+        )
+        await websocket.close(code=4003, reason="Forbidden")
+        return
+    
     await websocket.accept()
-    client = broadcaster.register_client(websocket, user_id)
+    client = broadcaster.register_client(websocket, email)
     
     if not client:
         await websocket.close(code=4029, reason="Connection limit reached")
         return
+    
+    rbac_service.log_authorization_decision(
+        user_email=email,
+        user_role=role,
+        resource="websocket",
+        resource_id="prices",
+        action="subscribe",
+        allowed=True
+    )
     
     logger.info(f"Client {client.client_id} connected to /ws/prices")
     
@@ -230,17 +311,41 @@ async def websocket_signals(
     }
     """
     
-    user_id = await get_current_user_from_token(token)
-    if not user_id:
+    # Authenticate and verify permissions
+    try:
+        email, role = await verify_websocket_token(token)
+    except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
         return
     
+    # Check RBAC permissions
+    if not rbac_service.has_permission(role, Permission.SIGNALS_READ):
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="websocket",
+            resource_id="signals",
+            action="subscribe",
+            allowed=False
+        )
+        await websocket.close(code=4003, reason="Forbidden")
+        return
+    
     await websocket.accept()
-    client = broadcaster.register_client(websocket, user_id)
+    client = broadcaster.register_client(websocket, email)
     
     if not client:
         await websocket.close(code=4029, reason="Connection limit reached")
         return
+    
+    rbac_service.log_authorization_decision(
+        user_email=email,
+        user_role=role,
+        resource="websocket",
+        resource_id="signals",
+        action="subscribe",
+        allowed=True
+    )
     
     logger.info(f"Client {client.client_id} connected to /ws/signals")
     
@@ -298,17 +403,41 @@ async def websocket_anomalies(
     }
     """
     
-    user_id = await get_current_user_from_token(token)
-    if not user_id:
+    # Authenticate and verify permissions
+    try:
+        email, role = await verify_websocket_token(token)
+    except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
         return
     
+    # Check RBAC permissions
+    if not rbac_service.has_permission(role, Permission.ANOMALIES_READ):
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="websocket",
+            resource_id="anomalies",
+            action="subscribe",
+            allowed=False
+        )
+        await websocket.close(code=4003, reason="Forbidden")
+        return
+    
     await websocket.accept()
-    client = broadcaster.register_client(websocket, user_id)
+    client = broadcaster.register_client(websocket, email)
     
     if not client:
         await websocket.close(code=4029, reason="Connection limit reached")
         return
+    
+    rbac_service.log_authorization_decision(
+        user_email=email,
+        user_role=role,
+        resource="websocket",
+        resource_id="anomalies",
+        action="subscribe",
+        allowed=True
+    )
     
     logger.info(f"Client {client.client_id} connected to /ws/anomalies")
     
@@ -369,17 +498,41 @@ async def websocket_trends(
     }
     """
     
-    user_id = await get_current_user_from_token(token)
-    if not user_id:
+    # Authenticate and verify permissions
+    try:
+        email, role = await verify_websocket_token(token)
+    except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
         return
     
+    # Check RBAC permissions
+    if not rbac_service.has_permission(role, Permission.TRENDS_READ):
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="websocket",
+            resource_id="trends",
+            action="subscribe",
+            allowed=False
+        )
+        await websocket.close(code=4003, reason="Forbidden")
+        return
+    
     await websocket.accept()
-    client = broadcaster.register_client(websocket, user_id)
+    client = broadcaster.register_client(websocket, email)
     
     if not client:
         await websocket.close(code=4029, reason="Connection limit reached")
         return
+    
+    rbac_service.log_authorization_decision(
+        user_email=email,
+        user_role=role,
+        resource="websocket",
+        resource_id="trends",
+        action="subscribe",
+        allowed=True
+    )
     
     logger.info(f"Client {client.client_id} connected to /ws/trends")
     
@@ -433,17 +586,41 @@ async def websocket_health(
     Client must respond with pong to keep connection alive.
     """
     
-    user_id = await get_current_user_from_token(token)
-    if not user_id:
+    # Authenticate and verify permissions
+    try:
+        email, role = await verify_websocket_token(token)
+    except ValueError as e:
         await websocket.close(code=4001, reason="Unauthorized")
         return
     
+    # Check RBAC permissions
+    if not rbac_service.has_permission(role, Permission.ALERTS_READ):
+        rbac_service.log_authorization_decision(
+            user_email=email,
+            user_role=role,
+            resource="websocket",
+            resource_id="health",
+            action="subscribe",
+            allowed=False
+        )
+        await websocket.close(code=4003, reason="Forbidden")
+        return
+    
     await websocket.accept()
-    client = broadcaster.register_client(websocket, user_id)
+    client = broadcaster.register_client(websocket, email)
     
     if not client:
         await websocket.close(code=4029, reason="Connection limit reached")
         return
+    
+    rbac_service.log_authorization_decision(
+        user_email=email,
+        user_role=role,
+        resource="websocket",
+        resource_id="health",
+        action="subscribe",
+        allowed=True
+    )
     
     logger.info(f"Client {client.client_id} connected to /ws/health")
     

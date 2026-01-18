@@ -81,6 +81,13 @@ class Permission(str, Enum):
     # Reporting
     REPORTS_EXPORT = "reports:export"
     REPORTS_VIEW = "reports:view"
+    
+    # Streaming/Signals
+    ALERTS_READ = "alerts:read"
+    PRICES_READ = "prices:read"
+    SIGNALS_READ = "signals:read"
+    TRENDS_READ = "trends:read"
+    ANOMALIES_READ = "anomalies:read"
 
 
 class RBACService:
@@ -140,6 +147,13 @@ class RBACService:
             # Reports (all)
             Permission.REPORTS_EXPORT,
             Permission.REPORTS_VIEW,
+            
+            # Streaming/Signals (all)
+            Permission.ALERTS_READ,
+            Permission.PRICES_READ,
+            Permission.SIGNALS_READ,
+            Permission.TRENDS_READ,
+            Permission.ANOMALIES_READ,
         },
         
         UserRole.USER: {
@@ -173,6 +187,13 @@ class RBACService:
             # Reports (own)
             Permission.REPORTS_EXPORT,
             Permission.REPORTS_VIEW,
+            
+            # Streaming/Signals (all authenticated can read)
+            Permission.ALERTS_READ,
+            Permission.PRICES_READ,
+            Permission.SIGNALS_READ,
+            Permission.TRENDS_READ,
+            Permission.ANOMALIES_READ,
         },
         
         UserRole.VIEWER: {
@@ -197,6 +218,13 @@ class RBACService:
             
             # Reports (view only)
             Permission.REPORTS_VIEW,
+            
+            # Streaming/Signals (all authenticated can read)
+            Permission.ALERTS_READ,
+            Permission.PRICES_READ,
+            Permission.SIGNALS_READ,
+            Permission.TRENDS_READ,
+            Permission.ANOMALIES_READ,
         },
         
         UserRole.GUEST: {
