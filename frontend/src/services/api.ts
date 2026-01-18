@@ -1,8 +1,11 @@
 import axios, { AxiosError, AxiosInstance } from 'axios'
 import { AuthTokens, Document, Workflow } from '../types'
 
+// Support both production and local development URLs
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  'https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1'
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://127.0.0.1:8000/api/v1'
+    : 'https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1')
 
 class ApiClient {
   private client: AxiosInstance
@@ -57,10 +60,14 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async register(email: string, password: string) {
+  async register(email: string, password: string, acceptTerms: boolean = false, acceptPrivacy: boolean = false, name?: string) {
     const response = await this.client.post<AuthTokens>('/auth/register', {
       email,
-      password
+      password,
+      acceptTerms,
+      acceptPrivacy,
+      name: name || email.split('@')[0],
+      marketingOptIn: false
     })
     return response.data
   }

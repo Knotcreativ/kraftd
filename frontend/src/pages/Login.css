@@ -168,3 +168,23 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.form-error {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: #c33;
+}
+
+.form-error p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.form-hint {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.8rem;
+  color: #999;
+}

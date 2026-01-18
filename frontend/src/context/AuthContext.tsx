@@ -7,7 +7,7 @@ interface AuthContextType {
   isLoading: boolean
   error: string | null
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string) => Promise<void>
+  register: (email: string, password: string, acceptTerms: boolean, acceptPrivacy: boolean, name?: string) => Promise<void>
   logout: () => void
   clearError: () => void
 }
@@ -49,11 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string, acceptTerms: boolean = false, acceptPrivacy: boolean = false, name?: string) => {
     setIsLoading(true)
     setError(null)
     try {
-      const tokens = await apiClient.register(email, password)
+      const tokens = await apiClient.register(email, password, acceptTerms, acceptPrivacy, name)
       handleTokens(tokens)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed'
