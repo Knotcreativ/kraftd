@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 import logging
 
 from services.event_storage import EventStorageService, EventType, get_event_storage_service
-from middleware.auth import verify_bearer_token
+from services.security_service import verify_bearer_token
 
 logger = logging.getLogger(__name__)
 

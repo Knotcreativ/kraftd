@@ -42,24 +42,25 @@ param registryServer string
 })
 param dockerImageTag string = 'latest'
 
-@minLength(3)
-@maxLength(44)
-@metadata({
-  description: 'Cosmos DB account name - reserved for future connection string configuration'
-})
-param cosmosDbAccountName string = 'reserved'
+// Reserved parameters for future use
+// @minLength(3)
+// @maxLength(44)
+// @metadata({
+//   description: 'Cosmos DB account name - reserved for future connection string configuration'
+// })
+// param cosmosDbAccountName string = 'reserved'
 
-@metadata({
-  description: 'Cosmos DB database name - reserved for future configuration'
-})
-param cosmosDbDatabaseName string = 'kraftdintel'
+// @metadata({
+//   description: 'Cosmos DB database name - reserved for future configuration'
+// })
+// param cosmosDbDatabaseName string = 'kraftdintel'
 
-@minLength(3)
-@maxLength(24)
-@metadata({
-  description: 'Key Vault name - reserved for future secret management integration'
-})
-param keyVaultName string = 'reserved'
+// @minLength(3)
+// @maxLength(24)
+// @metadata({
+//   description: 'Key Vault name - reserved for future secret management integration'
+// })
+// param keyVaultName string = 'reserved' // Currently using managed identity
 
 var appServicePlanName = '${appServiceName}-plan'
 var appInsightsName = '${appServiceName}-insights'

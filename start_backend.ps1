@@ -8,7 +8,7 @@ $restartCount = 0
 Write-Host "🚀 Starting KraftdIntel Backend Server..." -ForegroundColor Cyan
 Write-Host "Location: $backendDir" -ForegroundColor Gray
 
-cd $backendDir
+Set-Location $backendDir
 
 # Activate virtual environment
 .venv\Scripts\Activate.ps1

@@ -12,7 +12,9 @@ import pandas as pd
 import logging
 
 from models import ModelRegistry, RiskScorePredictorModel
-from data_pipeline import MetadataFeatureExtractor, DataPipelineProcessor, FeatureSet
+from document_processing.orchestrator import ExtractionPipeline
+from ml.data_pipeline import MetadataFeatureExtractor, DataPipelineProcessor, FeatureSet
+from ml.training import MLTrainingPipeline
 
 logger = logging.getLogger(__name__)
 
@@ -376,7 +378,7 @@ async def retrain_models(documents: List[Dict[str, Any]] = Body(...)):
     Triggers full retraining pipeline with provided documents
     """
     try:
-        from training import MLTrainingPipeline
+        from ml.supplier_ecosystem import SupplierEcosystemModel
         
         # Process documents
         pipeline_processor = DataPipelineProcessor()
