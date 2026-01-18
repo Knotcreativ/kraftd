@@ -2,7 +2,7 @@
   "name": "kraftdintel-web",
   "resourceGroup": "kraftdintel-rg",
   "region": "westeurope",
-  "sku": "Free",
+  "sku": "Standard",
   "source": {
     "provider": "github",
     "owner": "Knotcreativ",
@@ -10,15 +10,18 @@
     "branch": "main"
   },
   "buildConfiguration": {
-    "appLocation": "frontend",
-    "outputLocation": "dist",
-    "buildPreset": "vite"
+    "appLocation": "frontend/dist",
+    "outputLocation": ".",
+    "buildPreset": "custom",
+    "buildCommand": "echo 'Pre-built by GitHub Actions'"
   },
   "environmentVariables": {
     "VITE_API_URL": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1"
   },
-  "expectedUrl": "https://kraftdintel-web.azurestaticapps.net",
+  "expectedUrl": "https://jolly-coast-03a4f4d03.4.azurestaticapps.net",
   "backendApiUrl": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1",
-  "status": "Pending - Creating in Azure Portal",
-  "createdAt": "2026-01-17T00:00:00Z"
+  "status": "Active - Deployment fix applied",
+  "createdAt": "2026-01-17T00:00:00Z",
+  "updatedAt": "2026-01-18T00:00:00Z",
+  "notes": "Configuration updated to match GitHub Actions workflow (pre-built dist folder)"
 }
