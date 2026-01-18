@@ -23,7 +23,7 @@ from services.compliance_service import (
     ComplianceReportService,
     ComplianceReport
 )
-from backend.services.alert_service import (
+from services.alert_service import (
     AlertService,
     Alert,
     AlertType,
