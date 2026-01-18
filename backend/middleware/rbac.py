@@ -2,6 +2,7 @@
 RBAC Middleware - Role-Based Access Control Middleware
 
 Provides FastAPI dependencies and decorators for role-based authorization.
+Includes tenant context management for multi-tenant isolation.
 """
 
 import logging
@@ -12,6 +13,7 @@ from fastapi import Depends, HTTPException, Header, status
 
 from services.token_service import TokenService
 from services.rbac_service import RBACService, UserRole, Permission
+from services.tenant_service import TenantService, get_or_create_tenant_context
 from models.user import User
 
 logger = logging.getLogger(__name__)
@@ -25,8 +27,10 @@ async def get_current_user_with_role(
 ) -> Tuple[str, UserRole]:
     """
     Extract user email and role from JWT token
+    Also sets tenant context for multi-tenant isolation
     
-    This dependency verifies the access token and retrieves the user's role.
+    This dependency verifies the access token and retrieves the user's role,
+    then establishes the tenant context for the request.
     
     Args:
         authorization: Authorization header with Bearer token
@@ -90,6 +94,18 @@ async def get_current_user_with_role(
         )
     
     logger.debug(f"User authenticated: {email} (role: {user.role.value})")
+    
+    # Phase 4: Set tenant context for multi-tenant isolation
+    try:
+        tenant_context = await get_or_create_tenant_context(email, user.role)
+        TenantService.set_current_tenant(tenant_context)
+        logger.debug(f"Tenant context established: {tenant_context}")
+    except Exception as e:
+        logger.error(f"Failed to establish tenant context for {email}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to establish tenant context",
+        )
     
     return email, user.role
 

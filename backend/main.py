@@ -115,6 +115,22 @@ except Exception as e:
     logger.warning(f"Advanced ML routes not available: {e}")
     ADVANCED_ML_ROUTES_AVAILABLE = False
 
+# Import User Profile Routes (Phase 3: User Profiles)
+try:
+    from routes.user_profile import router as user_profile_router, set_profile_service
+    USER_PROFILE_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"User profile routes not available: {e}")
+    USER_PROFILE_ROUTES_AVAILABLE = False
+
+# Import ProfileService (Phase 4: Database Integration)
+try:
+    from services.profile_service import ProfileService
+    PROFILE_SERVICE_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"ProfileService not available: {e}")
+    PROFILE_SERVICE_AVAILABLE = False
+
 # Export Tracking Service (Three-stage recording)
 from services.export_tracking_service import (
     initialize_export_tracking, get_export_tracking_service, ExportStage
@@ -246,6 +262,21 @@ async def lifespan(app: FastAPI):
             logger.warning(f"[WARN] Could not initialize Cosmos DB: {str(e)}")
             logger.info("      Continuing with fallback mode (in-memory storage)")
         
+        # Initialize ProfileService (Phase 4: Database Integration)
+        if PROFILE_SERVICE_AVAILABLE and USER_PROFILE_ROUTES_AVAILABLE:
+            try:
+                cosmos_service = get_cosmos_service()
+                if cosmos_service and cosmos_service.is_initialized():
+                    profile_service = ProfileService(cosmos_service)
+                    await profile_service.initialize()
+                    set_profile_service(profile_service)
+                    logger.info("[OK] ProfileService initialized and wired to routes")
+                else:
+                    logger.warning("[WARN] Cosmos DB not initialized, ProfileService in fallback mode")
+            except Exception as e:
+                logger.warning(f"[WARN] ProfileService initialization failed: {str(e)}")
+                logger.info("      User profile functionality will be limited")
+        
         # Check Azure configuration
         if is_azure_configured():
             logger.info("[OK] Azure Document Intelligence is configured")
@@ -296,6 +327,7 @@ async def lifespan(app: FastAPI):
         logger.info(f"  Rate Limiting: {'Enabled' if RATE_LIMIT_ENABLED else 'Disabled'}")
         logger.info(f"  Metrics: {'Enabled' if METRICS_ENABLED else 'Disabled'}")
         logger.info(f"  Cosmos DB: {'Connected' if cosmos_service and cosmos_service.is_initialized() else 'Fallback mode'}")
+        logger.info(f"  User Profiles: {'Enabled' if USER_PROFILE_ROUTES_AVAILABLE and PROFILE_SERVICE_AVAILABLE else 'Disabled'}")
         logger.info("=" * 60)
         logger.info("Startup completed successfully")
         logger.info("=" * 60)
@@ -1027,6 +1059,13 @@ if ADVANCED_ML_ROUTES_AVAILABLE:
     logger.info("[OK] Advanced ML routes registered at /api/v1/ml/advanced")
 else:
     logger.warning("[WARN] Advanced ML routes not available - advanced analytics disabled")
+
+# ===== User Profile Routes (Phase 3: User Profiles) =====
+if USER_PROFILE_ROUTES_AVAILABLE:
+    app.include_router(user_profile_router, prefix="/api/v1")
+    logger.info("[OK] User profile routes registered at /api/v1/user")
+else:
+    logger.warning("[WARN] User profile routes not available - user profiles disabled")
 
 # ===== Health Check Endpoint =====
 @app.get("/api/v1/health")

@@ -1,12 +1,11 @@
 """
 Profile Service for user profile and preferences management
-Handles CRUD operations for user profiles and preferences
+Handles CRUD operations for user profiles and preferences using Cosmos DB
 """
 
 import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
-from pymongo.errors import DuplicateKeyError
 
 from models.user_preferences import (
     ProfileUpdate, 
@@ -19,18 +18,43 @@ logger = logging.getLogger(__name__)
 
 
 class ProfileService:
-    """Service for managing user profiles and preferences"""
+    """Service for managing user profiles and preferences with Cosmos DB"""
     
-    def __init__(self, db):
+    DATABASE_ID = "KraftdIntel"
+    PROFILES_CONTAINER = "user_profiles"
+    PREFERENCES_CONTAINER = "user_preferences"
+    
+    def __init__(self, cosmos_service):
         """
-        Initialize ProfileService with database connection
+        Initialize ProfileService with Cosmos DB service
         
         Args:
-            db: Database connection object (Cosmos DB or MongoDB)
+            cosmos_service: CosmosService instance
         """
-        self.db = db
-        self.profiles_collection = db.get_collection("user_profiles")
-        self.preferences_collection = db.get_collection("user_preferences")
+        self.cosmos_service = cosmos_service
+        self.profiles_container = None
+        self.preferences_container = None
+    
+    async def initialize(self):
+        """Initialize container references"""
+        if not self.cosmos_service or not self.cosmos_service.is_initialized():
+            logger.warning("Cosmos service not initialized")
+            return
+        
+        try:
+            self.profiles_container = await self.cosmos_service.get_container(
+                self.DATABASE_ID,
+                self.PROFILES_CONTAINER
+            )
+            self.preferences_container = await self.cosmos_service.get_container(
+                self.DATABASE_ID,
+                self.PREFERENCES_CONTAINER
+            )
+            logger.info("ProfileService containers initialized")
+        except Exception as e:
+            logger.warning(f"Could not initialize containers: {e}")
+            self.profiles_container = None
+            self.preferences_container = None
     
     async def get_profile(self, email: str) -> Optional[UserProfile]:
         """
@@ -42,19 +66,28 @@ class ProfileService:
         Returns:
             UserProfile object or None if not found
         """
+        if not self.profiles_container:
+            logger.warning(f"Profiles container not initialized")
+            return None
+        
         try:
-            profile = self.profiles_collection.find_one({"email": email})
-            if not profile:
-                logger.info(f"Profile not found for user: {email}")
-                return None
+            response = self.profiles_container.read_item(
+                item=email,
+                partition_key=email
+            )
             
-            # Remove MongoDB _id field
-            profile.pop("_id", None)
-            return UserProfile(**profile)
+            # Remove Cosmos DB system fields
+            response.pop("_rid", None)
+            response.pop("_self", None)
+            response.pop("_etag", None)
+            response.pop("_attachments", None)
+            response.pop("_ts", None)
+            
+            return UserProfile(**response)
             
         except Exception as e:
-            logger.error(f"Error retrieving profile for {email}: {e}")
-            raise
+            logger.debug(f"Profile not found for user: {email}")
+            return None
     
     async def create_profile(
         self, 
@@ -73,9 +106,14 @@ class ProfileService:
         Returns:
             Created UserProfile object
         """
+        if not self.profiles_container:
+            logger.error("Profiles container not initialized")
+            raise RuntimeError("Database not initialized")
+        
         try:
             now = datetime.utcnow()
             profile_data = {
+                "id": email,  # Cosmos DB requires 'id' field
                 "email": email,
                 "first_name": first_name,
                 "last_name": last_name,
@@ -85,18 +123,21 @@ class ProfileService:
                 "job_title": None,
                 "location": None,
                 "website": None,
-                "created_at": now,
-                "updated_at": now
+                "created_at": now.isoformat(),
+                "updated_at": now.isoformat()
             }
             
-            self.profiles_collection.insert_one(profile_data)
+            # Check if already exists
+            existing = await self.get_profile(email)
+            if existing:
+                logger.debug(f"Profile already exists for user: {email}")
+                return existing
+            
+            self.profiles_container.create_item(body=profile_data)
             logger.info(f"Profile created for user: {email}")
             
             return UserProfile(**profile_data)
             
-        except DuplicateKeyError:
-            logger.warning(f"Profile already exists for user: {email}")
-            return await self.get_profile(email)
         except Exception as e:
             logger.error(f"Error creating profile for {email}: {e}")
             raise
@@ -116,24 +157,32 @@ class ProfileService:
         Returns:
             Updated UserProfile object
         """
+        if not self.profiles_container:
+            logger.error("Profiles container not initialized")
+            raise RuntimeError("Database not initialized")
+        
         try:
-            # Only update fields that are provided
-            update_dict = profile_data.dict(exclude_unset=True)
-            update_dict["updated_at"] = datetime.utcnow()
-            
-            result = self.profiles_collection.find_one_and_update(
-                {"email": email},
-                {"$set": update_dict},
-                return_document=True
-            )
-            
-            if not result:
+            # Get existing profile
+            existing = await self.get_profile(email)
+            if not existing:
                 logger.warning(f"Profile not found for user: {email}")
                 return None
             
-            result.pop("_id", None)
+            # Prepare update
+            update_dict = existing.dict()
+            update_data = profile_data.dict(exclude_unset=True)
+            update_dict.update(update_data)
+            update_dict["updated_at"] = datetime.utcnow().isoformat()
+            update_dict["id"] = email  # Ensure ID is set
+            
+            # Replace item in Cosmos DB
+            self.profiles_container.replace_item(
+                item=email,
+                body=update_dict
+            )
+            
             logger.info(f"Profile updated for user: {email}")
-            return UserProfile(**result)
+            return UserProfile(**update_dict)
             
         except Exception as e:
             logger.error(f"Error updating profile for {email}: {e}")
@@ -141,7 +190,7 @@ class ProfileService:
     
     async def delete_profile(self, email: str) -> bool:
         """
-        Delete user profile (soft delete by marking as inactive)
+        Delete user profile and preferences
         
         Args:
             email: User email address
@@ -149,17 +198,34 @@ class ProfileService:
         Returns:
             True if profile was deleted, False otherwise
         """
+        if not self.profiles_container or not self.preferences_container:
+            logger.error("Containers not initialized")
+            raise RuntimeError("Database not initialized")
+        
         try:
-            result = self.profiles_collection.delete_one({"email": email})
-            
-            if result.deleted_count > 0:
-                logger.info(f"Profile deleted for user: {email}")
-                # Also delete preferences
-                self.preferences_collection.delete_one({"email": email})
-                return True
-            else:
+            # Check if exists
+            existing = await self.get_profile(email)
+            if not existing:
                 logger.warning(f"Profile not found for user: {email}")
                 return False
+            
+            # Delete profile
+            self.profiles_container.delete_item(
+                item=email,
+                partition_key=email
+            )
+            
+            # Also delete preferences
+            try:
+                self.preferences_container.delete_item(
+                    item=email,
+                    partition_key=email
+                )
+            except Exception as e:
+                logger.debug(f"Preferences not found for user: {email}")
+            
+            logger.info(f"Profile deleted for user: {email}")
+            return True
                 
         except Exception as e:
             logger.error(f"Error deleting profile for {email}: {e}")
@@ -177,23 +243,41 @@ class ProfileService:
         Returns:
             UserPreferencesResponse object or None if not found
         """
+        if not self.preferences_container:
+            logger.debug(f"Preferences container not initialized, returning defaults")
+            return UserPreferencesResponse(
+                email=email,
+                preferences=Preferences(),
+                updated_at=datetime.utcnow()
+            )
+        
         try:
-            prefs = self.preferences_collection.find_one({"email": email})
-            if not prefs:
-                logger.info(f"Preferences not found for user: {email}, returning defaults")
-                # Return default preferences
-                return UserPreferencesResponse(
-                    email=email,
-                    preferences=Preferences(),
-                    updated_at=datetime.utcnow()
-                )
+            prefs = self.preferences_container.read_item(
+                item=email,
+                partition_key=email
+            )
             
-            prefs.pop("_id", None)
+            # Remove Cosmos DB system fields
+            prefs.pop("_rid", None)
+            prefs.pop("_self", None)
+            prefs.pop("_etag", None)
+            prefs.pop("_attachments", None)
+            prefs.pop("_ts", None)
+            
+            # Fix datetime if it's a string
+            if isinstance(prefs.get("updated_at"), str):
+                prefs["updated_at"] = datetime.fromisoformat(prefs["updated_at"])
+            
             return UserPreferencesResponse(**prefs)
             
         except Exception as e:
-            logger.error(f"Error retrieving preferences for {email}: {e}")
-            raise
+            logger.debug(f"Preferences not found for user: {email}, returning defaults")
+            # Return default preferences
+            return UserPreferencesResponse(
+                email=email,
+                preferences=Preferences(),
+                updated_at=datetime.utcnow()
+            )
     
     async def create_preferences(self, email: str) -> UserPreferencesResponse:
         """
@@ -205,22 +289,32 @@ class ProfileService:
         Returns:
             Created UserPreferencesResponse object
         """
+        if not self.preferences_container:
+            logger.error("Preferences container not initialized")
+            raise RuntimeError("Database not initialized")
+        
         try:
             now = datetime.utcnow()
             prefs_data = {
+                "id": email,  # Cosmos DB requires 'id' field
                 "email": email,
                 "preferences": Preferences().dict(),
-                "updated_at": now
+                "updated_at": now.isoformat()
             }
             
-            self.preferences_collection.insert_one(prefs_data)
+            # Check if already exists
+            existing = await self.get_preferences(email)
+            if existing.preferences.dict() != Preferences().dict():
+                logger.debug(f"Preferences already exist for user: {email}")
+                return existing
+            
+            self.preferences_container.create_item(body=prefs_data)
             logger.info(f"Preferences created for user: {email}")
             
+            # Fix datetime
+            prefs_data["updated_at"] = datetime.fromisoformat(prefs_data["updated_at"])
             return UserPreferencesResponse(**prefs_data)
             
-        except DuplicateKeyError:
-            logger.warning(f"Preferences already exist for user: {email}")
-            return await self.get_preferences(email)
         except Exception as e:
             logger.error(f"Error creating preferences for {email}: {e}")
             raise
@@ -240,23 +334,34 @@ class ProfileService:
         Returns:
             Updated UserPreferencesResponse object
         """
+        if not self.preferences_container:
+            logger.error("Preferences container not initialized")
+            raise RuntimeError("Database not initialized")
+        
         try:
             now = datetime.utcnow()
             update_dict = {
+                "id": email,
+                "email": email,
                 "preferences": preferences_data.dict(),
-                "updated_at": now
+                "updated_at": now.isoformat()
             }
             
-            result = self.preferences_collection.find_one_and_update(
-                {"email": email},
-                {"$set": update_dict},
-                return_document=True,
-                upsert=True  # Create if doesn't exist
-            )
+            # Try to replace existing, if not found create new
+            try:
+                self.preferences_container.replace_item(
+                    item=email,
+                    body=update_dict
+                )
+            except Exception:
+                # Create if doesn't exist
+                self.preferences_container.create_item(body=update_dict)
             
-            result.pop("_id", None)
             logger.info(f"Preferences updated for user: {email}")
-            return UserPreferencesResponse(**result)
+            
+            # Fix datetime
+            update_dict["updated_at"] = datetime.fromisoformat(update_dict["updated_at"])
+            return UserPreferencesResponse(**update_dict)
             
         except Exception as e:
             logger.error(f"Error updating preferences for {email}: {e}")
@@ -273,14 +378,32 @@ class ProfileService:
         Returns:
             List of UserProfile objects
         """
+        if not self.profiles_container:
+            logger.warning("Profiles container not initialized")
+            return []
+        
         try:
-            profiles = list(self.profiles_collection.find().skip(skip).limit(limit))
+            query = "SELECT * FROM c ORDER BY c.created_at DESC OFFSET @skip LIMIT @limit"
+            items = list(self.profiles_container.query_items(
+                query=query,
+                parameters=[
+                    {"name": "@skip", "value": skip},
+                    {"name": "@limit", "value": limit}
+                ]
+            ))
             
-            for profile in profiles:
-                profile.pop("_id", None)
+            # Remove Cosmos DB system fields
+            profiles = []
+            for item in items:
+                item.pop("_rid", None)
+                item.pop("_self", None)
+                item.pop("_etag", None)
+                item.pop("_attachments", None)
+                item.pop("_ts", None)
+                profiles.append(UserProfile(**item))
             
             logger.info(f"Retrieved {len(profiles)} profiles (skip={skip}, limit={limit})")
-            return [UserProfile(**p) for p in profiles]
+            return profiles
             
         except Exception as e:
             logger.error(f"Error retrieving profiles: {e}")
