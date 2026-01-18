@@ -11,6 +11,7 @@ import Layout from './components/Layout'
 import DocumentReviewDetail from './components/DocumentReviewDetail'
 import { StreamingDashboard } from './pages/StreamingDashboard'
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
+import DashboardPreview from './components/DashboardPreview'
 import { apiClient } from './services/api'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -75,6 +76,16 @@ function AppContent() {
           <ProtectedRoute>
             <Layout>
               <AnalyticsDashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard-builder"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <DashboardPreview />
             </Layout>
           </ProtectedRoute>
         }
