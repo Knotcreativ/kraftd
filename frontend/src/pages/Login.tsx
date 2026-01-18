@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './Login.css'
@@ -13,9 +13,21 @@ export default function Login() {
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [registrationSuccess, setRegistrationSuccess] = useState(false)
+  const [loginSuccess, setLoginSuccess] = useState(false)
   const [successEmail, setSuccessEmail] = useState('')
   const { login, register } = useAuth()
   const navigate = useNavigate()
+
+  // Auto-redirect to dashboard after successful login
+  useEffect(() => {
+    if (loginSuccess) {
+      const redirectTimer = setTimeout(() => {
+        navigate('/dashboard')
+      }, 2500) // 2.5 seconds to see success message
+
+      return () => clearTimeout(redirectTimer)
+    }
+  }, [loginSuccess, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +47,8 @@ export default function Login() {
         setSuccessEmail(email)
       } else {
         await login(email, password)
-        navigate('/dashboard')
+        setSuccessEmail(email)
+        setLoginSuccess(true)
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : (isRegister ? 'Registration failed' : 'Login failed')
@@ -59,6 +72,7 @@ export default function Login() {
 
   const handleBackToLogin = () => {
     setRegistrationSuccess(false)
+    setLoginSuccess(false)
     setIsRegister(false)
     setEmail('')
     setPassword('')
@@ -76,7 +90,22 @@ export default function Login() {
           <p>Intelligent Procurement Management</p>
         </div>
 
-        {registrationSuccess ? (
+        {loginSuccess ? (
+          <div className="success-screen">
+            <div className="success-icon">✓</div>
+            <h2>Login Successful!</h2>
+            <p className="success-message">
+              Welcome back to KraftdIntel.
+            </p>
+            <p className="success-email">
+              Email: <strong>{successEmail}</strong>
+            </p>
+            <p className="success-note">
+              Redirecting to your dashboard...
+            </p>
+            <div className="redirect-spinner"></div>
+          </div>
+        ) : registrationSuccess ? (
           <div className="success-screen">
             <div className="success-icon">✓</div>
             <h2>Registration Successful!</h2>
