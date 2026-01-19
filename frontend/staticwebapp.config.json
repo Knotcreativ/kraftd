@@ -12,6 +12,18 @@
       "serve": "/landing.html"
     },
     {
+      "route": "/login",
+      "serve": "/login.html"
+    },
+    {
+      "route": "/chat",
+      "serve": "/chat.html"
+    },
+    {
+      "route": "*.html",
+      "serve": "*.html"
+    },
+    {
       "route": "/*",
       "serve": "/landing.html"
     }
