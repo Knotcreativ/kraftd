@@ -1,15 +1,8 @@
 {
-  "navigationFallback": {
-    "rewrite": "/index.html"
-  },
   "routes": [
     {
       "route": "/api/*",
       "allowedRoles": []
-    },
-    {
-      "route": "/",
-      "serve": "/landing.html"
     },
     {
       "route": "/login.html",
@@ -28,8 +21,12 @@
       "serve": "*.html"
     },
     {
+      "route": "/",
+      "serve": "/landing.html"
+    },
+    {
       "route": "/*",
-      "serve": "/index.html"
+      "serve": "/landing.html"
     }
   ],
   "mimeTypes": {
