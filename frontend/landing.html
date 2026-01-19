@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kraftd - Future, Simplified | AI Supply Chain Intelligence</title>
-    <meta name="version" content="1.1">
+    <title>Kraftd - Supply Chain Intelligence | Docs, Pro, Mobility</title>
     <style>
         * {
             margin: 0;
@@ -12,21 +11,11 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --color-primary-cyan: #00BCD4;
-            --color-dark-gray: #2C3E50;
-            --color-kraft-blue: #1A5A7A;
-            --color-structural-gray: #536B82;
-            --color-white: #FFFFFF;
-            --color-light-bg: #F5F5F5;
-            --gradient-primary: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);
-        }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: var(--color-structural-gray);
-            line-height: 1.6;
-            background-color: var(--color-white);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            color: #333;
+            background-color: #fff;
+            line-height: 1.5;
         }
 
         /* Navigation */
@@ -34,45 +23,45 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 40px;
-            background-color: var(--color-white);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 12px 40px;
+            border-bottom: 1px solid #eee;
             position: sticky;
             top: 0;
             z-index: 100;
+            background: white;
         }
 
         .nav-logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             text-decoration: none;
-            font-weight: 700;
-            color: var(--color-dark-gray);
-            font-size: 20px;
+            font-weight: 600;
+            font-size: 18px;
+            color: #2C3E50;
         }
 
-        .nav-logo svg {
-            width: 32px;
-            height: 32px;
+        .nav-logo img {
+            width: 28px;
+            height: 28px;
         }
 
         .nav-links {
             display: flex;
-            gap: 32px;
+            gap: 40px;
             list-style: none;
         }
 
         .nav-links a {
             text-decoration: none;
-            color: var(--color-structural-gray);
-            font-weight: 500;
+            color: #666;
             font-size: 14px;
-            transition: color 0.2s ease;
+            font-weight: 500;
+            transition: color 0.2s;
         }
 
         .nav-links a:hover {
-            color: var(--color-primary-cyan);
+            color: #00BCD4;
         }
 
         .nav-cta {
@@ -80,383 +69,313 @@
             gap: 12px;
         }
 
-        .btn-secondary {
-            padding: 10px 20px;
-            border: 1px solid var(--color-primary-cyan);
-            background-color: transparent;
-            color: var(--color-primary-cyan);
-            border-radius: 4px;
-            font-weight: 500;
-            font-size: 14px;
+        .btn {
+            padding: 8px 20px;
+            border-radius: 2px;
+            border: none;
             cursor: pointer;
-            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
             text-decoration: none;
             display: inline-block;
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--color-primary-cyan);
-            color: var(--color-white);
         }
 
         .btn-primary {
-            padding: 12px 28px;
-            background: var(--gradient-primary);
-            color: var(--color-white);
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            background: #00BCD4;
+            color: white;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.3);
+            background: #0097A7;
         }
 
-        /* Hero Section */
+        .btn-secondary {
+            border: 1px solid #00BCD4;
+            color: #00BCD4;
+            background: transparent;
+        }
+
+        .btn-secondary:hover {
+            background: #F0F8F9;
+        }
+
+        /* Hero */
         .hero {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            align-items: center;
-            gap: 60px;
             padding: 80px 40px;
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-        }
-
-        .hero-content h1 {
-            font-size: 48px;
-            font-weight: 700;
-            color: var(--color-dark-gray);
-            margin-bottom: 20px;
-            line-height: 1.2;
-        }
-
-        .hero-content .tagline {
-            font-size: 20px;
-            color: var(--color-primary-cyan);
-            font-weight: 600;
-            margin-bottom: 24px;
-        }
-
-        .hero-content p {
-            font-size: 16px;
-            color: var(--color-structural-gray);
-            margin-bottom: 32px;
-            line-height: 1.8;
-        }
-
-        .hero-ctas {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .hero-visual {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: var(--gradient-primary);
-            border-radius: 12px;
-            padding: 60px 40px;
-            min-height: 400px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-visual::before {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            top: -100px;
-            right: -100px;
-        }
-
-        .hero-visual::after {
-            content: '';
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-            bottom: -50px;
-            left: -50px;
-        }
-
-        .logo-display {
-            text-align: center;
-            color: var(--color-white);
-            font-size: 56px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Features Section */
-        .features {
-            background-color: var(--color-light-bg);
-            padding: 80px 40px;
-        }
-
-        .features-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .section-header h2 {
-            font-size: 36px;
-            font-weight: 700;
-            color: var(--color-dark-gray);
-            margin-bottom: 12px;
-        }
-
-        .section-header p {
-            font-size: 16px;
-            color: var(--color-structural-gray);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 32px;
-        }
-
-        .feature-card {
-            background-color: var(--color-white);
-            padding: 40px;
-            border-radius: 8px;
-            border: 1px solid #E0E0E0;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .feature-card:hover {
-            border-color: var(--color-primary-cyan);
-            box-shadow: 0 12px 32px rgba(0, 188, 212, 0.12);
-            transform: translateY(-4px);
-        }
-
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            background: var(--gradient-primary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--color-white);
-            font-size: 28px;
-            margin: 0 auto 20px;
-        }
-
-        .feature-card h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--color-dark-gray);
-            margin-bottom: 12px;
-        }
-
-        .feature-card p {
-            font-size: 14px;
-            color: var(--color-structural-gray);
-            line-height: 1.8;
-        }
-
-        /* CTA Section */
-        .cta-section {
-            padding: 80px 40px;
-            background: var(--gradient-primary);
-            text-align: center;
-            color: var(--color-white);
-        }
-
-        .cta-section h2 {
-            font-size: 40px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .cta-section p {
-            font-size: 16px;
-            margin-bottom: 32px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            opacity: 0.95;
-        }
-
-        .btn-white {
-            padding: 14px 32px;
-            background-color: var(--color-white);
-            color: var(--color-kraft-blue);
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-white:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Social Proof Section */
-        .social-proof {
-            padding: 80px 40px;
-            background-color: var(--color-white);
-        }
-
-        .testimonials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 32px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .testimonial-card {
-            background-color: var(--color-light-bg);
-            padding: 32px;
-            border-radius: 8px;
-            border-left: 4px solid var(--color-primary-cyan);
-            transition: all 0.3s ease;
-        }
-
-        .testimonial-card:hover {
-            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.12);
-            transform: translateY(-4px);
-        }
-
-        .star-rating {
-            color: var(--color-primary-cyan);
-            font-size: 18px;
-            margin-bottom: 12px;
-            letter-spacing: 2px;
-        }
-
-        .testimonial-text {
-            font-size: 16px;
-            color: var(--color-dark-gray);
-            margin-bottom: 16px;
-            line-height: 1.8;
-            font-weight: 500;
-            font-style: italic;
-        }
-
-        .testimonial-author {
-            font-size: 13px;
-            color: var(--color-structural-gray);
-            margin: 0;
-        }
-
-        /* Pricing Section */
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 32px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .pricing-card {
-            background-color: var(--color-white);
-            padding: 40px;
-            border-radius: 8px;
-            border: 1px solid #E0E0E0;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .pricing-card:hover {
-            border-color: var(--color-primary-cyan);
-            box-shadow: 0 12px 32px rgba(0, 188, 212, 0.12);
-        }
-
-        .pricing-card-featured {
-            border-color: var(--color-primary-cyan);
-            box-shadow: 0 12px 32px rgba(0, 188, 212, 0.15);
-            transform: scale(1.02);
-        }
-
-        .pricing-badge {
-            display: inline-block;
-            background-color: var(--color-light-bg);
-            color: var(--color-dark-gray);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 20px;
-        }
-
-        .pricing-amount {
-            font-size: 42px;
-            font-weight: 700;
-            color: var(--color-dark-gray);
-            margin-bottom: 8px;
-        }
-
-        .pricing-description {
-            font-size: 14px;
-            color: var(--color-structural-gray);
-            margin-bottom: 28px;
-        }
-
-        .pricing-features {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 32px 0;
             text-align: left;
         }
 
-        .pricing-features li {
-            padding: 10px 0;
-            font-size: 14px;
-            color: var(--color-structural-gray);
-            border-bottom: 1px solid #E0E0E0;
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            max-width: 600px;
         }
 
-        .pricing-features li:last-child {
-            border-bottom: none;
+        .hero p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 32px;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Services Grid */
+        .services {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        .services h2 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 40px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .service-card {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .service-image {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 64px;
+        }
+
+        .service-content h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .service-content p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .service-link {
+            font-size: 14px;
+            color: #00BCD4;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+            transition: color 0.2s;
+        }
+
+        .service-link:hover {
+            color: #0097A7;
+            text-decoration: underline;
+        }
+
+        /* Segments Section */
+        .segments {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            background: #f5f5f5;
+        }
+
+        .segments h2 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 40px;
+        }
+
+        .segments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .segment-card {
+            background: white;
+            padding: 24px;
+            border-radius: 4px;
+            border-left: 4px solid #00BCD4;
+        }
+
+        .segment-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .segment-card p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Pricing */
+        .pricing {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        .pricing h2 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .pricing-intro {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .pricing-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .pricing-card:hover {
+            border-color: #00BCD4;
+            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.1);
+        }
+
+        .pricing-card.featured {
+            border-color: #00BCD4;
+            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.15);
+        }
+
+        .pricing-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .pricing-amount {
+            font-size: 40px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .pricing-period {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .pricing-features {
+            text-align: left;
+            list-style: none;
+            margin: 24px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            padding: 24px 0;
+        }
+
+        .pricing-features li {
+            font-size: 13px;
+            color: #666;
+            padding: 8px 0;
+        }
+
+        .pricing-features li::before {
+            content: "✓ ";
+            color: #00BCD4;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .pricing-cta {
+            margin-top: 24px;
+        }
+
+        /* CTA Section */
+        .cta-final {
+            background: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .cta-final h2 {
+            font-size: 36px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .cta-final p {
+            font-size: 16px;
+            margin-bottom: 32px;
+            opacity: 0.95;
+        }
+
+        .cta-final .btn {
+            background: white;
+            color: #00BCD4;
+        }
+
+        .cta-final .btn:hover {
+            background: #f0f8f9;
         }
 
         /* Footer */
         footer {
-            background-color: var(--color-dark-gray);
-            color: var(--color-white);
+            background: #f5f5f5;
             padding: 40px;
             text-align: center;
             font-size: 13px;
-            opacity: 0.8;
+            color: #666;
+            border-top: 1px solid #eee;
         }
 
         footer a {
-            color: var(--color-primary-cyan);
+            color: #00BCD4;
             text-decoration: none;
         }
 
@@ -467,104 +386,47 @@
         /* Responsive */
         @media (max-width: 768px) {
             nav {
-                padding: 16px 20px;
                 flex-direction: column;
                 gap: 16px;
+                padding: 12px 20px;
             }
 
             .nav-links {
-                display: none;
+                gap: 20px;
             }
 
             .hero {
-                grid-template-columns: 1fr;
-                padding: 60px 20px;
-                gap: 40px;
-            }
-
-            .hero-content h1 {
-                font-size: 32px;
-            }
-
-            .hero-content .tagline {
-                font-size: 16px;
-            }
-
-            .hero-visual {
-                min-height: 300px;
                 padding: 40px 20px;
             }
 
-            .features {
-                padding: 60px 20px;
+            .hero h1 {
+                font-size: 32px;
             }
 
-            .section-header h2 {
-                font-size: 28px;
+            .hero p {
+                font-size: 16px;
             }
 
-            .features-grid {
+            .services,
+            .segments,
+            .pricing {
+                padding: 40px 20px;
+            }
+
+            .services-grid,
+            .segments-grid,
+            .pricing-grid {
                 grid-template-columns: 1fr;
             }
 
-            .feature-card {
-                text-align: left;
-            }
-
-            .feature-icon {
-                margin: 0 0 20px 0;
-            }
-
-            .pricing-card-featured {
-                transform: scale(1);
-            }
-
-            .testimonials-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .cta-section {
-                padding: 60px 20px;
-            }
-
-            .cta-section h2 {
-                font-size: 28px;
-            }
-
-            .hero-ctas {
+            .hero-cta {
                 flex-direction: column;
-                width: 100%;
             }
 
-            .hero-ctas button,
-            .hero-ctas a {
+            .hero-cta .btn {
                 width: 100%;
                 text-align: center;
             }
-
-            .social-proof {
-                padding: 60px 20px;
-            }
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .hero-content {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .hero-visual {
-            animation: fadeInUp 0.6s ease-out 0.1s backwards;
         }
     </style>
 </head>
@@ -572,229 +434,164 @@
     <!-- Navigation -->
     <nav>
         <a href="/" class="nav-logo">
-            <img src="/assets/kraftd-icon.svg" alt="Kraftd" style="width: 32px; height: 32px; display: inline-block;">
-            <span>Kraftd</span>
+            <img src="/assets/kraftd-icon.svg" alt="Kraftd">
+            Kraftd
         </a>
         <ul class="nav-links">
-            <li><a href="#features">Features</a></li>
-            <li><a href="#integrations">Integrations</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#segments">For You</a></li>
             <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#contact">Contact</a></li>
         </ul>
         <div class="nav-cta">
-            <a href="/login.html" class="btn-secondary">Sign In</a>
-            <a href="/chat.html" class="btn-primary">Try Demo</a>
+            <a href="/login.html" class="btn btn-secondary">Sign In</a>
+            <a href="/login.html" class="btn btn-primary">Get Started</a>
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <section class="hero">
-        <div class="hero-content">
-            <div class="tagline">Future, Simplified</div>
-            <h1>Compliance, Verified. Risk, Managed. Intelligence, Real-Time.</h1>
-            <p>Supply chain professionals waste weeks on compliance audits, contract reviews, and supplier verification. Kraftd cuts that burden by 95%—delivering intelligence from real supply chain data, built for procurement, contracts, industrial, construction, and suppliers audited by enterprise buyers.</p>
-            <div class="hero-ctas">
-                <a href="/login.html" class="btn-primary">Get Started Free</a>
-                <a href="mailto:connect@kraftd.io" class="btn-secondary" style="padding: 12px 28px;">Enterprise Inquiry</a>
-            </div>
-        </div>
-        <div class="hero-visual">
-            <img src="/assets/kraftd-icon.svg" alt="Kraftd Logo" style="width: 120px; height: 120px; display: block;">
+        <h1>Compliance, Verified. Risk, Managed. Intelligence, Real-Time.</h1>
+        <p>Supply chain professionals waste weeks on audits, contract reviews, and supplier verification. Kraftd cuts that burden by 95%—delivering intelligence from real supply chain data, built for procurement, contracts, industrial, construction, and suppliers audited by enterprise buyers.</p>
+        <div class="hero-cta">
+            <a href="/login.html" class="btn btn-primary">Start Free</a>
+            <a href="mailto:connect@kraftd.io" class="btn btn-secondary">Enterprise Inquiry</a>
         </div>
     </section>
 
-    <!-- Services Section: Docs, Pro, Mobility -->
-    <section class="features" id="features">
-        <div class="features-container">
-            <div class="section-header">
-                <h2>The Kraftd Suite: Intelligence Built for Supply Chain Professionals</h2>
-                <p>Three integrated tools designed for the people who verify, audit, negotiate, and manage risk</p>
-            </div>
+    <!-- Services -->
+    <section class="services" id="services">
+        <h2>The Kraftd Suite</h2>
 
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>Kraftd Docs</h3>
+        <div class="services-grid">
+            <!-- Kraftd Docs -->
+            <div class="service-card">
+                <div class="service-image">📄</div>
+                <div class="service-content">
+                    <h2>Kraftd Docs</h2>
                     <p><strong>Contracts reviewed 95% faster.</strong> Upload contracts, supplier agreements, or compliance documents. AI instantly extracts obligations, liabilities, and red flags. From 4-6 hours manual review to under 5 minutes.</p>
+                    <a href="#pricing" class="service-link">Learn more →</a>
                 </div>
+            </div>
 
-                <div class="feature-card">
-                    <h3>Kraftd Pro</h3>
+            <!-- Kraftd Pro -->
+            <div class="service-card">
+                <div class="service-image">🔍</div>
+                <div class="service-content">
+                    <h2>Kraftd Pro</h2>
                     <p><strong>Compliance gaps identified 3x faster.</strong> Enterprise-grade supplier intelligence and audit automation. Built from real supply chain data, identifies compliance risks, financial health, and regulatory exposure before they become problems.</p>
+                    <a href="mailto:connect@kraftd.io" class="service-link">Contact sales →</a>
                 </div>
+            </div>
 
-                <div class="feature-card">
-                    <h3>Kraftd Mobility</h3>
+            <!-- Kraftd Mobility -->
+            <div class="service-card">
+                <div class="service-image">📱</div>
+                <div class="service-content">
+                    <h2>Kraftd Mobility</h2>
                     <p><strong>Audit completion time reduced 40%.</strong> Field-first verification for construction, industrial, and on-site audits. Real-time data capture, offline sync, instant intelligence. Paper checklists become intelligent verification.</p>
+                    <a href="mailto:connect@kraftd.io" class="service-link">Contact sales →</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Who Uses Kraftd -->
-    <section class="features" id="how-it-works" style="background-color: var(--color-white);">
-        <div class="features-container">
-            <div class="section-header">
-                <h2>Built For Your Role</h2>
-                <p>Whether you're auditing, procuring, negotiating, or building—Kraftd removes friction from compliance and verification</p>
+    <!-- Segments -->
+    <section class="segments" id="segments">
+        <h2>Built For Your Role</h2>
+        <div class="segments-grid">
+            <div class="segment-card">
+                <h3>Compliance-Heavy SMEs</h3>
+                <p>You live in audits. Kraftd accelerates compliance verification and supplier due diligence—freeing you from manual review busywork to focus on actual risk.</p>
+            </div>
+            <div class="segment-card">
+                <h3>Enterprise Suppliers</h3>
+                <p>You're audited by enterprise buyers. Kraftd helps you respond to audits faster, demonstrate compliance readiness, and reduce friction in procurement processes.</p>
+            </div>
+            <div class="segment-card">
+                <h3>Government & Public Sector</h3>
+                <p>Compliance isn't optional. Kraftd brings supply chain intelligence and audit verification to organizations where regulatory burden is highest.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <h2>Kraftd Docs Pricing</h2>
+        <p class="pricing-intro">Start free. Upgrade as you scale. Enterprise teams get dedicated support.</p>
+
+        <div class="pricing-grid">
+            <!-- Free -->
+            <div class="pricing-card">
+                <div class="pricing-label">Free</div>
+                <div class="pricing-amount">$0</div>
+                <div class="pricing-period">Forever</div>
+                <ul class="pricing-features">
+                    <li>5 documents/month</li>
+                    <li>Contract analysis</li>
+                    <li>Risk extraction</li>
+                    <li>Email support</li>
+                </ul>
+                <div class="pricing-cta">
+                    <a href="/login.html" class="btn btn-secondary">Get Started</a>
+                </div>
             </div>
 
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>Compliance-Heavy SMEs</h3>
-                    <p>You live in audits. Kraftd accelerates compliance verification and supplier due diligence—freeing you from manual review busywork to focus on actual risk.</p>
+            <!-- Premium -->
+            <div class="pricing-card featured">
+                <div class="pricing-label">Premium</div>
+                <div class="pricing-amount">$29</div>
+                <div class="pricing-period">per month</div>
+                <ul class="pricing-features">
+                    <li>100 documents/month</li>
+                    <li>Priority analysis</li>
+                    <li>Team sharing</li>
+                    <li>Compliance reports</li>
+                    <li>Priority support</li>
+                </ul>
+                <div class="pricing-cta">
+                    <a href="/login.html" class="btn btn-primary">Start Free Trial</a>
                 </div>
+            </div>
 
-                <div class="feature-card">
-                    <h3>Enterprise Suppliers</h3>
-                    <p>You're audited by enterprise buyers. Kraftd helps you respond to audits faster, demonstrate compliance readiness, and reduce friction in procurement processes.</p>
-                </div>
-
-                <div class="feature-card">
-                    <h3>Government & Public Sector</h3>
-                    <p>Compliance isn't optional. Kraftd brings supply chain intelligence and audit verification to organizations where regulatory burden is highest.</p>
+            <!-- Enterprise -->
+            <div class="pricing-card">
+                <div class="pricing-label">Enterprise</div>
+                <div class="pricing-amount">Custom</div>
+                <div class="pricing-period">Tailored to you</div>
+                <ul class="pricing-features">
+                    <li>Unlimited documents</li>
+                    <li>Custom workflows</li>
+                    <li>Team management</li>
+                    <li>API access</li>
+                    <li>Free consulting</li>
+                </ul>
+                <div class="pricing-cta">
+                    <a href="mailto:connect@kraftd.io" class="btn btn-secondary">Schedule Call</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Platform Capabilities -->
-    <section class="features" id="integrations">
-        <div class="features-container">
-            <div class="section-header">
-                <h2>Built Into Your Workflow</h2>
-                <p>Kraftd integrates where you already work—no new tools to learn</p>
-            </div>
-
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>Document Upload</h3>
-                    <p>Contracts, compliance forms, supplier agreements. Upload and get intelligence in seconds, not weeks.</p>
-                </div>
-
-                <div class="feature-card">
-                    <h3>AI Chat Interface</h3>
-                    <p>"Is this supplier financially stable?" "What are our compliance gaps?" Ask naturally, get intelligent answers backed by real data.</p>
-                </div>
-
-                <div class="feature-card">
-                    <h3>Real-Time Dashboards</h3>
-                    <p>Supplier status, compliance readiness, audit progress. Monitor risk in real-time. Share insights with your team and stakeholders.</p>
-                </div>
-
-                <div class="feature-card">
-                    <h3>AI Chat Assistant</h3>
-                    <p>Ask natural language questions about your supply chain. Get answers instantly, like talking to an expert.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Social Proof Section (Real Kraft Docs, Pro, Mobility Impact) -->
-    <section class="social-proof">
-        <div class="features-container">
-            <div class="section-header">
-                <h2>Professional Teams Are Already Saving Time</h2>
-                <p>From compliance officers to procurement teams to field auditors—Kraftd removes weeks of manual work</p>
-            </div>
-
-            <div class="testimonials-grid">
-                <div class="testimonial-card">
-                    <div class="star-rating">★★★★★</div>
-                    <p class="testimonial-text">"With Kraftd Docs, contract review went from 5 hours to 12 minutes. That's 95% faster. We can now audit before signing instead of after problems."</p>
-                    <p class="testimonial-author">— Compliance Officer, Manufacturing SME</p>
-                </div>
-
-                <div class="testimonial-card">
-                    <div class="star-rating">★★★★★</div>
-                    <p class="testimonial-text">"Kraftd Pro identified three suppliers with hidden compliance gaps. We stopped auditing manually and switched to intelligent risk scoring instead."</p>
-                    <p class="testimonial-author">— Procurement Manager, Enterprise Buyer</p>
-                </div>
-
-                <div class="testimonial-card">
-                    <div class="star-rating">★★★★★</div>
-                    <p class="testimonial-text">"Field audits used to take two weeks. Kraftd Mobility cut that to five days. Real-time data capture and instant intelligence means we audit smarter, not harder."</p>
-                    <p class="testimonial-author">— Operations Lead, Construction & Industrial</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Pricing Section (Kraftd Docs Only) -->
-    <section class="features" id="pricing" style="background-color: var(--color-light-bg);">
-        <div class="features-container">
-            <div class="section-header">
-                <h2>Kraftd Docs Pricing</h2>
-                <p>Start free. Upgrade as you scale. Enterprise teams get dedicated support.</p>
-            </div>
-
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <div class="pricing-badge">Free</div>
-                    <div class="pricing-amount">$0</div>
-                    <p class="pricing-description">For individuals exploring contract intelligence</p>
-                    <ul class="pricing-features">
-                        <li>✓ 5 documents/month</li>
-                        <li>✓ Contract analysis</li>
-                        <li>✓ Risk extraction</li>
-                        <li>✓ Email support</li>
-                    </ul>
-                    <a href="/login.html" class="btn-secondary" style="width: 100%; margin-top: 24px; text-align: center;">Get Started Free</a>
-                </div>
-
-                <div class="pricing-card pricing-card-featured">
-                    <div class="pricing-badge" style="background: var(--color-primary-cyan);">Premium</div>
-                    <div class="pricing-amount">$29<span style="font-size: 14px; font-weight: 500; color: var(--color-structural-gray);">/mo</span></div>
-                    <p class="pricing-description">For professionals and teams</p>
-                    <ul class="pricing-features">
-                        <li>✓ 100 documents/month</li>
-                        <li>✓ Priority analysis</li>
-                        <li>✓ Team sharing</li>
-                        <li>✓ Compliance reports</li>
-                        <li>✓ Priority support</li>
-                    </ul>
-                    <a href="/login.html" class="btn-primary" style="width: 100%; margin-top: 24px; text-align: center;">Start Free Trial</a>
-                </div>
-
-                <div class="pricing-card">
-                    <div class="pricing-badge">Enterprise</div>
-                    <div class="pricing-amount">Custom</div>
-                    <p class="pricing-description">For large teams and organizations</p>
-                    <ul class="pricing-features">
-                        <li>✓ Unlimited documents</li>
-                        <li>✓ Custom workflows</li>
-                        <li>✓ Team management</li>
-                        <li>✓ API access</li>
-                        <li>✓ Free consulting</li>
-                    </ul>
-                    <a href="mailto:connect@kraftd.io" class="btn-secondary" style="width: 100%; margin-top: 24px; text-align: center;">Schedule Consultation</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
+    <!-- CTA Final -->
+    <section class="cta-final">
         <h2>Stop Wasting Time. Start Gaining Intelligence.</h2>
-        <p>Compliance officers, procurement teams, auditors, and industrial professionals—Kraftd is built for you. Try Kraftd Docs free. Scale to Pro when you're ready.</p>
-        <a href="/login.html" class="btn-white">Start Free with Kraftd Docs</a>
+        <p>Compliance officers, procurement teams, auditors, and industrial professionals—Kraftd is built for you.</p>
+        <a href="/login.html" class="btn btn-primary">Start Free Today</a>
     </section>
 
     <!-- Footer -->
-    <footer id="contact">
+    <footer>
         <p>&copy; 2026 Kraftd. Built for supply chain professionals. | <a href="/privacy.html">Privacy</a> | <a href="/terms.html">Terms</a> | <a href="mailto:connect@kraftd.io">connect@kraftd.io</a></p>
     </footer>
 
     <script>
-        // Smooth scroll for navigation links
+        // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    target.scrollIntoView({ behavior: 'smooth' });
                 }
             });
         });
