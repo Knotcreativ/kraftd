@@ -6,27 +6,23 @@
     },
     {
       "route": "/login.html",
-      "serve": "/login.html"
+      "rewrite": "/login.html"
     },
     {
       "route": "/chat.html",
-      "serve": "/chat.html"
+      "rewrite": "/chat.html"
     },
     {
       "route": "/landing.html",
-      "serve": "/landing.html"
-    },
-    {
-      "route": "*.html",
-      "serve": "*.html"
+      "rewrite": "/landing.html"
     },
     {
       "route": "/",
-      "serve": "/landing.html"
+      "rewrite": "/landing.html"
     },
     {
       "route": "/*",
-      "serve": "/landing.html"
+      "rewrite": "/landing.html"
     }
   ],
   "mimeTypes": {
