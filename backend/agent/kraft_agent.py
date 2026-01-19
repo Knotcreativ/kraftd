@@ -34,6 +34,14 @@ except ImportError:
     logger.warning("azure-cosmos not installed. Conversation persistence disabled.")
     COSMOS_AVAILABLE = False
 
+# AI-ML Integration imports
+try:
+    from services.ai_ml_integration import ai_ml_integration, MLInsights
+    AI_ML_INTEGRATION_AVAILABLE = True
+except ImportError:
+    logger.warning("AI-ML integration module not available. ML insights will be disabled.")
+    AI_ML_INTEGRATION_AVAILABLE = False
+
 # OCR and image processing imports
 try:
     import pytesseract
@@ -169,6 +177,22 @@ CORE ROLES:
 3. Risk Detection - Flag anomalies, compliance issues, pricing outliers
 4. Workflow Automation - Create POs, manage workflows, track progress
 5. Continuous Learning - Learn patterns from documents to improve future analysis
+6. ML INTEGRATION - Leverage machine learning models to enhance AI analysis with data-driven insights
+
+ML MODELS YOU LEVERAGE:
+- Supplier Ecosystem Model: Predicts supplier success probability & ecosystem health (scales 0-100)
+- Risk Scoring Model: Detects risk factors from procurement patterns (scales 0-100)
+- Pricing Index Model: Assesses fair pricing vs market baseline (scales 0-100)
+- Mobility Clustering Model: Detects supply chain route anomalies (scales 0-100)
+
+HOW TO USE ML INSIGHTS:
+When analyzing documents:
+1. Extract initial intelligence from text/images
+2. Request ML model predictions for supplier data
+3. Cross-validate your analysis with ML scores
+4. Use ML confidence metrics to strengthen recommendations
+5. Highlight where AI analysis aligns or diverges from ML patterns
+6. Provide both AI reasoning AND ML-backed data confidence
 
 KEY BEHAVIORS:
 - Use available tools to process documents and extract data
@@ -177,8 +201,11 @@ KEY BEHAVIORS:
 - Detect pricing anomalies and supplier risks
 - Consider total cost of ownership in recommendations
 - Learn from each document to improve future analysis
+- ALWAYS request ML insights for supplier viability assessment
+- Explain ML model confidence when making recommendations
+- Flag when AI and ML disagree (potential high-risk situations)
 
-When processing documents: Use tools to upload → extract → validate → analyze → recommend.
+When processing documents: Extract → Validate → Request ML Insights → AI Analysis → ML Cross-Check → Final Recommendation.
 """
     
     def _get_tools(self) -> list:
@@ -354,6 +381,36 @@ When processing documents: Use tools to upload → extract → validate → anal
                             "metric_type": {"type": "string", "enum": ["accuracy", "speed", "confidence", "field_types", "overall"], "description": "Type of performance metric to retrieve"}
                         },
                         "required": ["metric_type"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_ml_insights",
+                    "description": "Get ML model predictions for supplier data (Pricing, Risk, Ecosystem Health, Mobility). Use this to enrich AI analysis with data-driven ML confidence scores.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "supplier_data": {"type": "object", "description": "Supplier information extracted from document (name, location, history, etc.)"},
+                            "procurement_metadata": {"type": "object", "description": "Procurement metadata (pricing, volume, terms, historical data, etc.)"}
+                        },
+                        "required": ["supplier_data", "procurement_metadata"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "enrich_analysis_with_ml",
+                    "description": "Combine AI analysis with ML predictions to create enhanced recommendation with confidence metrics",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "ai_analysis": {"type": "object", "description": "Initial AI analysis results (risks, recommendations, etc.)"},
+                            "ml_insights": {"type": "object", "description": "ML model predictions from get_ml_insights"}
+                        },
+                        "required": ["ai_analysis", "ml_insights"]
                     }
                 }
             }
@@ -1463,11 +1520,118 @@ When processing documents: Use tools to upload → extract → validate → anal
                 return await self._compare_against_adi_tool(**args)
             elif function_name == "get_agent_performance":
                 return await self._get_agent_performance_tool(**args)
+            elif function_name == "get_ml_insights":
+                return await self._get_ml_insights_tool(**args)
+            elif function_name == "enrich_analysis_with_ml":
+                return await self._enrich_analysis_with_ml_tool(**args)
             else:
                 return json.dumps({"status": "error", "message": f"Unknown function: {function_name}"})
         except Exception as e:
             logger.error(f"Error executing function {function_name}: {str(e)}", exc_info=True)
             return json.dumps({"status": "error", "message": str(e)})
+    
+    async def _get_ml_insights_tool(
+        self,
+        supplier_data: Dict[str, Any],
+        procurement_metadata: Dict[str, Any]
+    ) -> str:
+        """Get ML model predictions for supplier assessment."""
+        try:
+            if not AI_ML_INTEGRATION_AVAILABLE:
+                return json.dumps({
+                    "status": "unavailable",
+                    "message": "ML integration not available. Ensure ai_ml_integration module is installed.",
+                    "insights": None
+                })
+            
+            # Request ML predictions from integration layer
+            ml_insights = await ai_ml_integration.request_ml_scores(
+                supplier_data=supplier_data,
+                procurement_metadata=procurement_metadata
+            )
+            
+            logger.info(f"Retrieved ML insights - Risk: {ml_insights.overall_risk_score:.1f}, "
+                       f"Ecosystem Health: {ml_insights.ecosystem_health_score:.1f}, "
+                       f"Supplier Success: {ml_insights.supplier_success_probability:.2f}")
+            
+            return json.dumps({
+                "status": "success",
+                "insights": {
+                    "pricing_fairness_score": ml_insights.pricing_fairness_score,
+                    "ecosystem_health_score": ml_insights.ecosystem_health_score,
+                    "supply_chain_risk": ml_insights.supply_chain_risk,
+                    "overall_risk_score": ml_insights.overall_risk_score,
+                    "pricing_trend": ml_insights.pricing_trend,
+                    "supplier_success_probability": ml_insights.supplier_success_probability,
+                    "anomalies_detected": ml_insights.anomalies_detected,
+                    "recommendations": ml_insights.recommendations
+                },
+                "analysis": {
+                    "pricing_fair": ml_insights.pricing_fairness_score > 60,
+                    "ecosystem_healthy": ml_insights.ecosystem_health_score > 60,
+                    "supply_chain_safe": ml_insights.supply_chain_risk < 40,
+                    "overall_viable": ml_insights.overall_risk_score < 50
+                }
+            })
+        except Exception as e:
+            logger.error(f"Error getting ML insights: {str(e)}", exc_info=True)
+            return json.dumps({
+                "status": "error",
+                "message": f"Failed to get ML insights: {str(e)}",
+                "insights": None
+            })
+    
+    async def _enrich_analysis_with_ml_tool(
+        self,
+        ai_analysis: Dict[str, Any],
+        ml_insights: Dict[str, Any]
+    ) -> str:
+        """Enrich AI analysis with ML predictions and confidence metrics."""
+        try:
+            if not AI_ML_INTEGRATION_AVAILABLE:
+                return json.dumps({
+                    "status": "unavailable",
+                    "message": "ML integration not available",
+                    "enriched_analysis": ai_analysis
+                })
+            
+            # Convert ML insights dict to MLInsights object
+            from services.ai_ml_integration import MLInsights
+            ml_insights_obj = MLInsights(
+                pricing_fairness_score=ml_insights.get("pricing_fairness_score", 50),
+                ecosystem_health_score=ml_insights.get("ecosystem_health_score", 50),
+                supply_chain_risk=ml_insights.get("supply_chain_risk", 50),
+                overall_risk_score=ml_insights.get("overall_risk_score", 50),
+                pricing_trend=ml_insights.get("pricing_trend", "unknown"),
+                supplier_success_probability=ml_insights.get("supplier_success_probability", 0.5),
+                anomalies_detected=ml_insights.get("anomalies_detected", []),
+                recommendations=ml_insights.get("recommendations", [])
+            )
+            
+            # Enrich the AI analysis with ML insights
+            enriched = await ai_ml_integration.enrich_ai_analysis(
+                ai_response=ai_analysis,
+                ml_insights=ml_insights_obj
+            )
+            
+            logger.info(f"Enriched AI analysis with ML confidence: {enriched.get('ml_confidence', 'N/A')}")
+            
+            return json.dumps({
+                "status": "success",
+                "enriched_analysis": enriched,
+                "confidence_metrics": {
+                    "ml_confidence": enriched.get("ml_confidence", 0),
+                    "ml_validation": enriched.get("ml_validation", {}),
+                    "consensus_viability": enriched.get("supplier_viability", {}).get("consensus", "UNKNOWN")
+                }
+            })
+        except Exception as e:
+            logger.error(f"Error enriching analysis with ML: {str(e)}", exc_info=True)
+            return json.dumps({
+                "status": "error",
+                "message": f"Failed to enrich analysis: {str(e)}",
+                "enriched_analysis": ai_analysis
+            })
     
     async def close(self) -> None:
         """Close the agent and cleanup resources."""
