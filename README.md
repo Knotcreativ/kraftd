@@ -2,7 +2,7 @@
 
 ## What You Have Built
 
-A **complete intelligent procurement platform** with:
+A **complete intelligent supply chain platform** with:
 
 ### Backend Components ✅
 - **FastAPI Server** - Document ingestion, processing, workflow orchestration
