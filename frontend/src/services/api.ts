@@ -139,6 +139,15 @@ class ApiClient {
     return response.data
   }
 
+  async uploadDocuments(files: File[]) {
+    const formData = new FormData()
+    files.forEach((f) => formData.append('files', f))
+    const response = await this.client.post<any[]>('/docs/upload/batch', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return response.data
+  }
+
   async getDocument(id: string) {
     const response = await this.client.get<Document>(`/documents/${id}`)
     return response.data

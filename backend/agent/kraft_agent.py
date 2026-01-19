@@ -1,7 +1,7 @@
 """
 Kraftd AI Agent - Core Implementation with OCR & Document Layout Learning
 
-Intelligent procurement assistant powered by Azure OpenAI.
+Intelligent procurement assistant powered by GitHub Models (gpt-4o).
 Learns to extract text from images (OCR), recognize document layouts, 
 and continuously improves by comparing performance against Azure Document Intelligence.
 """
@@ -18,11 +18,12 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Azure OpenAI imports
+# GitHub Models / Azure AI Inference imports
 try:
-    from openai import AsyncAzureOpenAI
+    from azure.ai.inference import ChatCompletionsClient
+    from azure.core.credentials import AzureKeyCredential
 except ImportError:
-    logger.warning("OpenAI SDK not installed. Install with: pip install openai")
+    logger.warning("Azure AI Inference SDK not installed. Install with: pip install azure-ai-inference")
 
 # Cosmos DB imports
 try:
@@ -87,31 +88,32 @@ class KraftdAIAgent:
         logger.info("KraftdAIAgent with OCR learning initialized")
         
     async def initialize(self) -> bool:
-        """Initialize Azure OpenAI and Cosmos DB clients."""
+        """Initialize GitHub Models client and Cosmos DB clients."""
         try:
             # Get configuration from environment
-            api_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
-            api_key = os.environ.get("AZURE_OPENAI_API_KEY")
-            deployment_name = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4")
-            api_version = os.environ.get("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+            github_token = os.environ.get("GITHUB_TOKEN")
+            model_provider = os.environ.get("MODEL_PROVIDER", "github")
+            model_name = os.environ.get("MODEL_NAME", "gpt-4o")
             
-            # Check if credentials are available
-            if not api_endpoint or not api_key:
+            # Check if GitHub token is available
+            if not github_token:
                 logger.warning(
-                    "Azure OpenAI credentials not configured. "
-                    "Set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY environment variables."
+                    "GitHub token not configured. "
+                    "Set GITHUB_TOKEN environment variable to use GitHub Models."
                 )
                 return False
             
-            # Create Azure OpenAI client
-            self.client = AsyncAzureOpenAI(
-                api_key=api_key,
-                api_version=api_version,
-                azure_endpoint=api_endpoint
+            # Create GitHub Models client using azure-ai-inference
+            from azure.ai.inference import ChatCompletionsClient
+            from azure.core.credentials import AzureKeyCredential
+            
+            self.client = ChatCompletionsClient(
+                endpoint="https://models.inference.ai.azure.com",
+                credential=AzureKeyCredential(github_token)
             )
             
-            self.model_deployment = deployment_name
-            logger.info(f"✓ Kraftd AI Agent initialized with deployment: {deployment_name}")
+            self.model_deployment = model_name
+            logger.info(f"✓ Kraftd AI Agent initialized with GitHub Models: {model_name}")
             
             # Initialize Cosmos DB client if available
             if COSMOS_AVAILABLE:

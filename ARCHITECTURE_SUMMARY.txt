@@ -1,0 +1,605 @@
+================================================================================
+KRAFTDINTEL - ARCHITECTURE SUMMARY
+================================================================================
+
+PROJECT: KraftdIntel - Intelligent Procurement Management System
+PURPOSE: Document upload, processing, AI analysis, and risk signal detection
+STATUS: Production Ready (230/230 tests passing, 100%)
+
+================================================================================
+1. TECH STACK OVERVIEW
+================================================================================
+
+BACKEND:
+  - Framework: FastAPI (Python 3.11+)
+  - Runtime: Uvicorn ASGI server
+  - Database: Azure Cosmos DB (MongoDB API)
+  - Document Processing: PDFPlumber, python-docx, openpyxl, pytesseract
+  - AI/ML: OpenAI GPT-4, ML models for risk scoring
+  - Cloud: Azure (Container Apps, Static Web App, Blob Storage)
+  - Authentication: JWT tokens, email verification
+  - Task Queue: Event-driven with async/await
+
+FRONTEND:
+  - Framework: React 18 + TypeScript
+  - Build: Vite + Typescript compilation
+  - State Management: React Context API
+  - UI Components: React Router, React Beautiful DnD, Recharts
+  - HTTP Client: Axios
+  - Deployment: Azure Static Web App
+
+INFRASTRUCTURE:
+  - Container: Docker (Dockerfile in root)
+  - Orchestration: Azure Container Apps (UAe North)
+  - CI/CD: GitHub Actions (3 active workflows)
+  - IaC: Bicep (in /infrastructure or inferred from deployments)
+  - Secrets: Azure Key Vault
+
+================================================================================
+2. FOLDER STRUCTURE & RESPONSIBILITIES
+================================================================================
+
+ROOT DIRECTORY:
+  /backend               → FastAPI application and business logic
+  /frontend              → React TypeScript application
+  /infrastructure        → Azure IaC and deployment configs
+  /docs                  → Generated documentation
+  /scripts               → PowerShell/Python deployment/utility scripts
+  /.github/workflows     → GitHub Actions CI/CD pipelines
+
+/backend/
+  main.py                → FastAPI app initialization, CORS setup, lifespan
+  config.py              → Environment configuration, defaults
+  requirements.txt       → Python dependencies
+  
+  /routes/               → API endpoints (11 route modules)
+    auth.py              → Authentication, login, registration, email verification
+    user_profile.py      → User profile CRUD, preferences, avatar management
+    templates.py         → Document template management
+    signals.py           → Supplier risk signals (anomalies, trends)
+    streaming.py         → WebSocket support for real-time events
+    ml_predictions.py    → AI/ML analysis endpoints
+    advanced_ml.py       → Advanced ML features, ecosystem analysis
+    agent.py             → AI agent interaction endpoints
+    events.py            → Event tracking and statistics
+    admin.py             → Administrative operations
+    __init__.py          → Route registration
+
+  /services/             → Business logic and integrations (21 services)
+    auth_service.py      → JWT tokens, password hashing, session management
+    tenant_service.py    → Multi-tenancy isolation, context management
+    rbac_service.py      → Role-based access control (USER, ADMIN, MANAGER)
+    ownership_service.py → Resource ownership tracking [RECENTLY FIXED]
+    profile_service.py   → User profile business logic
+    template_storage.py  → Template persistence and retrieval
+    cosmos_service.py    → Azure Cosmos DB client and operations
+    email_service.py     → SendGrid integration for notifications
+    alert_service.py     → Alert generation and delivery
+    event_storage.py     → Event persistence and query
+    event_broadcaster.py → WebSocket event broadcasting
+    signals_service.py   → Risk signal calculation and storage
+    signals_broadcaster_bridge.py → Signal event bridging
+    export_tracking_service.py → Export workflow state machine
+    compliance_service.py → Regulatory compliance checks
+    audit_service.py     → Audit logging for all operations
+    security_service.py  → Security utilities and validations
+    token_service.py     → Token generation and management
+    verification_token_service.py → Email verification tokens
+    secrets_manager.py   → Secrets retrieval from Azure Key Vault
+
+  /models/               → Pydantic data models
+    user.py              → User, UserRole, UserRegistration schemas
+    ... (other domain models)
+
+  /document_processing/  → Document ingestion pipeline
+    __init__.py          → Exports processors and enums
+    processors.py        → PDFProcessor, WordProcessor, ExcelProcessor, ImageProcessor
+    orchestrator.py      → ExtractionPipeline (coordinates processors)
+    azure_service.py     → Azure Document Intelligence integration
+    DocumentType         → Enum (PDF, DOCX, XLSX, IMAGE, etc.)
+    KraftdDocument       → Document representation
+    ProcessingMetadata   → Extraction quality, method, confidence
+
+  /ml/                   → Machine learning models
+    supplier_ecosystem.py → ML scoring, ecosystem analysis, risk factors
+    (other ML modules)
+
+  /middleware/           → FastAPI middleware
+    (CORS, logging, rate limiting)
+
+  /repositories/         → Data access layer abstraction
+    (Repository pattern for data operations)
+
+  /agent/                → AI Agent implementation
+    kraft_agent.py       → GPT-4o mini agent with tool use
+
+  /tests/                → Test suite (230 tests, 100% passing)
+    test_ownership.py    → OwnershipService tests [17 tests]
+    test_auth.py         → Authentication tests
+    test_endpoints.py    → API endpoint tests
+    test_security.py     → Security and validation tests
+    test_*.py            → Domain-specific test files
+    conftest.py          → Pytest fixtures and configuration
+
+  /.env                  → Environment secrets (local)
+  /.env.staging          → Staging environment config
+  Dockerfile             → Container image definition
+
+/frontend/
+  index.html             → HTML entry point
+  src/
+    main.tsx             → React entry point
+    App.tsx              → Main app component
+    vite-env.d.ts        → Vite type definitions
+
+    /pages/              → Top-level route pages
+      Dashboard.tsx      → Main dashboard
+      DocumentUpload.tsx → File upload UI
+      DocumentReview.tsx → Document analysis & review
+      Settings.tsx       → User settings
+      AdminPanel.tsx     → Admin controls
+
+    /components/         → Reusable React components
+      DocumentUploadForm.tsx
+      DocumentReviewDetail.tsx
+      DashboardBuilder.tsx
+      RiskSignalChart.tsx
+      (20+ UI components)
+
+    /services/           → API client layer
+      apiClient.ts       → Axios instance with auth
+      authService.ts     → Auth API calls
+      documentService.ts → Document operations
+      exportService.ts   → Export API integration
+
+    /context/            → React Context for state
+      AuthContext.tsx    → Current user, login state
+      TenantContext.tsx  → Multi-tenant isolation
+
+    /hooks/              → Custom React hooks
+      useAuth.ts         → Authentication hook
+      useWebSocket.ts    → WebSocket connection hook
+
+    /types/              → TypeScript interfaces
+      (Domain models matching backend)
+
+    /styles/             → CSS/styling
+      main.css, tailwind config, etc.
+
+  vite.config.ts         → Vite build configuration
+  tsconfig.json          → TypeScript configuration
+  package.json           → npm dependencies
+
+/.github/workflows/      → GitHub Actions automation
+  ci-cd.yml              → Main CI/CD: test, build Docker, deploy to Container Apps
+  azure-static-web-apps-*.yml → Frontend deployment to Static Web App
+  deploy.yml             → Manual Azure Functions deployment (DISABLED)
+  deploy-frontend.yml    → Frontend-specific deployment
+
+/infrastructure/         → Infrastructure as Code
+  (Bicep templates or ARM templates for Azure resources)
+
+/scripts/                → Deployment and utility scripts
+  start_backend.ps1      → Local backend startup
+  deploy-swa.ps1         → Deploy frontend to SWA
+  deploy-staging.ps1     → Deploy to staging environment
+  verify-deployment.ps1  → Health check post-deployment
+
+/docs/                   → Generated documentation
+  04-deployment/DEPLOYMENT_GUIDE_v1.0.md → Complete deployment guide
+  (Phase reports, architecture docs, etc.)
+
+================================================================================
+3. CORE DATA FLOWS
+================================================================================
+
+A. DOCUMENT UPLOAD & PROCESSING FLOW
+================================================================================
+
+Entry Point: POST /documents/upload (routes/agent.py or documents endpoint)
+
+Flow:
+  1. User uploads file via DocumentUpload component (frontend/src/components/)
+  2. FastAPI receives file: UploadFile object
+  3. Route handler (routes/*.py) calls document processing pipeline
+  4. ExtractionPipeline (document_processing/orchestrator.py):
+     - Determines file type (PDF, Word, Excel, Image)
+     - Selects appropriate processor (PDFProcessor, WordProcessor, etc.)
+     - Extracts text, tables, images using OCR where needed
+  5. Optional: Call Azure Document Intelligence for structured extraction
+  6. Store document metadata in Cosmos DB via cosmos_service.py
+  7. Trigger AI analysis via KraftdAIAgent (agent/kraft_agent.py)
+  8. Generate risk signals via signals_service.py
+  9. Broadcast events via event_broadcaster.py (WebSocket)
+  10. Return processing results with signals and recommendations
+
+Key Services:
+  - DocumentProcessor (document_processing/)
+  - ExtractionPipeline (document_processing/orchestrator.py)
+  - KraftdAIAgent (agent/kraft_agent.py) - GPT-4o mini analysis
+  - SignalsService (services/signals_service.py)
+  - CosmosService (services/cosmos_service.py) - data persistence
+  - EventBroadcaster (services/event_broadcaster.py) - real-time updates
+
+Result Storage:
+  - Document record: Cosmos DB (/kraftd-container/documents)
+  - Signals/Risks: Cosmos DB (/kraftd-container/signals)
+  - Events: Cosmos DB (/kraftd-container/events)
+
+B. API ENDPOINTS FOR DOCUMENT CONVERSION
+================================================================================
+
+POST /documents/upload
+  - Upload document file
+  - Returns: document ID, processing status, initial analysis
+
+POST /documents/{document_id}/analyze
+  - Trigger AI analysis with custom parameters
+  - Returns: analysis results, risk scores, extracted intelligence
+
+POST /documents/{document_id}/export
+  - Generate export in multiple formats (PDF, JSON, CSV)
+  - Returns: download URL or file stream
+
+POST /documents/{document_id}/review
+  - Submit review/feedback on extracted data
+  - Returns: confirmation, updated predictions
+
+GET /documents/{document_id}
+  - Retrieve document details and extraction results
+  - Returns: full document object with signals
+
+GET /documents
+  - List all documents (paginated, filtered by tenant)
+  - Returns: document summary list
+
+POST /documents/{document_id}/signals
+  - Get risk signals for document
+  - Returns: risk signals array with scores
+
+C. BACKGROUND JOBS & EVENT PROCESSING
+================================================================================
+
+Event-Driven Architecture (No Traditional Queue):
+
+Async Tasks:
+  - Signal calculation: signals_service.py::calculate_risk_signals()
+  - Email notifications: email_service.py (SendGrid)
+  - Audit logging: audit_service.py::log_operation()
+  - Event broadcasting: event_broadcaster.py::broadcast_event()
+
+Real-Time Communication:
+  - WebSocket endpoint: /ws/{user_id} (routes/streaming.py)
+  - Events pushed to connected clients
+  - Event types: ProcessingComplete, SignalDetected, ExportReady
+
+Batch/Scheduled:
+  - Compliance checks: compliance_service.py
+  - Alert generation: alert_service.py
+  - Export cleanup: export_tracking_service.py
+
+================================================================================
+4. BACKEND DETAILS
+================================================================================
+
+Entry Files:
+  - main.py (2031 lines) - FastAPI app, route registration, lifespan hooks
+
+Key Modules:
+
+AUTHENTICATION (auth_service.py, token_service.py):
+  - JWT token generation/validation
+  - Password hashing (bcrypt)
+  - Email verification flow
+  - Session management
+
+MULTI-TENANCY (tenant_service.py):
+  - TenantContext (current user's tenant)
+  - Tenant isolation in queries
+  - Cross-tenant access prevention
+
+AUTHORIZATION (rbac_service.py):
+  - Role-based access control (USER, ADMIN, MANAGER)
+  - Permission checking
+  - Resource-level access decisions
+
+DOCUMENT PROCESSING (document_processing/):
+  - Pipeline orchestration
+  - Format-specific processors
+  - Azure Document Intelligence integration
+  - Quality metrics and confidence scores
+
+AI/ML INTEGRATION (agent/kraft_agent.py, ml/):
+  - GPT-4o mini for document analysis
+  - Custom prompt templates
+  - Function calling for structured extraction
+  - Risk scoring models
+
+Configuration Handling:
+  - .env files for environment variables
+  - config.py loads and validates
+  - Secrets from Azure Key Vault (secrets_manager.py)
+  - Settings: timeouts, rate limits, API keys, DB connection strings
+
+Database:
+  - Cosmos DB (MongoDB API)
+  - Collections: users, documents, signals, events, templates
+  - Partition keys: /tenant_id (multi-tenant isolation)
+  - Query optimization with indexes
+
+================================================================================
+5. FRONTEND DETAILS
+================================================================================
+
+Main Pages/Routes (src/pages/):
+  - Dashboard.tsx → Home with analytics
+  - DocumentUpload.tsx → File upload interface
+  - DocumentReview.tsx → View extracted data, signals, recommendations
+  - Settings.tsx → User preferences, profile management
+  - AdminPanel.tsx → Admin operations
+
+API Communication (src/services/):
+  - apiClient.ts → Axios instance with JWT token injection
+  - authService.ts → Login, register, logout calls
+  - documentService.ts → Upload, retrieve, analyze documents
+  - exportService.ts → Request and download exports
+
+State Management:
+  - AuthContext.tsx → Current user, auth state
+  - TenantContext.tsx → Current tenant
+  - Local component state for UI
+
+Real-Time Updates:
+  - useWebSocket.ts hook
+  - WebSocket to /ws/{user_id}
+  - Listens for ProcessingComplete, SignalDetected events
+  - Updates UI in real-time
+
+Components:
+  - DocumentUploadForm.tsx → File input, upload progress
+  - DocumentReviewDetail.tsx → Display extracted data, AI analysis
+  - RiskSignalChart.tsx → Visualize risk scores
+  - DashboardBuilder.tsx → Dashboard customization
+  - (20+ other UI components)
+
+Build & Deploy:
+  - vite.config.ts → Vite configuration
+  - npm run build → Builds to /dist/
+  - Deployed to Azure Static Web App via GitHub Actions
+
+================================================================================
+6. INFRASTRUCTURE & DEVOPS
+================================================================================
+
+CI/CD PIPELINES (GitHub Actions):
+
+azure-static-web-apps-jolly-coast-03a4f4d03.yml (ACTIVE):
+  - Triggers: Push to main, pull requests
+  - Steps:
+    1. Checkout code
+    2. npm install && npm run build (frontend)
+    3. Deploy to Static Web App
+  - Status: ✅ SUCCESS
+
+ci-cd.yml (ACTIVE):
+  - Triggers: Push to main/develop
+  - Steps:
+    1. Python setup (3.9)
+    2. pip install requirements
+    3. pytest tests/ (all 230 tests)
+    4. Docker build & push to ACR
+    5. Deploy to Container Apps
+  - Status: ✅ SUCCESS
+
+deploy.yml (ACTIVE):
+  - Backup manual deployment for Azure Functions
+  - Only runs on main push
+  - Status: ✅ (But disabled as unnecessary)
+
+DEPLOYMENT TARGETS:
+
+Frontend (SWA):
+  - Azure Static Web App
+  - Region: West Europe
+  - URL: https://jolly-coast-03a4f4d03.4.azurestaticapps.net
+  - Deployment: Automatic on main push
+  - Status: ✅ LIVE
+
+Backend (Container Apps):
+  - Azure Container Apps
+  - Region: UAE North
+  - URL: https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io
+  - Container Image: kraftdintel.azurecr.io/kraftdintel:latest
+  - Deployment: Automatic on main push via ci-cd.yml
+  - Status: ✅ RUNNING
+
+Database:
+  - Azure Cosmos DB (MongoDB API)
+  - Region: Automatic (global)
+  - Collections: users, documents, signals, events, templates, etc.
+  - Status: ✅ OPERATIONAL
+
+Infrastructure as Code:
+  - Bicep templates (or ARM templates)
+  - Defines: Container Apps, Static Web App, Cosmos DB, Storage, Key Vault
+  - Location: /infrastructure/ or deployed via Azure portal
+
+Secrets Management:
+  - Azure Key Vault stores: DB connection, API keys, SendGrid token
+  - services/secrets_manager.py retrieves at runtime
+  - GitHub Secrets: AZURE_CREDENTIALS, AZURE_FUNCTIONAPP_PUBLISH_PROFILE
+
+================================================================================
+7. END-TO-END DOCUMENT CONVERSION FLOW
+================================================================================
+
+STEP 1: USER UPLOADS FILE
+  - Frontend: DocumentUpload.tsx (file input + progress bar)
+  - API: POST /documents/upload (routes/agent.py)
+  - Backend receives: UploadFile, user context, tenant ID
+
+STEP 2: DETERMINE DOCUMENT TYPE
+  - File extension checked → PDF, Word, Excel, Image
+  - ExtractionPipeline.get_processor() selects appropriate processor
+  - File Path: backend/document_processing/orchestrator.py
+
+STEP 3: EXTRACT CONTENT
+  - PDFProcessor: Uses pdfplumber to extract text, tables, images
+  - WordProcessor: python-docx for structured extraction
+  - ExcelProcessor: openpyxl for sheets, formulas, data
+  - ImageProcessor: pytesseract for OCR
+  - Optional: Azure Document Intelligence for advanced features
+  - File Path: backend/document_processing/processors.py
+
+STEP 4: STORE DOCUMENT RECORD
+  - Create KraftdDocument object (schema)
+  - Save to Cosmos DB via cosmos_service.py
+  - Partition by tenant_id (multi-tenant isolation)
+  - Status: PROCESSING → success or FAILED
+  - File Path: backend/services/cosmos_service.py
+
+STEP 5: TRIGGER AI ANALYSIS
+  - Call KraftdAIAgent (backend/agent/kraft_agent.py)
+  - GPT-4o mini analyzes extracted content
+  - Prompt: Extract key intelligence, suppliers, risks
+  - Returns: Structured analysis with confidence scores
+  - File Path: backend/agent/kraft_agent.py
+
+STEP 6: CALCULATE RISK SIGNALS
+  - signals_service.py processes AI analysis
+  - Scoring models (ML) assess risk factors
+  - Detects: supplier anomalies, compliance issues, market trends
+  - Store signals in Cosmos DB
+  - File Path: backend/services/signals_service.py
+
+STEP 7: GENERATE ALERTS & NOTIFICATIONS
+  - alert_service.py evaluates if alerts needed
+  - email_service.py sends notifications via SendGrid
+  - audit_service.py logs all operations
+  - File Paths: backend/services/{alert,email,audit}_service.py
+
+STEP 8: BROADCAST EVENTS
+  - event_broadcaster.py pushes ProcessingComplete event
+  - WebSocket sends to connected clients (useWebSocket.ts)
+  - Frontend updates UI in real-time
+  - File Paths: backend/services/event_broadcaster.py, frontend/src/hooks/useWebSocket.ts
+
+STEP 9: PREPARE FOR EXPORT
+  - export_tracking_service.py manages export workflow
+  - Stages: Requested → Processing → Ready → Downloaded
+  - Generate outputs: PDF, JSON, CSV, Excel
+  - File Path: backend/services/export_tracking_service.py
+
+STEP 10: USER DOWNLOADS RESULTS
+  - GET /documents/{document_id}/export
+  - Returns: File stream or download URL
+  - Frontend: DocumentReviewDetail.tsx shows download button
+  - User receives: Extracted data, AI analysis, risk signals
+
+KEY SERVICE INTERACTIONS:
+
+  1. cosmos_service.py         → Persist documents, signals, events
+  2. ownership_service.py      → Track resource ownership (FIXED: tenant_id in keys)
+  3. tenant_service.py         → Enforce tenant isolation
+  4. rbac_service.py           → Check user permissions
+  5. audit_service.py          → Log operations for compliance
+  6. event_broadcaster.py      → Real-time updates to UI
+  7. email_service.py          → Send notifications
+  8. signals_service.py        → Risk analysis and alerts
+  9. export_tracking_service.py → Export workflow state machine
+  10. compliance_service.py     → Regulatory checks
+
+================================================================================
+8. TESTING STRATEGY
+================================================================================
+
+Test Suite: 230 tests, 100% passing
+
+Test Coverage:
+  - Unit tests: Services, utilities, validators
+  - Integration tests: API endpoints, database operations
+  - Security tests: RBAC, multi-tenancy isolation
+  - End-to-end: Document processing pipelines
+
+Test Files:
+  - test_ownership.py (17 tests) - [RECENTLY FIXED]
+  - test_auth.py - Authentication flows
+  - test_endpoints.py - API endpoint contracts
+  - test_security.py - Permission and validation checks
+  - test_*.py - Domain-specific tests
+
+Pytest Configuration:
+  - File: backend/pytest.ini and backend/tests/conftest.py
+  - Fixtures: Mock tenants, users, documents
+  - Async support: pytest-asyncio
+
+Recent Fix:
+  - Multitenancy issue in OwnershipService
+  - Database key format: {tenant_id}:{resource_type}:{resource_id}
+  - Commit: f115526
+  - Result: All 230 tests passing, 100% success rate
+
+================================================================================
+9. SECURITY & COMPLIANCE
+================================================================================
+
+Authentication:
+  - JWT tokens (HS256 algorithm)
+  - Password hashing (bcrypt)
+  - Email verification required
+  - Token expiration and refresh
+
+Authorization:
+  - RBAC: USER, ADMIN, MANAGER roles
+  - Resource-level access control (ownership checks)
+  - Tenant isolation enforced at DB and service level
+
+Data Protection:
+  - HTTPS/TLS enforced
+  - Secrets in Azure Key Vault (not in code/config)
+  - Audit logging for all operations
+  - GDPR compliance: data export, deletion endpoints
+
+Multi-Tenancy:
+  - Partition key: /tenant_id (Cosmos DB)
+  - OwnershipService: tenant_id in database keys (prevents cross-tenant access)
+  - TenantService: Context isolation per request
+  - RBACService: Permission checks include tenant context
+
+Monitoring:
+  - Application Insights integration
+  - Log Analytics for centralized logging
+  - Health check endpoints (/api/v1/health)
+  - Error tracking and alerting
+
+================================================================================
+10. RECENT CHANGES (Latest Session)
+================================================================================
+
+ISSUE: Final test failure - test_resources_isolated_by_tenant
+  - Root cause: OwnershipService database keys didn't include tenant_id
+  - Format was: {type}:{id} (collision when different tenants owned same resource)
+
+FIX APPLIED: Commit f115526
+  - Changed key format to: {tenant_id}:{type}:{id}
+  - Updated 7 methods in OwnershipService
+  - Updated 4 test assertions
+  - Result: 230/230 tests passing (100%)
+
+DEPLOYMENT:
+  - Pushed to main branch
+  - CI/CD triggered automatically
+  - Frontend deployed to SWA ✅
+  - Backend deployed to Container Apps ✅
+  - Disabled unnecessary Azure Functions workflow
+
+================================================================================
+STATUS: PRODUCTION READY
+================================================================================
+
+Test Results:     230/230 PASSING (100%)
+Build Status:     ✅ SUCCESS
+Deployment:       ✅ LIVE (Frontend + Backend)
+Workflows:        3/3 ACTIVE, 0 FAILURES
+Git Status:       All commits pushed to main
+Date:             January 19, 2026

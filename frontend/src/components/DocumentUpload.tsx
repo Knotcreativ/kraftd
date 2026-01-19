@@ -9,12 +9,12 @@ interface DocumentUploadProps {
 }
 
 export default function DocumentUpload({ onUploadSuccess, onUploadError }: DocumentUploadProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const dragOverRef = useRef(false)
+  const [isDragOver, setIsDragOver] = useState(false)
 
   const ALLOWED_FILE_TYPES = [
     'application/pdf',
@@ -27,7 +27,7 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
     'image/tiff'
   ]
 
-  const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
+  const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
 
   const validateFile = (file: File): string | null => {
     // Check file type
@@ -37,62 +37,70 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
 
     // Check file size
     if (file.size > MAX_FILE_SIZE) {
-      return `File too large. Maximum size is 50MB`
+      return `File too large. Maximum size is 25MB`
     }
 
     return null
   }
 
-  const handleFileSelect = (file: File | null) => {
-    if (!file) {
-      setSelectedFile(null)
+  const handleFilesSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) {
+      setSelectedFiles([])
       setErrorMessage(null)
       return
     }
 
-    const error = validateFile(file)
-    if (error) {
-      setErrorMessage(error)
-      setSelectedFile(null)
+    const valid: File[] = []
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i]
+      const error = validateFile(f)
+      if (error) {
+        setErrorMessage(error)
+        continue
+      }
+      valid.push(f)
+    }
+
+    if (valid.length === 0) {
+      setSelectedFiles([])
       return
     }
 
-    setSelectedFile(file)
+    setSelectedFiles(valid)
     setErrorMessage(null)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    handleFileSelect(file || null)
+    handleFilesSelect(e.target.files)
   }
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
-    dragOverRef.current = true
+    setIsDragOver(true)
   }
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
-    dragOverRef.current = false
+    setIsDragOver(false)
   }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
-    dragOverRef.current = false
+    setIsDragOver(false)
 
-    const file = e.dataTransfer.files?.[0]
-    if (file) {
-      handleFileSelect(file)
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      handleFilesSelect(files)
     }
   }
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedFile) {
-      setErrorMessage('Please select a file to upload')
+    if (selectedFiles.length === 0) {
+      setErrorMessage('Please select at least one file to upload')
       return
     }
 
@@ -106,17 +114,34 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
         setUploadProgress((prev) => Math.min(prev + 10, 90))
       }, 100)
 
-      const doc = await apiClient.uploadDocument(selectedFile)
+      const results = await apiClient.uploadDocuments(selectedFiles)
       clearInterval(progressInterval)
       setUploadProgress(100)
 
       // Reset form
-      setSelectedFile(null)
+      setSelectedFiles([])
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
 
-      onUploadSuccess(doc)
+      if (Array.isArray(results)) {
+        for (const r of results) {
+          if (r && r.status === 'uploaded') {
+            const mapped: Document = {
+              id: r.document_id,
+              name: r.filename,
+              fileUrl: '',
+              uploadedAt: new Date().toISOString(),
+              owner_email: '',
+              status: 'pending'
+            }
+            onUploadSuccess(mapped)
+          } else if (r && r.error_message) {
+            setErrorMessage(r.error_message)
+            onUploadError(r.error_message)
+          }
+        }
+      }
 
       // Reset progress after a short delay
       setTimeout(() => {
@@ -131,9 +156,11 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
     }
   }
 
-  const handleRemoveFile = () => {
-    setSelectedFile(null)
-    if (fileInputRef.current) {
+  const handleRemoveFile = (index: number) => {
+    const next = [...selectedFiles]
+    next.splice(index, 1)
+    setSelectedFiles(next)
+    if (next.length === 0 && fileInputRef.current) {
       fileInputRef.current.value = ''
     }
     setErrorMessage(null)
@@ -146,7 +173,7 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
   return (
     <div className="document-upload-container">
       <div className="upload-card">
-        <h3>📄 Upload Document</h3>
+        <h3>📄 {selectedFiles.length > 1 ? 'Upload Documents' : 'Upload Document'}</h3>
         <p className="upload-description">
           Upload procurement documents (PDF, Word, Excel, Images) for processing
         </p>
@@ -154,7 +181,7 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
         <form onSubmit={handleUpload}>
           {/* Drag and Drop Area */}
           <div
-            className={`drop-zone ${dragOverRef.current ? 'drag-over' : ''} ${selectedFile ? 'has-file' : ''}`}
+            className={`drop-zone ${isDragOver ? 'drag-over' : ''} ${selectedFiles.length ? 'has-file' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -166,27 +193,28 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
               disabled={isUploading}
               className="file-input-hidden"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.tiff"
+              multiple
             />
-
-            {selectedFile ? (
+            {selectedFiles.length ? (
               <div className="file-selected">
                 <div className="file-icon">📎</div>
                 <div className="file-info">
-                  <p className="file-name">{selectedFile.name}</p>
+                  <p className="file-name">{selectedFiles.map(f => f.name).join(', ')}</p>
                   <p className="file-size">
-                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    {selectedFiles.map(f => (f.size / 1024 / 1024).toFixed(2) + ' MB').join(' • ')}
                   </p>
                 </div>
-                {!isUploading && (
+                {!isUploading && selectedFiles.map((_, idx) => (
                   <button
+                    key={idx}
                     type="button"
-                    onClick={handleRemoveFile}
+                    onClick={() => handleRemoveFile(idx)}
                     className="btn-remove"
                     aria-label="Remove file"
                   >
                     ✕
                   </button>
-                )}
+                ))}
               </div>
             ) : (
               <div className="drop-instructions">
@@ -202,7 +230,7 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
                   Browse Files
                 </button>
                 <p className="file-types">
-                  Supported: PDF, Word, Excel, Images (Max 50MB)
+                  Supported: PDF, Word, Excel, Images (Max 25MB per file)
                 </p>
               </div>
             )}
@@ -232,7 +260,7 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
           {/* Upload Button */}
           <button
             type="submit"
-            disabled={!selectedFile || isUploading}
+            disabled={!selectedFiles.length || isUploading}
             className="btn-upload-submit"
           >
             {isUploading ? (
@@ -240,7 +268,7 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
                 <span className="spinner"></span> Uploading...
               </>
             ) : (
-              '⬆️ Upload Document'
+              (selectedFiles.length > 1 ? '⬆️ Upload Documents' : '⬆️ Upload Document')
             )}
           </button>
         </form>
@@ -252,7 +280,7 @@ export default function DocumentUpload({ onUploadSuccess, onUploadError }: Docum
             <li><strong>Documents:</strong> PDF, Word (.doc, .docx)</li>
             <li><strong>Spreadsheets:</strong> Excel (.xls, .xlsx)</li>
             <li><strong>Images:</strong> JPEG, PNG, TIFF</li>
-            <li><strong>Max Size:</strong> 50 MB per file</li>
+            <li><strong>Max Size:</strong> 25 MB per file</li>
           </ul>
         </div>
       </div>

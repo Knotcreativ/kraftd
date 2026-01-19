@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Document } from '../types'
+import { apiClient } from '../services/api'
 import '../styles/DocumentList.css'
 
 interface DocumentListProps {
@@ -13,6 +14,7 @@ interface DocumentListProps {
 
 export default function DocumentList({ documents, isLoading, onRefresh, onReview, isReviewing }: DocumentListProps) {
   const navigate = useNavigate()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -77,6 +79,21 @@ export default function DocumentList({ documents, isLoading, onRefresh, onReview
     }
   }
 
+  const handleDelete = async (docId: string, docName: string) => {
+    const confirmed = window.confirm(`Delete ${docName}? This cannot be undone.`)
+    if (!confirmed) return
+    try {
+      setDeletingId(docId)
+      await apiClient.deleteDocument(docId)
+      onRefresh()
+    } catch (err) {
+      console.error('Failed to delete document:', err)
+      alert('Failed to delete. Please try again.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   return (
     <div className="document-list-container">
       <div className="list-header">
@@ -110,9 +127,20 @@ export default function DocumentList({ documents, isLoading, onRefresh, onReview
               </div>
 
               <div className="card-body">
-                <h4 className="document-name" title={doc.name}>
-                  {doc.name}
-                </h4>
+                <div className="document-name-row">
+                  <h4 className="document-name" title={doc.name}>
+                    {doc.name}
+                  </h4>
+                  <button
+                    className="btn-delete-name"
+                    title="Delete document"
+                    onClick={() => handleDelete(doc.id, doc.name)}
+                    disabled={deletingId === doc.id || doc.status === 'processing'}
+                    aria-label={`Delete ${doc.name}`}
+                  >
+                    🗑️
+                  </button>
+                </div>
 
                 <div className="document-meta">
                   <div className="meta-item">
