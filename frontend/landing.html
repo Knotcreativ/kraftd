@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kraftd - Future, Simplified | AI Supply Chain Intelligence</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary-cyan: #00BCD4;
+            --color-dark-gray: #2C3E50;
+            --color-kraft-blue: #1A5A7A;
+            --color-structural-gray: #536B82;
+            --color-white: #FFFFFF;
+            --color-light-bg: #F5F5F5;
+            --gradient-primary: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--color-structural-gray);
+            line-height: 1.6;
+            background-color: var(--color-white);
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background-color: var(--color-white);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            color: var(--color-dark-gray);
+            font-size: 20px;
+        }
+
+        .nav-logo svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--color-structural-gray);
+            font-weight: 500;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--color-primary-cyan);
+        }
+
+        .nav-cta {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            border: 1px solid var(--color-primary-cyan);
+            background-color: transparent;
+            color: var(--color-primary-cyan);
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--color-primary-cyan);
+            color: var(--color-white);
+        }
+
+        .btn-primary {
+            padding: 12px 28px;
+            background: var(--gradient-primary);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 60px;
+            padding: 80px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .hero-content h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--color-dark-gray);
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero-content .tagline {
+            font-size: 20px;
+            color: var(--color-primary-cyan);
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero-content p {
+            font-size: 16px;
+            color: var(--color-structural-gray);
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            padding: 60px 40px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+
+        .hero-visual::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            bottom: -50px;
+            left: -50px;
+        }
+
+        .logo-display {
+            text-align: center;
+            color: var(--color-white);
+            font-size: 56px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Features Section */
+        .features {
+            background-color: var(--color-light-bg);
+            padding: 80px 40px;
+        }
+
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--color-dark-gray);
+            margin-bottom: 12px;
+        }
+
+        .section-header p {
+            font-size: 16px;
+            color: var(--color-structural-gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background-color: var(--color-white);
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #E0E0E0;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            border-color: var(--color-primary-cyan);
+            box-shadow: 0 12px 32px rgba(0, 188, 212, 0.12);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--gradient-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-size: 28px;
+            margin: 0 auto 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-dark-gray);
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--color-structural-gray);
+            line-height: 1.8;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 80px 40px;
+            background: var(--gradient-primary);
+            text-align: center;
+            color: var(--color-white);
+        }
+
+        .cta-section h2 {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            font-size: 16px;
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.95;
+        }
+
+        .btn-white {
+            padding: 14px 32px;
+            background-color: var(--color-white);
+            color: var(--color-kraft-blue);
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--color-dark-gray);
+            color: var(--color-white);
+            padding: 40px;
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        footer a {
+            color: var(--color-primary-cyan);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 60px 20px;
+                gap: 40px;
+            }
+
+            .hero-content h1 {
+                font-size: 32px;
+            }
+
+            .hero-content .tagline {
+                font-size: 16px;
+            }
+
+            .hero-visual {
+                min-height: 300px;
+                padding: 40px 20px;
+            }
+
+            .features {
+                padding: 60px 20px;
+            }
+
+            .section-header h2 {
+                font-size: 28px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-card {
+                text-align: left;
+            }
+
+            .feature-icon {
+                margin: 0 0 20px 0;
+            }
+
+            .cta-section {
+                padding: 60px 20px;
+            }
+
+            .cta-section h2 {
+                font-size: 28px;
+            }
+
+            .hero-ctas {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .hero-ctas button,
+            .hero-ctas a {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-content {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .hero-visual {
+            animation: fadeInUp 0.6s ease-out 0.1s backwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <a href="#" class="nav-logo">
+            <span style="color: #00BCD4;">▲</span> Kraftd
+        </a>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <div class="nav-cta">
+            <a href="/login" class="btn-secondary">Sign In</a>
+            <a href="/chat" class="btn-primary">Try Demo</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="tagline">Future, Simplified</div>
+            <h1>AI-Powered Supply Chain Intelligence for Your Business</h1>
+            <p>Transform fragmented data into actionable intelligence. Make smarter sourcing decisions with real-time insights into suppliers, pricing, and market opportunities—no complex setup required.</p>
+            <div class="hero-ctas">
+                <button class="btn-primary">Get Started Free</button>
+                <a href="/chat" class="btn-secondary" style="padding: 12px 28px;">Talk to AI</a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="logo-display">▲</div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="features-container">
+            <div class="section-header">
+                <h2>What Kraftd Does</h2>
+                <p>Designed specifically for how you actually work—with real data, no manual setup</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Supplier Intelligence</h3>
+                    <p>Automatically analyze your supplier ecosystem. Identify risks, compare costs, and find better alternatives in seconds—not weeks.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Pricing Analytics</h3>
+                    <p>Real-time market pricing from your emails, quotes, and invoices. Negotiate with confidence. Reduce costs by understanding what you should be paying.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚠️</div>
+                    <h3>Risk Scoring</h3>
+                    <p>Predict supplier failures before they happen. Avoid disruptions with early warning systems based on real-world behavior patterns.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Opportunity Discovery</h3>
+                    <p>Uncover export markets, new suppliers, and sourcing opportunities hidden in your data. Grow beyond your current network.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="features" id="how-it-works" style="background-color: var(--color-white);">
+        <div class="features-container">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>Three simple steps to supply chain intelligence</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);">1</div>
+                    <h3>Connect Your Data</h3>
+                    <p>Link your documents, emails, and spreadsheets. No data cleaning required—we handle the mess.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);">2</div>
+                    <h3>AI Analyzes</h3>
+                    <p>Our AI extracts insights from your real-world data. Suppliers, pricing, risks, opportunities—all automatically mapped.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);">3</div>
+                    <h3>Take Action</h3>
+                    <p>Use intelligence to negotiate better, reduce risk, find opportunities, and make smarter decisions every day.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2>Ready to Simplify Your Supply Chain?</h2>
+        <p>Join businesses already using Kraftd to make smarter sourcing decisions with AI-powered intelligence.</p>
+        <button class="btn-white">Start Free Today</button>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <p>&copy; 2026 Kraftd. All rights reserved. | <a href="#">Privacy</a> | <a href="#">Terms</a> | <a href="mailto:hello@kraftd.io">hello@kraftd.io</a></p>
+    </footer>
+
+    <script>
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
