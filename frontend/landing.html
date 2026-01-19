@@ -321,6 +321,129 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
+        /* Social Proof Section */
+        .social-proof {
+            padding: 80px 40px;
+            background-color: var(--color-white);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background-color: var(--color-light-bg);
+            padding: 32px;
+            border-radius: 8px;
+            border-left: 4px solid var(--color-primary-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.12);
+            transform: translateY(-4px);
+        }
+
+        .star-rating {
+            color: var(--color-primary-cyan);
+            font-size: 18px;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+        }
+
+        .testimonial-text {
+            font-size: 16px;
+            color: var(--color-dark-gray);
+            margin-bottom: 16px;
+            line-height: 1.8;
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            font-size: 13px;
+            color: var(--color-structural-gray);
+            margin: 0;
+        }
+
+        /* Pricing Section */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background-color: var(--color-white);
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #E0E0E0;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            border-color: var(--color-primary-cyan);
+            box-shadow: 0 12px 32px rgba(0, 188, 212, 0.12);
+        }
+
+        .pricing-card-featured {
+            border-color: var(--color-primary-cyan);
+            box-shadow: 0 12px 32px rgba(0, 188, 212, 0.15);
+            transform: scale(1.02);
+        }
+
+        .pricing-badge {
+            display: inline-block;
+            background-color: var(--color-light-bg);
+            color: var(--color-dark-gray);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+
+        .pricing-amount {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--color-dark-gray);
+            margin-bottom: 8px;
+        }
+
+        .pricing-description {
+            font-size: 14px;
+            color: var(--color-structural-gray);
+            margin-bottom: 28px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 32px 0;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 10px 0;
+            font-size: 14px;
+            color: var(--color-structural-gray);
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+
         /* Footer */
         footer {
             background-color: var(--color-dark-gray);
@@ -391,6 +514,14 @@
                 margin: 0 0 20px 0;
             }
 
+            .pricing-card-featured {
+                transform: scale(1);
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
             .cta-section {
                 padding: 60px 20px;
             }
@@ -408,6 +539,10 @@
             .hero-ctas a {
                 width: 100%;
                 text-align: center;
+            }
+
+            .social-proof {
+                padding: 60px 20px;
             }
         }
 
@@ -440,7 +575,8 @@
         </a>
         <ul class="nav-links">
             <li><a href="#features">Features</a></li>
-            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#integrations">Integrations</a></li>
+            <li><a href="#pricing">Pricing</a></li>
             <li><a href="#contact">Contact</a></li>
         </ul>
         <div class="nav-cta">
@@ -531,10 +667,130 @@
         </div>
     </section>
 
+    <!-- Tools & Integrations Section (Inspired by Canva) -->
+    <section class="features" id="integrations">
+        <div class="features-container">
+            <div class="section-header">
+                <h2>Tools to Power Your Work</h2>
+                <p>Everything you need to gain supply chain intelligence, in one place</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📧</div>
+                    <h3>Email Ingestion</h3>
+                    <p>Automatically extract invoices, quotes, and supplier info from your inbox. Real data, real insights.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔗</div>
+                    <h3>API Integration</h3>
+                    <p>Connect to your ERP, accounting software, or logistics platforms. Sync data in real-time.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Dashboard & Reports</h3>
+                    <p>Visualize trends, compare suppliers, track costs. Export reports for your team in seconds.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Chat Assistant</h3>
+                    <p>Ask natural language questions about your supply chain. Get answers instantly, like talking to an expert.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Section (Inspired by Microsoft & Adobe) -->
+    <section class="social-proof">
+        <div class="features-container">
+            <div class="section-header">
+                <h2>Trusted by Supply Chain Leaders</h2>
+                <p>Businesses are already transforming their procurement with Kraftd</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="star-rating">★★★★★</div>
+                    <p class="testimonial-text">"Kraftd helped us identify supplier risks we missed for years. Saved us from a major disruption."</p>
+                    <p class="testimonial-author">— Ahmed Al-Mutairi, Procurement Manager, Manufacturing SME</p>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="star-rating">★★★★★</div>
+                    <p class="testimonial-text">"We negotiated 18% better prices just by understanding what we should actually be paying. In the first month."</p>
+                    <p class="testimonial-author">— Sarah Chen, Supply Chain Director, Export Traders</p>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="star-rating">★★★★★</div>
+                    <p class="testimonial-text">"No more manual data entry. Kraftd connects our emails and spreadsheets automatically. It's like having a supply chain analyst on the payroll."</p>
+                    <p class="testimonial-author">— Mohammed Al-Dosari, Operations Lead, Pharma Supplier</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section (Inspired by Adobe & Microsoft) -->
+    <section class="features" id="pricing" style="background-color: var(--color-light-bg);">
+        <div class="features-container">
+            <div class="section-header">
+                <h2>Simple, Transparent Pricing</h2>
+                <p>Choose the plan that fits your business. Start free, scale as you grow.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-badge">Starter</div>
+                    <div class="pricing-amount">Free</div>
+                    <p class="pricing-description">Perfect for exploring supply chain intelligence</p>
+                    <ul class="pricing-features">
+                        <li>✓ 10 suppliers analyzed</li>
+                        <li>✓ Basic pricing analytics</li>
+                        <li>✓ Email support</li>
+                        <li>✗ Risk scoring</li>
+                        <li>✗ API access</li>
+                    </ul>
+                    <button class="btn-secondary" style="width: 100%; margin-top: 24px;">Get Started</button>
+                </div>
+
+                <div class="pricing-card pricing-card-featured">
+                    <div class="pricing-badge" style="background: var(--color-primary-cyan);">Professional</div>
+                    <div class="pricing-amount">$99<span style="font-size: 14px; font-weight: 500; color: var(--color-structural-gray);">/mo</span></div>
+                    <p class="pricing-description">For growing supply chain teams</p>
+                    <ul class="pricing-features">
+                        <li>✓ Unlimited suppliers</li>
+                        <li>✓ Advanced pricing analytics</li>
+                        <li>✓ Risk scoring & alerts</li>
+                        <li>✓ Priority support</li>
+                        <li>✗ Custom API</li>
+                    </ul>
+                    <button class="btn-primary" style="width: 100%; margin-top: 24px;">Start Free Trial</button>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="pricing-badge">Enterprise</div>
+                    <div class="pricing-amount">Custom</div>
+                    <p class="pricing-description">For large organizations with complex needs</p>
+                    <ul class="pricing-features">
+                        <li>✓ Everything in Professional</li>
+                        <li>✓ Custom integrations</li>
+                        <li>✓ Dedicated support</li>
+                        <li>✓ SLA guarantees</li>
+                        <li>✓ White-label options</li>
+                    </ul>
+                    <button class="btn-secondary" style="width: 100%; margin-top: 24px;">Contact Sales</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="cta-section">
         <h2>Ready to Simplify Your Supply Chain?</h2>
-        <p>Join businesses already using Kraftd to make smarter sourcing decisions with AI-powered intelligence.</p>
+        <p>Join businesses already using Kraftd to make smarter sourcing decisions with AI-powered intelligence. Try it free today—no credit card required.</p>
         <button class="btn-white">Start Free Today</button>
     </section>
 
