@@ -23,7 +23,10 @@ jobs:
       - name: Copy static files
         run: |
           mkdir -p frontend/dist
-          cp frontend/*.html frontend/dist/
+          cp frontend/landing.html frontend/dist/
+          cp frontend/login.html frontend/dist/
+          cp frontend/chat.html frontend/dist/
+          cp frontend/staticwebapp.config.json frontend/dist/
           cp -r frontend/assets frontend/dist/ 2>/dev/null || true
       
       - name: Deploy to Static Web Apps
