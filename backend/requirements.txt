@@ -26,3 +26,6 @@ sendgrid-python
 pytest
 pytest-cov
 pytest-asyncio
+scikit-learn
+numpy
+scipy
