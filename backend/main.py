@@ -46,7 +46,7 @@ from config import (
     REQUEST_TIMEOUT, DOCUMENT_PROCESSING_TIMEOUT, FILE_PARSE_TIMEOUT,
     MAX_RETRIES, RETRY_BACKOFF_FACTOR, RETRY_MAX_WAIT,
     RATE_LIMIT_ENABLED, RATE_LIMIT_REQUESTS_PER_MINUTE, RATE_LIMIT_REQUESTS_PER_HOUR,
-    METRICS_ENABLED, UPLOAD_DIR, validate_config
+    METRICS_ENABLED, UPLOAD_DIR, MAX_UPLOAD_SIZE_MB, validate_config
 )
 from metrics import metrics_collector
 from rate_limit import RateLimitMiddleware
@@ -58,6 +58,11 @@ from services.secrets_manager import get_secrets_manager
 # Import repositories
 from repositories import UserRepository, DocumentRepository
 from repositories.document_repository import DocumentStatus as RepoDocumentStatus
+from repositories.extraction_repository import ExtractionRepository
+from models.extraction import (
+    DocumentMetadata, ExtractionData, AIAnalysisSummary,
+    ExtractionRecord
+)
 
 # Import Auth Routes (Phase 1: Authentication)
 try:
@@ -214,6 +219,23 @@ async def update_document_record(document_id: str, updates: dict, owner_email: s
         logger.info(f"Document {document_id} updated in fallback storage")
         return True
     return False
+
+# Extractions repository helper
+from repositories.extraction_repository import ExtractionRepository
+
+async def get_extraction_repository() -> ExtractionRepository | None:
+    """
+    Get ExtractionRepository instance if Cosmos is initialized; otherwise None.
+    """
+    try:
+        cosmos_service = get_cosmos_service()
+        if not cosmos_service or not cosmos_service.is_initialized():
+            logger.debug("Cosmos service not initialized, extraction repo unavailable")
+            return None
+        return ExtractionRepository()
+    except Exception as e:
+        logger.error(f"Failed to get ExtractionRepository: {e}")
+        return None
 
 # ===== Logging Configuration =====
 logging.basicConfig(
@@ -1120,11 +1142,11 @@ async def upload_document(file: UploadFile = File(...)):
         # Save uploaded file
         contents = await file.read()
         
-        # Validate file size (25MB limit per specification)
-        max_size_bytes = 25 * 1024 * 1024  # 25MB
+        # Validate file size
+        max_size_bytes = MAX_UPLOAD_SIZE_MB * 1024 * 1024
         if len(contents) > max_size_bytes:
             logger.warning(f"File too large: {file.filename} ({len(contents)} bytes > {max_size_bytes} bytes)")
-            raise HTTPException(status_code=413, detail=f"File size exceeds 25MB limit. File size: {len(contents) / (1024*1024):.2f}MB")
+            raise HTTPException(status_code=413, detail=f"File size exceeds {MAX_UPLOAD_SIZE_MB}MB limit. File size: {len(contents) / (1024*1024):.2f}MB")
         
         # Validate file type
         allowed_extensions = {'pdf', 'docx', 'xlsx', 'xls', 'jpg', 'jpeg', 'png', 'gif'}
@@ -1197,6 +1219,112 @@ async def upload_document(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Upload failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=400, detail=f"Upload failed: {str(e)}")
+
+# Batch upload endpoint for multiple documents
+@app.post("/api/v1/docs/upload/batch")
+async def upload_documents(files: List[UploadFile] = File(...)):
+    try:
+        if not files or len(files) == 0:
+            raise HTTPException(status_code=400, detail="No files provided")
+
+        results = []
+        allowed_extensions = {'pdf', 'docx', 'xlsx', 'xls', 'jpg', 'jpeg', 'png', 'gif'}
+        max_size_bytes = MAX_UPLOAD_SIZE_MB * 1024 * 1024
+
+        repo = await get_document_repository()
+
+        for file in files:
+            try:
+                file_ext = file.filename.split(".")[-1].lower()
+                if file_ext not in allowed_extensions:
+                    results.append({
+                        "filename": file.filename,
+                        "status": "error",
+                        "error_message": f"Unsupported file type: {file_ext}. Allowed: {', '.join(allowed_extensions)}"
+                    })
+                    continue
+
+                contents = await file.read()
+                if len(contents) > max_size_bytes:
+                    results.append({
+                        "filename": file.filename,
+                        "status": "error",
+                        "error_message": f"File size exceeds {MAX_UPLOAD_SIZE_MB}MB limit. File size: {len(contents) / (1024*1024):.2f}MB"
+                    })
+                    continue
+
+                doc_id = str(uuid.uuid4())
+                file_path = os.path.join(UPLOAD_DIR, f"{doc_id}.{file_ext}")
+                with open(file_path, "wb") as f:
+                    f.write(contents)
+
+                kraftd_doc = KraftdDocument(
+                    document_id=doc_id,
+                    metadata={
+                        "document_type": DocumentType.BOQ,
+                        "document_number": f"DOC-{doc_id[:8]}",
+                        "issue_date": datetime.now().date()
+                    },
+                    parties={},
+                    status=DocumentStatus.UPLOADED,
+                    processing_metadata=ProcessingMetadata(
+                        extraction_method=ExtractionMethod.DIRECT_PARSE,
+                        processing_duration_ms=0,
+                        source_file_size_bytes=len(contents)
+                    )
+                )
+
+                owner_email = "default@kraftdintel.com"
+                
+                if repo:
+                    try:
+                        # Store main document metadata separately from extractions
+                        await repo.create_document(
+                            document_id=doc_id,
+                            owner_email=owner_email,
+                            filename=file.filename,
+                            document_type=str(DocumentType.BOQ),
+                            file_path=file_path,
+                            file_type=file_ext,
+                            document=kraftd_doc.dict()
+                        )
+                        # Note: Extraction results (OCR, DI data) will be stored separately 
+                        # in ExtractionRepository when /extract endpoint is called
+                    except Exception as e:
+                        logger.warning(f"Failed to store document {doc_id} in Cosmos DB: {e}")
+                        documents_db[doc_id] = {
+                            "file_path": file_path,
+                            "file_type": file_ext,
+                            "document": kraftd_doc.dict()
+                        }
+                else:
+                    # Fallback to in-memory
+                    documents_db[doc_id] = {
+                        "file_path": file_path,
+                        "file_type": file_ext,
+                        "document": kraftd_doc.dict()
+                    }
+
+                results.append({
+                    "document_id": doc_id,
+                    "filename": file.filename,
+                    "status": "uploaded",
+                    "file_size_bytes": len(contents),
+                    "message": "Document uploaded successfully. Ready for extraction and intelligence."
+                })
+            except Exception as inner_e:
+                results.append({
+                    "filename": getattr(file, 'filename', 'unknown'),
+                    "status": "error",
+                    "error_message": str(inner_e)
+                })
+
+        return JSONResponse(results)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Batch upload failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=400, detail=f"Batch upload failed: {str(e)}")
 
 # ===== Document Conversion Endpoints =====
 @app.post("/api/v1/docs/convert")
@@ -1373,10 +1501,73 @@ async def extract_intelligence(document_id: str):
         }
         
         # Update database using helper (Cosmos DB or fallback)
+        owner_email = "default@kraftdintel.com"
         await update_document_record(document_id, {
             "document": kraftd_document.dict(),
             "validation": validation_data
-        })
+        }, owner_email)
+        
+        # Store comprehensive extraction results in separate ExtractionRepository
+        # Includes: timestamp, owner_id, document metadata, raw extraction data,
+        # AI summary, user modifications tracking, conversion preferences, feedback
+        try:
+            extraction_repo = await get_extraction_repository()
+            if extraction_repo:
+                # Get owner email from current user context or use default
+                owner_email = "default@kraftdintel.com"  # TODO: Get from auth context
+                
+                # Build comprehensive extraction data structure
+                document_metadata = DocumentMetadata(
+                    file_name=os.path.basename(file_path),
+                    file_type=file_ext.upper(),
+                    file_size_bytes=os.path.getsize(file_path),
+                    uploaded_at=datetime.utcnow(),
+                    file_hash=None
+                )
+                
+                extraction_data = ExtractionData(
+                    text=kraftd_document.content[:5000] if kraftd_document.content else "",  # First 5K chars
+                    tables=[],  # Extracted tables if any
+                    images=[],  # Image references if any
+                    key_value_pairs=kraftd_document.metadata.dict() if kraftd_document.metadata else {},
+                    metadata={
+                        "document_type": kraftd_document.metadata.document_type.value if kraftd_document.metadata else "UNKNOWN",
+                        "content_length": len(kraftd_document.content) if kraftd_document.content else 0
+                    },
+                    extraction_method="direct_parse",
+                    extraction_duration_ms=processing_duration
+                )
+                
+                # Optional: Build AI summary if available
+                ai_summary = None
+                if pipeline_result.validation_result:
+                    ai_summary = AIAnalysisSummary(
+                        key_insights="Document extracted and validated successfully",
+                        supplier_information=None,
+                        risk_factors=[],
+                        recommendations=[],
+                        confidence_scores={
+                            "classifier": pipeline_result.classifier_confidence,
+                            "mapping": pipeline_result.mapping_signals / 100.0 if pipeline_result.mapping_signals else 0,
+                            "inference": pipeline_result.inference_signals / 100.0 if pipeline_result.inference_signals else 0
+                        },
+                        model_used="gpt-4o-mini",
+                        analysis_timestamp=datetime.utcnow()
+                    )
+                
+                # Create comprehensive extraction record
+                await extraction_repo.create_extraction(
+                    document_id=document_id,
+                    owner_email=owner_email,
+                    source="direct_parse",  # extraction method
+                    extraction_data=extraction_data,
+                    document_metadata=document_metadata,
+                    ai_summary=ai_summary,
+                    conversion_preferences=None  # User will set this later
+                )
+                logger.info(f"Stored comprehensive extraction results for {document_id} in ExtractionRepository")
+        except Exception as e:
+            logger.warning(f"Failed to store extraction in ExtractionRepository: {e}")
         
         logger.info(f"Document {document_id} extraction complete in {processing_duration}ms")
         logger.info(f"  - Type: {kraftd_document.metadata.document_type.value if kraftd_document.metadata else 'UNKNOWN'}")
