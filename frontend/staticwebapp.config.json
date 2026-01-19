@@ -1,10 +1,22 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/api/*", "/*.{json,jpg,gif,png,webp,css,js,svg,eot,otf,ttf,woff,woff2}"]
+    "rewrite": "/landing.html"
   },
+  "routes": [
+    {
+      "route": "/api/*",
+      "allowedRoles": []
+    },
+    {
+      "route": "/",
+      "serve": "/landing.html"
+    },
+    {
+      "route": "/*",
+      "serve": "/landing.html"
+    }
+  ],
   "mimeTypes": {
     ".json": "text/json"
-  },
-  "apiVersion": "1.0.0"
+  }
 }
