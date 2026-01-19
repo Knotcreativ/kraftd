@@ -35,11 +35,20 @@
         }
 
         .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);
             color: white;
             padding: 20px;
             text-align: center;
             border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .chat-header img {
+            width: 32px;
+            height: 32px;
         }
 
         .chat-header h1 {
@@ -262,8 +271,11 @@
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <h1>Kraftd AI Assistant</h1>
-            <p>Chat with your procurement intelligence AI</p>
+            <img src="/assets/kraftd-icon.svg" alt="Kraftd">
+            <div>
+                <h1>Kraftd AI Assistant</h1>
+                <p>Ask me about contracts, compliance, suppliers</p>
+            </div>
         </div>
 
         <div class="chat-messages" id="chatMessages">
