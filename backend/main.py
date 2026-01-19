@@ -1,6 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
-from fastapi.responses import JSONResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -436,24 +435,6 @@ def create_json_response(data, status_code=200):
     """Create a JSON response with proper encoding."""
     json_str = json.dumps(data, default=json_serialize)
     return JSONResponse(content=json.loads(json_str), status_code=status_code)
-
-# ===== Chat UI Routes =====
-@app.get("/")
-async def root():
-    """Redirect to chat UI."""
-    return {"message": "Kraftd AI - Chat available at /chat"}
-
-@app.get("/chat")
-async def get_chat_ui():
-    """Serve the chat UI."""
-    chat_file = os.path.join(os.path.dirname(__file__), "..", "frontend", "chat.html")
-    if os.path.exists(chat_file):
-        return FileResponse(chat_file, media_type="text/html")
-    else:
-        return JSONResponse(
-            {"error": "Chat UI not found. Make sure frontend/chat.html exists."},
-            status_code=404
-        )
 
 # ===== Startup Handler =====
 @app.on_event("startup")
@@ -1965,50 +1946,6 @@ async def agent_chat(request: ChatRequest):
     except Exception as e:
         logger.error(f"Agent chat error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
-
-
-@app.post("/api/v1/chat")
-async def simple_chat(request: dict):
-    """Simplified chat endpoint for the web UI.
-    
-    Accepts:
-    - message: User message
-    - conversation_history: Optional list of previous messages
-    """
-    if not AGENT_AVAILABLE:
-        raise HTTPException(status_code=503, detail="AI Agent is not available. OpenAI credentials not configured.")
-    
-    try:
-        message = request.get("message", "").strip()
-        if not message:
-            raise HTTPException(status_code=400, detail="Message cannot be empty")
-        
-        logger.info(f"Chat request: {message[:100]}...")
-        agent = await get_or_init_agent()
-        
-        # Generate unique conversation ID
-        conversation_id = str(uuid.uuid4())
-        
-        # Process message with agent
-        response = await agent.process_message(
-            message=message,
-            conversation_id=conversation_id,
-            document_context=None
-        )
-        
-        logger.info(f"Chat response generated for conversation: {conversation_id}")
-        
-        return {
-            "response": response.get("response", ""),
-            "reasoning": response.get("reasoning"),
-            "conversation_id": conversation_id
-        }
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Chat error: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
 
 @app.get("/api/v1/agent/status")
 async def agent_status():
