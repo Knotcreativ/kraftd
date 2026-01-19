@@ -128,6 +128,14 @@ except Exception as e:
     logger.warning(f"User profile routes not available: {e}")
     USER_PROFILE_ROUTES_AVAILABLE = False
 
+# Import Data Enhancement Routes (Document Ingestion & ML/AI Enhancement)
+try:
+    from routes.data_enhancement import router as data_enhancement_router
+    DATA_ENHANCEMENT_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Data enhancement routes not available: {e}")
+    DATA_ENHANCEMENT_ROUTES_AVAILABLE = False
+
 # Import ProfileService (Phase 4: Database Integration)
 try:
     from services.profile_service import ProfileService
@@ -1088,6 +1096,13 @@ if USER_PROFILE_ROUTES_AVAILABLE:
     logger.info("[OK] User profile routes registered at /api/v1/user")
 else:
     logger.warning("[WARN] User profile routes not available - user profiles disabled")
+
+# ===== Data Enhancement Routes (Document Ingestion & ML/AI Enhancement) =====
+if DATA_ENHANCEMENT_ROUTES_AVAILABLE:
+    app.include_router(data_enhancement_router)
+    logger.info("[OK] Data enhancement routes registered at /api/v1/data-enhancement")
+else:
+    logger.warning("[WARN] Data enhancement routes not available - data enhancement disabled")
 
 # ===== Health Check Endpoint =====
 @app.get("/api/v1/health")
