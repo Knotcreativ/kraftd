@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-01-19 05:29:30",
+  "accounts_processed": [
+    "Primary",
+    "Advanced Creativity Company",
+    "Advanced Creativity Company (1)"
+  ],
+  "total_documents": 280,
+  "total_procurement_value_usd": 115503.276,
+  "total_data_size_mb": 321.2049036026001,
+  "statistics_by_account": {
+    "Primary": {
+      "total_documents": 94,
+      "by_type": {
+        "quotation": 2,
+        "po": 11,
+        "unknown": 73,
+        "invoice": 4,
+        "rfq": 2,
+        "contract": 2
+      },
+      "by_file_type": {
+        "jpeg": 10,
+        "xls": 1,
+        "png": 8,
+        "docx": 30,
+        "jpg": 3,
+        "pdf": 42
+      },
+      "total_size_mb": 71.33937644958496,
+      "with_supplier_names": 17,
+      "with_amounts": 0,
+      "total_amount_usd": 0
+    },
+    "Advanced Creativity Company": {
+      "total_documents": 98,
+      "by_type": {
+        "po": 2,
+        "unknown": 85,
+        "invoice": 2,
+        "rfq": 1,
+        "contract": 8
+      },
+      "by_file_type": {
+        "pdf": 33,
+        "jpeg": 1,
+        "docx": 64
+      },
+      "total_size_mb": 125.5129451751709,
+      "with_supplier_names": 39,
+      "with_amounts": 5,
+      "total_amount_usd": 115503.276
+    },
+    "Advanced Creativity Company (1)": {
+      "total_documents": 88,
+      "by_type": {
+        "unknown": 82,
+        "po": 4,
+        "rfq": 2
+      },
+      "by_file_type": {
+        "xls": 1,
+        "png": 33,
+        "docx": 2,
+        "jpg": 8,
+        "pdf": 44
+      },
+      "total_size_mb": 124.35258197784424,
+      "with_supplier_names": 1,
+      "with_amounts": 0,
+      "total_amount_usd": 0
+    }
+  },
+  "export_location": "C:\\Users\\1R6\\OneDrive\\Project Catalyst\\KraftdIntel\\backend\\output\\onedrive_data",
+  "files_exported": [
+    "training_data.jsonl",
+    "ai_context_examples.json"
+  ]
+}

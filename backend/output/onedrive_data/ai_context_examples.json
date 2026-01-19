@@ -1,0 +1,186 @@
+[
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": "proposal issue date (On Cover Page) and not beyond the current fiscal year.",
+    "amount": null,
+    "extracted_data": {
+      "supplier_name": "proposal issue date (On Cover Page) and not beyond the current fiscal year."
+    },
+    "text_sample": "\n\n\nQUTOTATION\n\n\n\n\nAttention\t: Mr. Tamer Elhadidy Mashmeesh\n\t\tSr. Engineer, Engineering Division \u2013 Inspection Unit\n\t\tYanbu Refinery Department\n\nSubject\t: In-service Robotic Pipe Inspection of Pipeline Using PEC probes (autonomous robot) (Insulated/Non-Insulated).\nREVISION HISTORY\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n| P a g e\n\n\n\n\n\n\n\n\n\nTABLE OF CONTENT\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n| P a g e\n\n\nIntroduction and Scope of Work:\n\nThis proposal has been prepared at the request of Saudi Aramco Yanbu Refinery maintenance team f"
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "unknown",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "po",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "po",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "po",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "po",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "rfq",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  },
+  {
+    "type": "rfq",
+    "supplier": null,
+    "amount": null,
+    "extracted_data": {},
+    "text_sample": ""
+  }
+]

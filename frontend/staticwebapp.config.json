@@ -1,6 +1,6 @@
 {
   "navigationFallback": {
-    "rewrite": "/landing.html"
+    "rewrite": "/index.html"
   },
   "routes": [
     {
@@ -12,12 +12,16 @@
       "serve": "/landing.html"
     },
     {
-      "route": "/login",
+      "route": "/login.html",
       "serve": "/login.html"
     },
     {
-      "route": "/chat",
+      "route": "/chat.html",
       "serve": "/chat.html"
+    },
+    {
+      "route": "/landing.html",
+      "serve": "/landing.html"
     },
     {
       "route": "*.html",
@@ -25,7 +29,7 @@
     },
     {
       "route": "/*",
-      "serve": "/landing.html"
+      "serve": "/index.html"
     }
   ],
   "mimeTypes": {
