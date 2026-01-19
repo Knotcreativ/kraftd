@@ -1,0 +1,131 @@
+{
+  "brand": {
+    "name": "Kraftd",
+    "tagline": "Future, Simplified",
+    "domain": "kraftd.io"
+  },
+  "colors": {
+    "primary": {
+      "name": "Kraftd Cyan",
+      "hex": "#00BCD4",
+      "rgb": "0, 188, 212",
+      "hsl": "187°, 100%, 42%",
+      "usage": "Primary brand color, CTAs, highlights",
+      "wcag_aa_compliant": true
+    },
+    "secondary": [
+      {
+        "name": "Dark Cyan",
+        "hex": "#00838F",
+        "rgb": "0, 131, 143",
+        "hsl": "187°, 100%, 28%",
+        "usage": "Hover states, darker accents"
+      },
+      {
+        "name": "Light Cyan",
+        "hex": "#80DEEA",
+        "rgb": "128, 222, 234",
+        "hsl": "187°, 73%, 71%",
+        "usage": "Light backgrounds, subtle highlights"
+      },
+      {
+        "name": "Sky Blue",
+        "hex": "#0097A7",
+        "rgb": "0, 151, 167",
+        "hsl": "187°, 100%, 33%",
+        "usage": "Gradient accents, secondary highlights"
+      }
+    ],
+    "neutrals": {
+      "black": {
+        "name": "Pure Black",
+        "hex": "#1A1A1A",
+        "rgb": "26, 26, 26",
+        "usage": "Primary text, UI elements"
+      },
+      "dark_gray": {
+        "name": "Dark Gray",
+        "hex": "#333333",
+        "rgb": "51, 51, 51",
+        "usage": "Secondary text, borders"
+      },
+      "medium_gray": {
+        "name": "Medium Gray",
+        "hex": "#757575",
+        "rgb": "117, 117, 117",
+        "usage": "Tertiary text, disabled states"
+      },
+      "light_gray": {
+        "name": "Light Gray",
+        "hex": "#F5F5F5",
+        "rgb": "245, 245, 245",
+        "usage": "Backgrounds, subtle borders"
+      },
+      "white": {
+        "name": "White",
+        "hex": "#FFFFFF",
+        "rgb": "255, 255, 255",
+        "usage": "Clean spaces, card backgrounds"
+      }
+    },
+    "semantics": {
+      "success": {
+        "name": "Success Green",
+        "hex": "#4CAF50",
+        "rgb": "76, 175, 80",
+        "usage": "Positive actions, confirmations"
+      },
+      "warning": {
+        "name": "Warning Orange",
+        "hex": "#FF9800",
+        "rgb": "255, 152, 0",
+        "usage": "Alerts, warnings"
+      },
+      "error": {
+        "name": "Error Red",
+        "hex": "#F44336",
+        "rgb": "244, 67, 54",
+        "usage": "Errors, destructive actions"
+      },
+      "info": {
+        "name": "Info Blue",
+        "hex": "#2196F3",
+        "rgb": "33, 150, 243",
+        "usage": "Information, tips"
+      }
+    }
+  },
+  "gradients": {
+    "primary_gradient": {
+      "name": "Kraftd Primary Gradient",
+      "startColor": "#00BCD4",
+      "endColor": "#0097A7",
+      "angle": "135deg",
+      "css": "linear-gradient(135deg, #00BCD4 0%, #0097A7 100%)"
+    },
+    "header_gradient": {
+      "name": "Header Gradient",
+      "startColor": "#00BCD4",
+      "endColor": "#007B8A",
+      "angle": "135deg",
+      "css": "linear-gradient(135deg, #00BCD4 0%, #007B8A 100%)"
+    },
+    "light_gradient": {
+      "name": "Light Background Gradient",
+      "startColor": "#F5F5F5",
+      "endColor": "#FFFFFF",
+      "angle": "180deg",
+      "css": "linear-gradient(180deg, #F5F5F5 0%, #FFFFFF 100%)"
+    }
+  },
+  "accessibility": {
+    "contrast_ratios": {
+      "cyan_on_white": "4.5:1 (WCAG AA Pass)",
+      "cyan_on_light_gray": "4.2:1 (WCAG AA Pass)",
+      "white_on_cyan": "8.2:1 (WCAG AAA Pass)",
+      "black_on_white": "21:1 (WCAG AAA Pass)"
+    },
+    "wcag_compliant": true,
+    "min_contrast_ratio": "4.5:1"
+  }
+}

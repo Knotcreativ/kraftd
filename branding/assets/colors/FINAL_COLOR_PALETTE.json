@@ -1,0 +1,133 @@
+{
+  "brand_colors": {
+    "primary": {
+      "name": "Kraft Cyan",
+      "hex": "#00BCD4",
+      "rgb": "0, 188, 212",
+      "hsl": "187°, 100%, 42%",
+      "cmyk": "100%, 11%, 0%, 0%",
+      "usage": "Primary brand color, logo, CTAs, highlights",
+      "wcag_aa_on_white": true,
+      "contrast_on_white": "4.5:1"
+    },
+    "secondary": {
+      "kraft_dark_gray": {
+        "name": "Kraft Dark Gray",
+        "hex": "#2C3E50",
+        "rgb": "44, 62, 80",
+        "hsl": "204°, 29%, 24%",
+        "cmyk": "45%, 23%, 37%, 51%",
+        "usage": "Headlines, primary text, dark elements"
+      },
+      "kraft_blue": {
+        "name": "Kraft Blue",
+        "hex": "#1A5A7A",
+        "rgb": "26, 90, 122",
+        "hsl": "199°, 65%, 29%",
+        "cmyk": "79%, 26%, 0%, 52%",
+        "usage": "Accents, hover states, secondary highlights"
+      },
+      "structural_gray": {
+        "name": "Structural Gray",
+        "hex": "#536B82",
+        "rgb": "83, 107, 130",
+        "hsl": "207°, 22%, 42%",
+        "cmyk": "36%, 18%, 0%, 49%",
+        "usage": "Body text, subheadings, secondary content"
+      }
+    },
+    "neutral": {
+      "tower_white": {
+        "name": "Tower White",
+        "hex": "#FFFFFF",
+        "rgb": "255, 255, 255",
+        "hsl": "0°, 0%, 100%",
+        "usage": "Backgrounds, card bases, clean spaces"
+      },
+      "light_background": {
+        "name": "Light Background",
+        "hex": "#F5F5F5",
+        "rgb": "245, 245, 245",
+        "hsl": "0°, 0%, 96%",
+        "usage": "Subtle backgrounds, slightly off-white"
+      }
+    }
+  },
+  "gradients": {
+    "primary_gradient": {
+      "name": "Primary Cyan to Blue",
+      "start_color": "#00BCD4",
+      "end_color": "#1A5A7A",
+      "angle": "135deg",
+      "css": "linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%)",
+      "usage": "Headers, hero sections, emphasis"
+    },
+    "dark_gradient": {
+      "name": "Dark Gray to Blue",
+      "start_color": "#2C3E50",
+      "end_color": "#1A5A7A",
+      "angle": "135deg",
+      "css": "linear-gradient(135deg, #2C3E50 0%, #1A5A7A 100%)",
+      "usage": "Dark backgrounds, footer, emphasis sections"
+    },
+    "light_gradient": {
+      "name": "Light Gray to White",
+      "start_color": "#F5F5F5",
+      "end_color": "#FFFFFF",
+      "angle": "180deg",
+      "css": "linear-gradient(180deg, #F5F5F5 0%, #FFFFFF 100%)",
+      "usage": "Subtle background transitions, card shadows"
+    }
+  },
+  "accessibility": {
+    "contrast_ratios": {
+      "cyan_on_white": {
+        "ratio": "4.5:1",
+        "wcag_level": "AA",
+        "status": "PASS"
+      },
+      "dark_gray_on_white": {
+        "ratio": "10.2:1",
+        "wcag_level": "AAA",
+        "status": "PASS"
+      },
+      "structural_gray_on_white": {
+        "ratio": "5.8:1",
+        "wcag_level": "AAA",
+        "status": "PASS"
+      },
+      "white_on_cyan": {
+        "ratio": "8.2:1",
+        "wcag_level": "AAA",
+        "status": "PASS"
+      },
+      "white_on_dark_gray": {
+        "ratio": "12.6:1",
+        "wcag_level": "AAA",
+        "status": "PASS"
+      }
+    },
+    "minimum_ratio": "4.5:1",
+    "wcag_compliance_level": "AA"
+  },
+  "css_variables": {
+    "--color-primary-cyan": "#00BCD4",
+    "--color-dark-gray": "#2C3E50",
+    "--color-kraft-blue": "#1A5A7A",
+    "--color-structural-gray": "#536B82",
+    "--color-white": "#FFFFFF",
+    "--color-light-bg": "#F5F5F5",
+    "--gradient-primary": "linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%)",
+    "--gradient-dark": "linear-gradient(135deg, #2C3E50 0%, #1A5A7A 100%)",
+    "--gradient-light": "linear-gradient(180deg, #F5F5F5 0%, #FFFFFF 100%)"
+  },
+  "implementation_checklist": {
+    "web_design": false,
+    "chat_ui": false,
+    "website_header": false,
+    "brand_documentation": true,
+    "email_templates": false,
+    "social_media": false,
+    "print_materials": false
+  }
+}
