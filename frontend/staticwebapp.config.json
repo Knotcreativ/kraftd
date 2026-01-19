@@ -6,5 +6,20 @@
   "mimeTypes": {
     ".json": "text/json"
   },
+  "routes": [
+    {
+      "route": "/chat",
+      "rewrite": "/chat.html"
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["authenticated", "anonymous"]
+    }
+  ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html"
+    }
+  },
   "apiVersion": "1.0.0"
 }
