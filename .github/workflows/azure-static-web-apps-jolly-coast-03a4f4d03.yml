@@ -23,6 +23,8 @@ jobs:
       - name: Copy static files
         run: |
           mkdir -p frontend/dist
+          
+          # Copy all HTML pages
           cp frontend/landing.html frontend/dist/
           cp frontend/signin.html frontend/dist/
           cp frontend/signup.html frontend/dist/
@@ -33,9 +35,25 @@ jobs:
           cp frontend/terms.html frontend/dist/
           cp frontend/privacy.html frontend/dist/
           cp frontend/index.html frontend/dist/ 2>/dev/null || echo "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>Kraftd</title><script>window.location.href=\"/landing.html\";</script></head><body><p>Redirecting...</p></body></html>" > frontend/dist/index.html
+          
+          # Copy configuration and build files
           cp frontend/staticwebapp.config.json frontend/dist/
-          cp -r frontend/assets frontend/dist/
-          ls -la frontend/dist/assets/ || echo "ERROR: Assets not copied!"
+          cp frontend/vite.config.ts frontend/dist/ 2>/dev/null || true
+          cp frontend/tsconfig.json frontend/dist/ 2>/dev/null || true
+          cp frontend/tsconfig.node.json frontend/dist/ 2>/dev/null || true
+          cp frontend/package.json frontend/dist/ 2>/dev/null || true
+          
+          # Copy assets and dependencies
+          if [ -d "frontend/assets" ]; then
+            cp -r frontend/assets frontend/dist/
+            echo "✓ Assets copied successfully"
+          else
+            echo "⚠ Assets directory not found"
+          fi
+          
+          # Verify deployment contents
+          echo "📦 Deployed files:"
+          ls -la frontend/dist/ | grep -E "\.html|\.json|assets"
       
       - name: Deploy to Static Web Apps
         id: builddeploy
