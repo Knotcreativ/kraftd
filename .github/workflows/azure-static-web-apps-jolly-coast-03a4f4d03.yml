@@ -24,8 +24,12 @@ jobs:
         run: |
           mkdir -p frontend/dist
           cp frontend/landing.html frontend/dist/
-          cp frontend/login.html frontend/dist/
+          cp frontend/signin.html frontend/dist/
+          cp frontend/signup.html frontend/dist/
           cp frontend/chat.html frontend/dist/
+          cp frontend/forgot-password.html frontend/dist/
+          cp frontend/reset-password.html frontend/dist/
+          cp frontend/verify-email.html frontend/dist/
           cp frontend/index.html frontend/dist/ 2>/dev/null || echo "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>Kraftd</title><script>window.location.href=\"/landing.html\";</script></head><body><p>Redirecting...</p></body></html>" > frontend/dist/index.html
           cp frontend/staticwebapp.config.json frontend/dist/
           cp -r frontend/assets frontend/dist/
