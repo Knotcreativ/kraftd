@@ -5,8 +5,8 @@
       "allowedRoles": []
     },
     {
-      "route": "/login.html",
-      "rewrite": "/login.html"
+      "route": "/signin.html",
+      "rewrite": "/signin.html"
     },
     {
       "route": "/chat.html",
