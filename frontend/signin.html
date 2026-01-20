@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Kraftd | AI Supply Chain Intelligence</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary-cyan: #00BCD4;
+            --color-dark-gray: #2C3E50;
+            --color-kraft-blue: #1A5A7A;
+            --color-structural-gray: #536B82;
+            --color-white: #FFFFFF;
+            --color-light-bg: #F5F5F5;
+            --color-error: #D32F2F;
+            --color-success: #388E3C;
+            --gradient-primary: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--color-structural-gray);
+            line-height: 1.6;
+            background-color: var(--color-white);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Left Panel - Branding */
+        .login-panel-left {
+            flex: 1;
+            background: var(--gradient-primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 40px;
+            color: var(--color-white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-panel-left::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+
+        .login-panel-left::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            bottom: -80px;
+            left: -80px;
+        }
+
+        .login-branding {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .login-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .login-panel-left h1 {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .login-panel-left p {
+            font-size: 16px;
+            margin-bottom: 12px;
+            opacity: 0.95;
+            line-height: 1.8;
+        }
+
+        .login-features {
+            margin-top: 40px;
+            text-align: left;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 30px;
+        }
+
+        .login-feature-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .login-feature-item span {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Right Panel - Form */
+        .login-panel-right {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            background-color: var(--color-white);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-header {
+            margin-bottom: 40px;
+        }
+
+        .login-header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-dark-gray);
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            color: var(--color-structural-gray);
+        }
+
+        .login-header a {
+            color: var(--color-primary-cyan);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-header a:hover {
+            text-decoration: underline;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-dark-gray);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #D0D0D0;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            background-color: var(--color-white);
+            color: var(--color-dark-gray);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-primary-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #999;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .form-checkbox-label {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: var(--color-structural-gray);
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .form-checkbox-label input {
+            margin-bottom: 0;
+        }
+
+        .form-error {
+            display: none;
+            color: var(--color-error);
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .form-group.error input {
+            border-color: var(--color-error);
+        }
+
+        .form-group.error .form-error {
+            display: block;
+        }
+
+        /* Form Actions */
+        .form-actions {
+            margin-top: 28px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px 24px;
+            background: var(--gradient-primary);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Additional Links */
+        .login-links {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .login-links a {
+            color: var(--color-primary-cyan);
+            text-decoration: none;
+            margin: 0 4px;
+        }
+
+        .login-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Divider */
+        .divider {
+            margin: 28px 0;
+            position: relative;
+            text-align: center;
+            color: var(--color-structural-gray);
+            font-size: 13px;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background-color: #D0D0D0;
+        }
+
+        .divider span {
+            background-color: var(--color-white);
+            padding: 0 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Social Login */
+        .social-login {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-social {
+            padding: 12px 16px;
+            border: 1px solid #D0D0D0;
+            background-color: var(--color-white);
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--color-dark-gray);
+        }
+
+        .btn-social:hover {
+            border-color: var(--color-primary-cyan);
+            background-color: #F9F9F9;
+        }
+
+        /* Footer */
+        .login-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #E0E0E0;
+            font-size: 12px;
+            color: var(--color-structural-gray);
+            text-align: center;
+        }
+
+        .login-footer a {
+            color: var(--color-primary-cyan);
+            text-decoration: none;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Success Message */
+        .success-message {
+            display: none;
+            background-color: #E8F5E9;
+            border: 1px solid var(--color-success);
+            color: var(--color-success);
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .login-panel-left {
+                padding: 40px 20px;
+                min-height: auto;
+            }
+
+            .login-panel-left h1 {
+                font-size: 28px;
+            }
+
+            .login-panel-right {
+                padding: 40px 20px;
+            }
+
+            .login-container {
+                max-width: 100%;
+            }
+
+            .login-features {
+                display: none;
+            }
+
+            .social-login {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading State */
+        .btn-login.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn-login.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--color-white);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Enhanced checkbox styling */
+        .checkbox-group {
+            margin-bottom: 16px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: var(--color-primary-cyan);
+            flex-shrink: 0;
+        }
+
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-size: 13px;
+            cursor: pointer;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .checkbox-item a {
+            color: var(--color-primary-cyan);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .checkbox-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Error message styling */
+        .error-message {
+            display: none;
+            background-color: #FFEBEE;
+            border: 1px solid var(--color-error);
+            color: var(--color-error);
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* reCAPTCHA container */
+        .recaptcha-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: var(--color-light-bg);
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .recaptcha-container iframe {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Panel - Branding -->
+    <div class="login-panel-left">
+        <div class="login-branding">
+            <div class="login-logo">
+                <img src="/assets/kraftd-icon.svg" alt="Kraftd" style="width: 48px; height: 48px; display: inline-block; margin-right: 12px;">
+                <span>Kraftd</span>
+            </div>
+            <h1>Supply Chain Intelligence</h1>
+            <p>Sign in to access your supply chain intelligence dashboard and make smarter sourcing decisions with AI-powered insights.</p>
+            
+            <div class="login-features">
+                <div class="login-feature-item">
+                    <span>✓</span>
+                    <div>Real-time supplier analytics and pricing data</div>
+                </div>
+                <div class="login-feature-item">
+                    <span>✓</span>
+                    <div>Risk scoring and opportunity discovery</div>
+                </div>
+                <div class="login-feature-item">
+                    <span>✓</span>
+                    <div>AI-powered insights from your data</div>
+                </div>
+                <div class="login-feature-item">
+                    <span>✓</span>
+                    <div>Seamless document and email integration</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel - Login Form -->
+    <div class="login-panel-right">
+        <div class="login-container">
+            <div class="login-header">
+                <h2>Sign In</h2>
+                <p>Don't have an account? <a href="/signup.html">Create one free</a></p>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                ✓ Sign in successful. Redirecting...
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="you@company.com" 
+                        required
+                        autocomplete="email"
+                    >
+                    <div class="form-error">Please enter a valid email address</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter your password" 
+                        required
+                        autocomplete="current-password"
+                    >
+                    <div class="form-error">Password is required</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-checkbox-label">
+                        <input type="checkbox" name="remember" id="remember">
+                        Remember me on this device
+                    </label>
+                </div>
+
+                <!-- Marketing Email Checkbox -->
+                <div class="checkbox-item">
+                    <input 
+                        type="checkbox" 
+                        id="marketingCheckbox" 
+                        name="marketing"
+                    >
+                    <label for="marketingCheckbox">
+                        Send me updates about new features and offers
+                    </label>
+                </div>
+
+                <!-- reCAPTCHA -->
+                <div class="recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-login">Sign In</button>
+                </div>
+
+                <div class="login-links">
+                    <a href="/forgot-password.html">Forgot password?</a>
+                </div>
+
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <div class="social-login">
+                    <button type="button" class="btn-social" onclick="handleSocialLogin('google')">
+                        🔵 Google
+                    </button>
+                    <button type="button" class="btn-social" onclick="handleSocialLogin('microsoft')">
+                        ⊞ Microsoft
+                    </button>
+                </div>
+            </form>
+
+            <div class="login-footer">
+                <p>By signing in, you agree to our <a href="/terms.html" target="_blank">Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1';
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember').checked;
+            const marketingOptIn = document.getElementById('marketingCheckbox').checked;
+            const button = event.target.querySelector('.btn-login');
+
+            // Clear previous errors
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('email').parentElement.classList.remove('error');
+            document.getElementById('password').parentElement.classList.remove('error');
+
+            // Validation
+            let hasError = false;
+
+            if (!email || !email.includes('@')) {
+                document.getElementById('email').parentElement.classList.add('error');
+                hasError = true;
+            }
+
+            if (!password || password.length < 1) {
+                document.getElementById('password').parentElement.classList.add('error');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            // Check reCAPTCHA
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                showError('Please complete the reCAPTCHA');
+                return;
+            }
+
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        rememberMe,
+                        marketingOptIn,
+                        recaptchaToken: recaptchaResponse
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    // Store tokens
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('token_type', data.token_type);
+                    if (data.refresh_token) {
+                        localStorage.setItem('refresh_token', data.refresh_token);
+                    }
+
+                    // Store email for potential use
+                    if (rememberMe) {
+                        localStorage.setItem('remembered_email', email);
+                    }
+
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.style.display = 'block';
+                    
+                    // Redirect after 1.5 seconds
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1500);
+                } else {
+                    showError(data.detail || 'Invalid email or password');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
+                grecaptcha.reset();
+            }
+        }
+
+        function handleSocialLogin(provider) {
+            console.log('Social login with:', provider);
+            showError(`Sign in with ${provider} coming soon`);
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Clear error on input
+        document.getElementById('email').addEventListener('input', function() {
+            this.parentElement.classList.remove('error');
+            document.getElementById('errorMessage').classList.remove('show');
+        });
+
+        document.getElementById('password').addEventListener('input', function() {
+            this.parentElement.classList.remove('error');
+            document.getElementById('errorMessage').classList.remove('show');
+        });
+
+        // Load remembered email
+        window.addEventListener('DOMContentLoaded', function() {
+            const rememberedEmail = localStorage.getItem('remembered_email');
+            if (rememberedEmail) {
+                document.getElementById('email').value = rememberedEmail;
+                document.getElementById('remember').checked = true;
+            }
+
+            // Check for verification message
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('verified')) {
+                const errorMsg = document.getElementById('errorMessage');
+                errorMsg.textContent = '✓ Email verified! You can now sign in.';
+                errorMsg.style.background = '#E8F5E9';
+                errorMsg.style.borderColor = '#4CAF50';
+                errorMsg.style.color = '#2E7D32';
+                errorMsg.classList.add('show');
+            }
+        });
+    </script>
+</body>
+</html>
