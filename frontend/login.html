@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - Kraftd | AI Supply Chain Intelligence</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         * {
             margin: 0;
@@ -423,6 +424,75 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Enhanced checkbox styling */
+        .checkbox-group {
+            margin-bottom: 16px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: var(--color-primary-cyan);
+            flex-shrink: 0;
+        }
+
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-size: 13px;
+            cursor: pointer;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .checkbox-item a {
+            color: var(--color-primary-cyan);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .checkbox-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Error message styling */
+        .error-message {
+            display: none;
+            background-color: #FFEBEE;
+            border: 1px solid var(--color-error);
+            color: var(--color-error);
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* reCAPTCHA container */
+        .recaptcha-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: var(--color-light-bg);
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .recaptcha-container iframe {
+            max-width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -469,6 +539,8 @@
                 ✓ Sign in successful. Redirecting...
             </div>
 
+            <div class="error-message" id="errorMessage"></div>
+
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label for="email">Email Address</label>
@@ -503,12 +575,29 @@
                     </label>
                 </div>
 
+                <!-- Marketing Email Checkbox -->
+                <div class="checkbox-item">
+                    <input 
+                        type="checkbox" 
+                        id="marketingCheckbox" 
+                        name="marketing"
+                    >
+                    <label for="marketingCheckbox">
+                        Send me updates about new features and offers
+                    </label>
+                </div>
+
+                <!-- reCAPTCHA -->
+                <div class="recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                </div>
+
                 <div class="form-actions">
                     <button type="submit" class="btn-login">Sign In</button>
                 </div>
 
                 <div class="login-links">
-                    <a href="#forgot-password">Forgot password?</a>
+                    <a href="/forgot-password.html">Forgot password?</a>
                 </div>
 
                 <div class="divider">
@@ -526,27 +615,47 @@
             </form>
 
             <div class="login-footer">
-                <p>By signing in, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
+                <p>By signing in, you agree to our <a href="/terms.html" target="_blank">Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy</a></p>
             </div>
         </div>
     </div>
 
     <script>
-        function handleLogin(event) {
+        const API_BASE_URL = 'https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1';
+
+        async function handleLogin(event) {
             event.preventDefault();
             
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember').checked;
+            const marketingOptIn = document.getElementById('marketingCheckbox').checked;
             const button = event.target.querySelector('.btn-login');
 
+            // Clear previous errors
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('email').parentElement.classList.remove('error');
+            document.getElementById('password').parentElement.classList.remove('error');
+
             // Validation
-            if (!email || !password) {
-                alert('Please fill in all fields');
-                return;
+            let hasError = false;
+
+            if (!email || !email.includes('@')) {
+                document.getElementById('email').parentElement.classList.add('error');
+                hasError = true;
             }
 
-            if (!email.includes('@')) {
-                document.getElementById('email').parentElement.classList.add('error');
+            if (!password || password.length < 1) {
+                document.getElementById('password').parentElement.classList.add('error');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            // Check reCAPTCHA
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                showError('Please complete the reCAPTCHA');
                 return;
             }
 
@@ -554,34 +663,97 @@
             button.classList.add('loading');
             button.disabled = true;
 
-            // Simulate API call
-            setTimeout(() => {
-                const successMsg = document.getElementById('successMessage');
-                successMsg.style.display = 'block';
-                
-                // In production, this would call your actual auth API
-                console.log('Login attempt:', { email, password });
-                
-                // Redirect after 1.5 seconds
-                setTimeout(() => {
-                    window.location.href = '/dashboard';
-                }, 1500);
-            }, 1000);
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        rememberMe,
+                        marketingOptIn,
+                        recaptchaToken: recaptchaResponse
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    // Store tokens
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('token_type', data.token_type);
+                    if (data.refresh_token) {
+                        localStorage.setItem('refresh_token', data.refresh_token);
+                    }
+
+                    // Store email for potential use
+                    if (rememberMe) {
+                        localStorage.setItem('remembered_email', email);
+                    }
+
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.style.display = 'block';
+                    
+                    // Redirect after 1.5 seconds
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1500);
+                } else {
+                    showError(data.detail || 'Invalid email or password');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
+                grecaptcha.reset();
+            }
         }
 
         function handleSocialLogin(provider) {
             console.log('Social login with:', provider);
-            // In production, this would redirect to OAuth provider
-            alert(`Sign in with ${provider} coming soon`);
+            showError(`Sign in with ${provider} coming soon`);
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Clear error on input
         document.getElementById('email').addEventListener('input', function() {
             this.parentElement.classList.remove('error');
+            document.getElementById('errorMessage').classList.remove('show');
         });
 
         document.getElementById('password').addEventListener('input', function() {
             this.parentElement.classList.remove('error');
+            document.getElementById('errorMessage').classList.remove('show');
+        });
+
+        // Load remembered email
+        window.addEventListener('DOMContentLoaded', function() {
+            const rememberedEmail = localStorage.getItem('remembered_email');
+            if (rememberedEmail) {
+                document.getElementById('email').value = rememberedEmail;
+                document.getElementById('remember').checked = true;
+            }
+
+            // Check for verification message
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('verified')) {
+                const errorMsg = document.getElementById('errorMessage');
+                errorMsg.textContent = '✓ Email verified! You can now sign in.';
+                errorMsg.style.background = '#E8F5E9';
+                errorMsg.style.borderColor = '#4CAF50';
+                errorMsg.style.color = '#2E7D32';
+                errorMsg.classList.add('show');
+            }
         });
     </script>
 </body>

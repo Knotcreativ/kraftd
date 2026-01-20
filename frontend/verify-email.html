@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Verify your Kraftd email address">
+    <title>Verify Email - Kraftd</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00BCD4;
+            --primary-dark: #0097A7;
+            --secondary: #1A5A7A;
+            --dark-text: #1A1A1A;
+            --body-text: #536B82;
+            --light-bg: #F8F9FA;
+            --border: #E0E0E0;
+            --white: #FFFFFF;
+            --success: #4CAF50;
+            --error: #F44336;
+            --warning: #FF9800;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .status-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        .status-icon.success {
+            animation: none;
+            font-size: 60px;
+        }
+
+        .status-icon.error {
+            animation: none;
+            font-size: 60px;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .status-message h2 {
+            font-size: 20px;
+            color: var(--dark-text);
+            margin-bottom: 8px;
+        }
+
+        .status-message p {
+            color: var(--body-text);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+
+        .alert.error {
+            background: #FFEBEE;
+            color: #C62828;
+            border: 1px solid #F44336;
+        }
+
+        .alert.warning {
+            background: #FFF3E0;
+            color: #E65100;
+            border: 1px solid #FF9800;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--dark-text);
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: 50%;
+            left: 50%;
+            margin-left: -7px;
+            margin-top: -7px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--white);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--light-bg);
+        }
+
+        .countdown {
+            text-align: center;
+            color: var(--body-text);
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 30px;
+            border-top: 1px solid var(--border);
+            background: var(--light-bg);
+            font-size: 13px;
+            color: var(--body-text);
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 24px 0;
+            position: relative;
+            color: var(--body-text);
+            font-size: 12px;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider span {
+            background: var(--white);
+            padding: 0 8px;
+            position: relative;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .footer {
+                padding: 16px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Verify Email</h1>
+            <p>Complete your account setup</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Alerts -->
+            <div class="alert success" id="successAlert"></div>
+            <div class="alert error" id="errorAlert"></div>
+            <div class="alert warning" id="warningAlert"></div>
+
+            <!-- Status Message -->
+            <div class="status-message" id="statusMessage">
+                <div class="status-icon">⏱️</div>
+                <h2>Checking verification link...</h2>
+                <p>Please wait while we verify your email address.</p>
+            </div>
+
+            <!-- Resend Form (Hidden until needed) -->
+            <form id="resendForm" onsubmit="handleResendVerification(event)" style="display: none;">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="you@company.com" 
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <button type="submit" class="btn" id="resendBtn">Resend Verification Link</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='/login.html'">Back to Login</button>
+            </form>
+
+            <!-- Manual Entry (Hidden until needed) -->
+            <form id="manualForm" onsubmit="handleManualVerification(event)" style="display: none;">
+                <div class="form-group">
+                    <label for="verificationCode">Verification Code</label>
+                    <input 
+                        type="text" 
+                        id="verificationCode" 
+                        name="verificationCode" 
+                        placeholder="Paste the code from your email" 
+                        required
+                    >
+                    <div style="font-size: 12px; color: var(--body-text); margin-top: 8px;">
+                        Check your email for the verification code
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="verifyBtn">Verify Email</button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer" id="footer">
+            <p>Already verified? <a href="/login.html">Sign In</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1';
+
+        // Get token and email from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const email = urlParams.get('email');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (token) {
+                // Auto-verify with token
+                verifyWithToken(token);
+            } else if (email) {
+                // Show resend form
+                showResendForm(email);
+            } else {
+                // Show manual form
+                showManualForm();
+            }
+        });
+
+        async function verifyWithToken(token) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('Email verified successfully! Redirecting to login...');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login.html?verified=true';
+                    }, 2000);
+                } else {
+                    showTokenError(data.detail || 'Verification failed. The link may have expired.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showTokenError('Network error. Please try again.');
+            }
+        }
+
+        function showSuccess(message) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.innerHTML = `
+                <div class="status-icon success">✅</div>
+                <h2>Email Verified!</h2>
+                <p>${message}</p>
+            `;
+        }
+
+        function showTokenError(message) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.innerHTML = `
+                <div class="status-icon error">❌</div>
+                <h2>Verification Failed</h2>
+                <p>${message}</p>
+            `;
+
+            // Show resend form after 2 seconds
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+                document.getElementById('resendForm').style.display = 'block';
+                if (email) {
+                    document.getElementById('email').value = email;
+                }
+            }, 2000);
+        }
+
+        function showResendForm(emailAddress) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.innerHTML = `
+                <div class="status-icon">📧</div>
+                <h2>Resend Verification Link?</h2>
+                <p>We'll send a new verification link to your email address.</p>
+            `;
+            document.getElementById('resendForm').style.display = 'block';
+            document.getElementById('email').value = emailAddress;
+        }
+
+        function showManualForm() {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.innerHTML = `
+                <div class="status-icon">🔐</div>
+                <h2>Enter Verification Code</h2>
+                <p>Check your email for the verification code we sent you.</p>
+            `;
+            document.getElementById('manualForm').style.display = 'block';
+        }
+
+        async function handleResendVerification(event) {
+            event.preventDefault();
+
+            const emailAddress = document.getElementById('email').value.trim();
+            const resendBtn = document.getElementById('resendBtn');
+
+            if (!emailAddress || !emailAddress.includes('@')) {
+                document.getElementById('email').style.borderColor = 'var(--error)';
+                return;
+            }
+
+            resendBtn.classList.add('loading');
+            resendBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: emailAddress })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('success', 'Verification link sent! Check your email.');
+                    
+                    // Show manual form as alternative
+                    document.getElementById('resendForm').style.display = 'none';
+                    document.getElementById('statusMessage').innerHTML = `
+                        <div class="status-icon">📧</div>
+                        <h2>Email Sent!</h2>
+                        <p>Check your email for the verification link.</p>
+                    `;
+
+                    setTimeout(() => {
+                        showManualForm();
+                    }, 3000);
+                } else {
+                    showAlert('error', data.detail || 'Failed to resend verification link.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', 'Network error. Please check your connection.');
+            } finally {
+                resendBtn.classList.remove('loading');
+                resendBtn.disabled = false;
+            }
+        }
+
+        async function handleManualVerification(event) {
+            event.preventDefault();
+
+            const code = document.getElementById('verificationCode').value.trim();
+            const verifyBtn = document.getElementById('verifyBtn');
+
+            if (!code) {
+                document.getElementById('verificationCode').style.borderColor = 'var(--error)';
+                return;
+            }
+
+            verifyBtn.classList.add('loading');
+            verifyBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: code })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('Email verified successfully! Redirecting...');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login.html?verified=true';
+                    }, 2000);
+                } else {
+                    showAlert('error', data.detail || 'Invalid verification code. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', 'Network error. Please try again.');
+            } finally {
+                verifyBtn.classList.remove('loading');
+                verifyBtn.disabled = false;
+            }
+        }
+
+        function showAlert(type, message) {
+            const alert = document.getElementById(type + 'Alert');
+            alert.textContent = message;
+            alert.classList.add('show');
+        }
+
+        document.getElementById('email')?.addEventListener('input', function() {
+            this.style.borderColor = '';
+        });
+
+        document.getElementById('verificationCode')?.addEventListener('input', function() {
+            this.style.borderColor = '';
+        });
+    </script>
+</body>
+</html>
