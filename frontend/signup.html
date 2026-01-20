@@ -162,6 +162,12 @@
             line-height: 1.5;
         }
 
+        .checkbox-item.required label::after {
+            content: " *";
+            color: var(--error);
+            font-weight: bold;
+        }
+
         .checkbox-item a {
             color: var(--primary);
             text-decoration: none;
@@ -421,7 +427,7 @@
 
                 <!-- Checkboxes -->
                 <div class="checkbox-group">
-                    <div class="checkbox-item">
+                    <div class="checkbox-item required">
                         <input 
                             type="checkbox" 
                             id="termsCheckbox" 
