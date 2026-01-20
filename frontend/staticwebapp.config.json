@@ -9,6 +9,22 @@
       "rewrite": "/signin.html"
     },
     {
+      "route": "/signup.html",
+      "rewrite": "/signup.html"
+    },
+    {
+      "route": "/forgot-password.html",
+      "rewrite": "/forgot-password.html"
+    },
+    {
+      "route": "/reset-password.html",
+      "rewrite": "/reset-password.html"
+    },
+    {
+      "route": "/verify-email.html",
+      "rewrite": "/verify-email.html"
+    },
+    {
       "route": "/chat.html",
       "rewrite": "/chat.html"
     },
