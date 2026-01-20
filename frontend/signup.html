@@ -362,18 +362,32 @@
                     <div class="form-error">Please enter a valid email address</div>
                 </div>
 
-                <!-- Full Name -->
+                <!-- First Name -->
                 <div class="form-group required">
-                    <label for="fullName">Full Name</label>
+                    <label for="firstName">First Name</label>
                     <input 
                         type="text" 
-                        id="fullName" 
-                        name="fullName" 
-                        placeholder="John Doe" 
+                        id="firstName" 
+                        name="firstName" 
+                        placeholder="John" 
                         required
-                        autocomplete="name"
+                        autocomplete="given-name"
                     >
-                    <div class="form-error">Please enter your full name</div>
+                    <div class="form-error">Please enter your first name</div>
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-group required">
+                    <label for="lastName">Last Name</label>
+                    <input 
+                        type="text" 
+                        id="lastName" 
+                        name="lastName" 
+                        placeholder="Doe" 
+                        required
+                        autocomplete="family-name"
+                    >
+                    <div class="form-error">Please enter your last name</div>
                 </div>
 
                 <!-- Password -->
@@ -529,11 +543,11 @@
 
             // Get form values
             const email = document.getElementById('email').value.trim();
-            const fullName = document.getElementById('fullName').value.trim();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const termsAccepted = document.getElementById('termsCheckbox').checked;
-            const privacyAccepted = document.getElementById('privacyCheckbox').checked;
             const marketingOptIn = document.getElementById('marketingCheckbox').checked;
 
             // Clear previous alerts
@@ -548,8 +562,13 @@
                 hasError = true;
             }
 
-            if (!fullName || fullName.length < 2) {
-                document.getElementById('fullName').parentElement.classList.add('error');
+            if (!firstName || firstName.length < 2) {
+                document.getElementById('firstName').parentElement.classList.add('error');
+                hasError = true;
+            }
+
+            if (!lastName || lastName.length < 2) {
+                document.getElementById('lastName').parentElement.classList.add('error');
                 hasError = true;
             }
 
@@ -563,7 +582,7 @@
                 hasError = true;
             }
 
-            if (!termsAccepted || !privacyAccepted) {
+            if (!termsAccepted) {
                 showError('You must accept Terms of Service and Privacy Policy');
                 return;
             }
@@ -592,7 +611,8 @@
                     body: JSON.stringify({
                         email,
                         password,
-                        name: fullName,
+                        firstName,
+                        lastName,
                         acceptTerms: termsAccepted,
                         acceptPrivacy: privacyAccepted,
                         marketingOptIn,
@@ -640,7 +660,7 @@
         }
 
         // Clear errors on input
-        ['email', 'fullName', 'password', 'confirmPassword'].forEach(id => {
+        ['email', 'firstName', 'lastName', 'password', 'confirmPassword'].forEach(id => {
             document.getElementById(id).addEventListener('input', function() {
                 this.parentElement.classList.remove('error');
             });
