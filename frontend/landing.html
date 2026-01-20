@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kraftd - Supply Chain Intelligence | Docs, Pro, Mobility</title>
+    <meta name="description" content="Kraftd - Audit-native intelligence for supply chain professionals. Docs, Pro, Mobility.">
+    <title>Kraftd - Supply Chain Intelligence</title>
     <style>
         * {
             margin: 0;
@@ -11,338 +12,557 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            color: #333;
-            background-color: #fff;
-            line-height: 1.5;
+        :root {
+            --primary: #00BCD4;
+            --primary-dark: #0097A7;
+            --secondary: #1A5A7A;
+            --dark-text: #1A1A1A;
+            --body-text: #536B82;
+            --light-bg: #F8F9FA;
+            --border: #E0E0E0;
+            --white: #FFFFFF;
+            --success: #4CAF50;
         }
 
-        /* Navigation */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background-color: var(--white);
+            color: var(--body-text);
+            line-height: 1.6;
+        }
+
+        /* ===== NAVIGATION ===== */
         nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 40px;
-            border-bottom: 1px solid #eee;
+            padding: 16px 60px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 100;
-            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
-        .nav-logo {
+        .nav-brand {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 18px;
-            color: #2C3E50;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark-text);
         }
 
-        .nav-logo img {
-            width: 28px;
-            height: 28px;
+        .nav-brand img {
+            width: 32px;
+            height: 32px;
         }
 
-        .nav-links {
+        .nav-menu {
             display: flex;
-            gap: 40px;
+            gap: 50px;
             list-style: none;
         }
 
-        .nav-links a {
+        .nav-menu a {
             text-decoration: none;
-            color: #666;
+            color: var(--body-text);
             font-size: 14px;
             font-weight: 500;
             transition: color 0.2s;
         }
 
-        .nav-links a:hover {
-            color: #00BCD4;
+        .nav-menu a:hover {
+            color: var(--primary);
         }
 
-        .nav-cta {
+        .nav-actions {
             display: flex;
-            gap: 12px;
+            gap: 16px;
+            align-items: center;
         }
 
         .btn {
-            padding: 8px 20px;
-            border-radius: 2px;
+            padding: 10px 24px;
             border: none;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.2s;
             text-decoration: none;
             display: inline-block;
+            text-align: center;
         }
 
         .btn-primary {
-            background: #00BCD4;
-            color: white;
+            background: var(--primary);
+            color: var(--white);
         }
 
         .btn-primary:hover {
-            background: #0097A7;
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.2);
         }
 
         .btn-secondary {
-            border: 1px solid #00BCD4;
-            color: #00BCD4;
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
             background: transparent;
         }
 
         .btn-secondary:hover {
-            background: #F0F8F9;
+            background: rgba(0, 188, 212, 0.05);
         }
 
-        /* Hero */
+        /* ===== HERO SECTION ===== */
         .hero {
-            padding: 80px 40px;
-            max-width: 1200px;
+            padding: 100px 60px;
+            background: linear-gradient(135deg, #F8F9FA 0%, #F0F7F8 100%);
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 900px;
             margin: 0 auto;
-            text-align: left;
         }
 
         .hero h1 {
-            font-size: 48px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 20px;
-            max-width: 600px;
+            font-size: 56px;
+            font-weight: 700;
+            color: var(--dark-text);
+            margin-bottom: 24px;
+            line-height: 1.2;
         }
 
-        .hero p {
+        .hero-subtitle {
             font-size: 18px;
-            color: #666;
-            margin-bottom: 32px;
-            max-width: 600px;
+            color: var(--body-text);
+            margin-bottom: 40px;
             line-height: 1.6;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .hero-cta {
             display: flex;
-            gap: 12px;
+            gap: 16px;
+            justify-content: center;
         }
 
-        /* Services Grid */
+        /* ===== SERVICES SECTION ===== */
         .services {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 60px 40px;
+            padding: 100px 60px;
+            background: var(--white);
         }
 
-        .services h2 {
-            font-size: 32px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 40px;
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-header h2 {
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--dark-text);
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            font-size: 18px;
+            color: var(--body-text);
         }
 
         .services-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 40px;
         }
 
         .service-card {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 0;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            transition: all 0.3s;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .service-card:hover {
-            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 12px 40px rgba(0, 188, 212, 0.1);
+            transform: translateY(-8px);
         }
 
-        .service-image {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);
-            border-radius: 4px;
+        .service-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 64px;
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(26, 90, 122, 0.1));
+            border-radius: 8px;
         }
 
-        .service-content h2 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 8px;
+        .service-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: var(--primary);
+            stroke-width: 1.5;
+            fill: none;
         }
 
-        .service-content p {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.6;
+        .service-card h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark-text);
             margin-bottom: 12px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background: rgba(0, 188, 212, 0.1);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .service-card p {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--body-text);
+            margin-bottom: 24px;
+        }
+
+        .service-metrics {
+            display: flex;
+            gap: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            margin-top: 24px;
+        }
+
+        .metric {
+            flex: 1;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--body-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
         }
 
         .service-link {
-            font-size: 14px;
-            color: #00BCD4;
+            color: var(--primary);
             text-decoration: none;
-            font-weight: 500;
-            display: inline-block;
+            font-weight: 600;
+            font-size: 14px;
             transition: color 0.2s;
+            display: inline-block;
         }
 
         .service-link:hover {
-            color: #0097A7;
-            text-decoration: underline;
+            color: var(--primary-dark);
         }
 
-        /* Pricing */
+        /* ===== PRICING SECTION ===== */
         .pricing {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 60px 40px;
-        }
-
-        .pricing h2 {
-            font-size: 32px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 12px;
-        }
-
-        .pricing-intro {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 40px;
+            padding: 100px 60px;
+            background: var(--light-bg);
         }
 
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 60px;
         }
 
         .pricing-card {
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            padding: 32px;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .pricing-card:hover {
-            border-color: #00BCD4;
-            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.1);
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            transition: all 0.3s;
+            position: relative;
         }
 
         .pricing-card.featured {
-            border-color: #00BCD4;
-            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.15);
+            border-color: var(--primary);
+            box-shadow: 0 12px 40px rgba(0, 188, 212, 0.15);
+            transform: scale(1.02);
         }
 
-        .pricing-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #666;
+        .pricing-badge {
+            font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: var(--primary);
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .pricing-card h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark-text);
             margin-bottom: 12px;
         }
 
         .pricing-amount {
-            font-size: 40px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 8px;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
         }
 
         .pricing-period {
             font-size: 14px;
-            color: #666;
-            margin-bottom: 24px;
+            color: var(--body-text);
+            margin-bottom: 30px;
         }
 
         .pricing-features {
-            text-align: left;
             list-style: none;
-            margin: 24px 0;
-            border-top: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-            padding: 24px 0;
+            margin-bottom: 30px;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 30px 0;
         }
 
         .pricing-features li {
-            font-size: 13px;
-            color: #666;
-            padding: 8px 0;
+            padding: 10px 0;
+            font-size: 14px;
+            color: var(--body-text);
         }
 
         .pricing-features li::before {
             content: "✓ ";
-            color: #00BCD4;
-            font-weight: 600;
+            color: var(--success);
+            font-weight: 700;
             margin-right: 8px;
         }
 
-        .pricing-cta {
-            margin-top: 24px;
+        /* ===== BENEFITS SECTION ===== */
+        .benefits {
+            padding: 100px 60px;
+            background: var(--white);
         }
 
-        /* CTA Section */
+        .benefits-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .benefits-list {
+            list-style: none;
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .benefit-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.15), rgba(26, 90, 122, 0.1));
+            border-radius: 8px;
+        }
+
+        .benefit-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--primary);
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .benefit-text h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark-text);
+            margin-bottom: 8px;
+        }
+
+        .benefit-text p {
+            font-size: 14px;
+            color: var(--body-text);
+            line-height: 1.6;
+        }
+
+        .benefit-callout {
+            background: linear-gradient(135deg, #F0F7F8, #E8F4F6);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .benefit-callout::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 188, 212, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .benefit-callout > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .benefit-callout h4 {
+            font-size: 20px;
+            color: var(--dark-text);
+            margin-bottom: 16px;
+        }
+
+        .benefit-callout p {
+            color: var(--body-text);
+            margin-bottom: 24px;
+        }
+
+        /* ===== CTA SECTION ===== */
         .cta-final {
-            background: linear-gradient(135deg, #00BCD4 0%, #1A5A7A 100%);
-            color: white;
-            padding: 60px 40px;
+            padding: 80px 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
             text-align: center;
         }
 
         .cta-final h2 {
-            font-size: 36px;
-            font-weight: 600;
+            font-size: 40px;
+            font-weight: 700;
             margin-bottom: 16px;
         }
 
         .cta-final p {
             font-size: 16px;
-            margin-bottom: 32px;
+            margin-bottom: 40px;
             opacity: 0.95;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .cta-final .btn {
-            background: white;
-            color: #00BCD4;
+            background: var(--white);
+            color: var(--primary);
         }
 
         .cta-final .btn:hover {
-            background: #f0f8f9;
+            background: rgba(255, 255, 255, 0.95);
         }
 
-        /* Footer */
+        /* ===== FOOTER ===== */
         footer {
-            background: #f5f5f5;
-            padding: 40px;
-            text-align: center;
-            font-size: 13px;
-            color: #666;
-            border-top: 1px solid #eee;
+            background: #2C3E50;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 50px 60px;
+            font-size: 14px;
         }
 
-        footer a {
-            color: #00BCD4;
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h4 {
+            color: var(--white);
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
+            line-height: 1.8;
+            transition: color 0.2s;
         }
 
-        footer a:hover {
-            text-decoration: underline;
+        .footer-section a:hover {
+            color: var(--white);
         }
 
-        /* Responsive */
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            nav {
+                padding: 16px 40px;
+            }
+
+            .nav-menu {
+                gap: 30px;
+            }
+
+            .hero {
+                padding: 80px 40px;
+            }
+
+            .hero h1 {
+                font-size: 44px;
+            }
+
+            .services, .pricing, .benefits, .cta-final, footer {
+                padding: 80px 40px;
+            }
+
+            .services-grid, .pricing-grid {
+                gap: 30px;
+            }
+        }
+
         @media (max-width: 768px) {
             nav {
                 flex-direction: column;
@@ -350,41 +570,56 @@
                 padding: 12px 20px;
             }
 
-            .nav-links {
+            .nav-menu {
                 gap: 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .nav-actions {
+                flex-direction: column;
+                width: 100%;
+                gap: 12px;
             }
 
             .hero {
-                padding: 40px 20px;
+                padding: 60px 20px;
             }
 
             .hero h1 {
                 font-size: 32px;
             }
 
-            .hero p {
-                font-size: 16px;
+            .services, .pricing, .benefits, .cta-final, footer {
+                padding: 60px 20px;
             }
 
-            .services,
-            .segments,
-            .pricing {
-                padding: 40px 20px;
-            }
-
-            .services-grid,
-            .segments-grid,
-            .pricing-grid {
+            .services-grid, .pricing-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .benefits-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
             }
 
             .hero-cta {
                 flex-direction: column;
             }
 
-            .hero-cta .btn {
+            .btn {
                 width: 100%;
-                text-align: center;
             }
         }
     </style>
@@ -392,121 +627,241 @@
 <body>
     <!-- Navigation -->
     <nav>
-        <a href="/" class="nav-logo">
+        <a href="/" class="nav-brand">
             <img src="/assets/kraftd-icon.svg" alt="Kraftd">
             Kraftd
         </a>
-        <ul class="nav-links">
+        <ul class="nav-menu">
             <li><a href="#services">Services</a></li>
             <li><a href="#pricing">Pricing</a></li>
         </ul>
-        <div class="nav-cta">
+        <div class="nav-actions">
             <a href="/login.html" class="btn btn-secondary">Sign In</a>
             <a href="/login.html" class="btn btn-primary">Get Started</a>
         </div>
     </nav>
 
-    <!-- Hero -->
+    <!-- Hero Section -->
     <section class="hero">
-        <h1>Compliance, Verified. Risk, Managed. Intelligence, Real-Time.</h1>
-        <p>Audit-native intelligence for supply chain professionals who can't afford to miss compliance gaps.</p>
-        <div class="hero-cta">
-            <a href="/login.html" class="btn btn-primary">Start Free</a>
-            <a href="mailto:connect@kraftd.io" class="btn btn-secondary">Enterprise Inquiry</a>
+        <div class="hero-content">
+            <h1>Compliance, Verified. Risk, Managed. Intelligence, Real-Time.</h1>
+            <p class="hero-subtitle">Audit-native intelligence for supply chain professionals. From contract review to supplier verification—in minutes, not weeks.</p>
+            <div class="hero-cta">
+                <a href="/login.html" class="btn btn-primary">Start Free</a>
+                <a href="mailto:connect@kraftd.io" class="btn btn-secondary">Enterprise Inquiry</a>
+            </div>
         </div>
     </section>
 
-    <!-- Services -->
+    <!-- Services Section -->
     <section class="services" id="services">
-        <h2>The Kraftd Suite</h2>
+        <div class="section-header">
+            <h2>The Kraftd Suite</h2>
+            <p>Three integrated services for modern supply chain teams</p>
+        </div>
 
         <div class="services-grid">
             <!-- Kraftd Docs -->
             <div class="service-card">
-                <div class="service-image">📄</div>
-                <div class="service-content">
-                    <h2>Kraftd Docs</h2>
-                    <p><strong>Contracts reviewed 95% faster.</strong> Upload contracts, supplier agreements, or compliance documents. AI instantly extracts obligations, liabilities, and red flags. From 4-6 hours manual review to under 5 minutes.</p>
-                    <a href="#pricing" class="service-link">Learn more →</a>
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                        <path d="M8 6h6M8 10h6M8 14h4"/>
+                    </svg>
                 </div>
+                <span class="service-badge">B2C • Freemium</span>
+                <h3>Kraftd Docs</h3>
+                <p><strong>Contracts reviewed 95% faster.</strong> Upload agreements, RFQs, or compliance documents. AI instantly identifies obligations, risks, and red flags. From 4-6 hours to 5 minutes.</p>
+                <div class="service-metrics">
+                    <div class="metric">
+                        <div class="metric-value">95%</div>
+                        <div class="metric-label">Faster</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">5 min</div>
+                        <div class="metric-label">Review Time</div>
+                    </div>
+                </div>
+                <a href="#pricing" class="service-link">View Pricing →</a>
             </div>
 
             <!-- Kraftd Pro -->
             <div class="service-card">
-                <div class="service-image">🔍</div>
-                <div class="service-content">
-                    <h2>Kraftd Pro</h2>
-                    <p><strong>Compliance gaps identified 3x faster.</strong> Enterprise-grade supplier intelligence and audit automation. Built from real supply chain data, identifies compliance risks, financial health, and regulatory exposure before they become problems.</p>
-                    <a href="mailto:connect@kraftd.io" class="service-link">Contact sales →</a>
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                        <path d="M11 8v6M8 11h6"/>
+                    </svg>
                 </div>
+                <span class="service-badge">Enterprise</span>
+                <h3>Kraftd Pro</h3>
+                <p><strong>Compliance gaps identified 3x faster.</strong> Real-time supplier intelligence, risk monitoring, and regulatory tracking. Built from supply chain patterns, not generic data.</p>
+                <div class="service-metrics">
+                    <div class="metric">
+                        <div class="metric-value">3x</div>
+                        <div class="metric-label">Faster</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">Real-time</div>
+                        <div class="metric-label">Monitoring</div>
+                    </div>
+                </div>
+                <a href="mailto:connect@kraftd.io" class="service-link">Contact Sales →</a>
             </div>
 
             <!-- Kraftd Mobility -->
             <div class="service-card">
-                <div class="service-image">📱</div>
-                <div class="service-content">
-                    <h2>Kraftd Mobility</h2>
-                    <p><strong>Audit completion time reduced 40%.</strong> Field-first verification for construction, industrial, and on-site audits. Real-time data capture, offline sync, instant intelligence. Paper checklists become intelligent verification.</p>
-                    <a href="mailto:connect@kraftd.io" class="service-link">Contact sales →</a>
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                        <path d="M12 18h.01M9 5h6"/>
+                    </svg>
                 </div>
+                <span class="service-badge">Enterprise</span>
+                <h3>Kraftd Mobility</h3>
+                <p><strong>Audit time reduced 40%.</strong> Field-first verification for construction, industrial, and on-site audits. Offline sync, real-time intelligence, zero paper.</p>
+                <div class="service-metrics">
+                    <div class="metric">
+                        <div class="metric-value">40%</div>
+                        <div class="metric-label">Faster</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">Offline</div>
+                        <div class="metric-label">Capable</div>
+                    </div>
+                </div>
+                <a href="mailto:connect@kraftd.io" class="service-link">Contact Sales →</a>
             </div>
         </div>
     </section>
 
-    <!-- Pricing -->
+    <!-- Benefits Section -->
+    <section class="benefits" id="benefits">
+        <div class="section-header">
+            <h2>Why Kraftd</h2>
+            <p>Built for modern supply chain professionals</p>
+        </div>
+
+        <div class="benefits-content">
+            <ul class="benefits-list">
+                <li class="benefit-item">
+                    <div class="benefit-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                            <polyline points="13 2 13 9 20 9"/>
+                            <path d="M9 15h6M9 11h6"/>
+                        </svg>
+                    </div>
+                    <div class="benefit-text">
+                        <h4>Intelligence, Not Automation</h4>
+                        <p>Deeply analyze supplier risk, compliance requirements, and contract obligations. AI explains the "why" behind every decision.</p>
+                    </div>
+                </li>
+                <li class="benefit-item">
+                    <div class="benefit-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v4"/>
+                        </svg>
+                    </div>
+                    <div class="benefit-text">
+                        <h4>Your Data. Your Control.</h4>
+                        <p>Enterprise-grade encryption. Multi-region compliance. We process, never store your confidential supplier or financial data.</p>
+                    </div>
+                </li>
+                <li class="benefit-item">
+                    <div class="benefit-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="m16 12-4-4-4 4"/>
+                        </svg>
+                    </div>
+                    <div class="benefit-text">
+                        <h4>Audit-Native Design</h4>
+                        <p>Built from real procurement workflows. Not a generic document tool. Every feature addresses actual audit and compliance gaps.</p>
+                    </div>
+                </li>
+                <li class="benefit-item">
+                    <div class="benefit-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v12M6 12h12"/>
+                        </svg>
+                    </div>
+                    <div class="benefit-text">
+                        <h4>Multi-Tenant Enterprise Ready</h4>
+                        <p>Single dashboard for teams. Role-based access. Integrated compliance reporting. Scale from 5 users to 500.</p>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="benefit-callout">
+                <div style="font-size: 48px; margin-bottom: 20px;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="stroke: var(--success); fill: var(--success);">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <h4>Ready to simplify compliance?</h4>
+                <p>Join compliance teams and procurement professionals streamlining their workflow.</p>
+                <a href="/login.html" class="btn btn-primary">Start Free Today</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
     <section class="pricing" id="pricing">
-        <h2>Kraftd Docs Pricing</h2>
-        <p class="pricing-intro">Start free. Upgrade as you scale. Enterprise teams get dedicated support.</p>
+        <div class="section-header">
+            <h2>Simple, Transparent Pricing</h2>
+            <p>Kraftd Docs. Kraftd Pro & Mobility available by enterprise subscription.</p>
+        </div>
 
         <div class="pricing-grid">
             <!-- Free -->
             <div class="pricing-card">
-                <div class="pricing-label">Free</div>
+                <div class="pricing-badge">Free</div>
+                <h3>Starter</h3>
                 <div class="pricing-amount">$0</div>
-                <div class="pricing-period">Forever</div>
+                <div class="pricing-period">Forever free</div>
                 <ul class="pricing-features">
                     <li>5 documents/month</li>
                     <li>Contract analysis</li>
                     <li>Risk extraction</li>
                     <li>Email support</li>
                 </ul>
-                <div class="pricing-cta">
-                    <a href="/login.html" class="btn btn-secondary">Get Started</a>
-                </div>
+                <a href="/login.html" class="btn btn-secondary" style="width: 100%;">Get Started</a>
             </div>
 
             <!-- Premium -->
             <div class="pricing-card featured">
-                <div class="pricing-label">Premium</div>
+                <div class="pricing-badge">Most Popular</div>
+                <h3>Professional</h3>
                 <div class="pricing-amount">$29</div>
                 <div class="pricing-period">per month</div>
                 <ul class="pricing-features">
                     <li>100 documents/month</li>
                     <li>Priority analysis</li>
-                    <li>Team sharing</li>
+                    <li>Team collaboration</li>
                     <li>Compliance reports</li>
                     <li>Priority support</li>
                 </ul>
-                <div class="pricing-cta">
-                    <a href="/login.html" class="btn btn-primary">Start Free Trial</a>
-                </div>
+                <a href="/login.html" class="btn btn-primary" style="width: 100%;">Start Free Trial</a>
             </div>
 
             <!-- Enterprise -->
             <div class="pricing-card">
-                <div class="pricing-label">Enterprise</div>
+                <div class="pricing-badge">Enterprise</div>
+                <h3>Scale</h3>
                 <div class="pricing-amount">Custom</div>
-                <div class="pricing-period">Tailored to you</div>
+                <div class="pricing-period">Tailored pricing</div>
                 <ul class="pricing-features">
                     <li>Unlimited documents</li>
                     <li>Custom workflows</li>
                     <li>Team management</li>
                     <li>API access</li>
-                    <li>Free consulting</li>
+                    <li>Dedicated support</li>
                 </ul>
-                <div class="pricing-cta">
-                    <a href="mailto:connect@kraftd.io" class="btn btn-secondary">Schedule Call</a>
-                </div>
+                <a href="mailto:connect@kraftd.io" class="btn btn-secondary" style="width: 100%;">Schedule Call</a>
             </div>
         </div>
     </section>
@@ -514,23 +869,64 @@
     <!-- CTA Final -->
     <section class="cta-final">
         <h2>Stop Wasting Time. Start Gaining Intelligence.</h2>
-        <p>Compliance officers, procurement teams, auditors, and industrial professionals—Kraftd is built for you.</p>
+        <p>Compliance officers, procurement professionals, auditors—Kraftd is built for you. Free to try. No credit card required.</p>
         <a href="/login.html" class="btn btn-primary">Start Free Today</a>
     </section>
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2026 Kraftd. Built for supply chain professionals. | <a href="/privacy.html">Privacy</a> | <a href="/terms.html">Terms</a> | <a href="mailto:connect@kraftd.io">connect@kraftd.io</a></p>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="mailto:connect@kraftd.io">Enterprise</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="https://blog.kraftd.io" target="_blank">Blog</a></li>
+                    <li><a href="mailto:connect@kraftd.io">Contact</a></li>
+                    <li><a href="https://twitter.com/kraftd" target="_blank">Twitter</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="/privacy.html">Privacy</a></li>
+                    <li><a href="/terms.html">Terms</a></li>
+                    <li><a href="/security.html">Security</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="mailto:support@kraftd.io">support@kraftd.io</a></li>
+                    <li><a href="mailto:connect@kraftd.io">Sales Inquiry</a></li>
+                    <li><a href="https://docs.kraftd.io" target="_blank">Docs</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 Kraftd. Built for supply chain professionals.</p>
+            <p>🇦🇪 Made in the UAE | 🌍 Serving global teams</p>
+        </div>
     </footer>
 
     <script>
-        // Smooth scroll
+        // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
                 }
             });
         });
