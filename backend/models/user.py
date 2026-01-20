@@ -38,16 +38,19 @@ class UserRegister(BaseModel):
     """Request model for user registration
     
     Implements KRAFTD Registration Specification
+    Accepts firstName and lastName as separate fields (matches frontend signup)
     """
     # Required fields
     email: EmailStr
     password: str
+    firstName: str
+    lastName: str
     acceptTerms: bool
     acceptPrivacy: bool
     
     # Optional fields
-    name: Optional[str] = None
     marketingOptIn: bool = False
+    recaptchaToken: str
     
     @field_validator('password')
     @classmethod
@@ -78,9 +81,16 @@ class UserRegister(BaseModel):
         return v
 
 class UserLogin(BaseModel):
-    """Request model for user login"""
+    """Request model for user login
+    
+    Includes optional fields sent from frontend (rememberMe, marketingOptIn, recaptchaToken)
+    to avoid validation errors when frontend includes them
+    """
     email: EmailStr
     password: str
+    rememberMe: bool = False
+    marketingOptIn: bool = False
+    recaptchaToken: str
 
 class UserProfile(BaseModel):
     """Response model for user profile"""

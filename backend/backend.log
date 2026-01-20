@@ -2851,3 +2851,86 @@ RuntimeError: Failed to initialize KraftdAIAgent. Ensure AZURE_OPENAI_ENDPOINT a
 2026-01-18 18:45:57,487 - main - INFO - ============================================================
 2026-01-18 18:45:57,490 - metrics - INFO - Metrics exported to metrics_export.json
 2026-01-18 18:45:57,491 - main - INFO - [OK] Metrics exported successfully
+2026-01-20 07:52:11,364 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-20 07:52:11,390 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-20 07:52:11,391 - main - WARNING - [WARN] Agent API routes not available - agent functionality disabled
+2026-01-20 07:52:11,392 - main - WARNING - [WARN] Template routes not available - document generation disabled
+2026-01-20 07:52:11,394 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-20 07:52:11,403 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-20 07:52:11,404 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-20 07:52:11,406 - main - WARNING - [WARN] Advanced ML routes not available - advanced analytics disabled
+2026-01-20 07:52:11,421 - main - INFO - [OK] User profile routes registered at /api/v1/user
+2026-01-20 07:52:11,428 - main - INFO - [OK] Data enhancement routes registered at /api/v1/data-enhancement
+2026-01-20 07:52:11,442 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-20 07:52:11,442 - main - INFO - ============================================================
+2026-01-20 07:52:11,443 - main - INFO - Starting Kraftd Docs Backend
+2026-01-20 07:52:11,443 - main - INFO - ============================================================
+2026-01-20 07:52:11,444 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-20 07:52:11,444 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-20 07:52:11,444 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-20 07:52:11,445 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-20 07:52:11,445 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-20 07:52:11,445 - services.cosmos_service - WARNING - Cosmos DB credentials not configured, running in development mode
+2026-01-20 07:52:11,446 - main - WARNING - [WARN] Cosmos DB not initialized, ProfileService in fallback mode
+2026-01-20 07:52:11,446 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-20 07:52:11,446 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-20 07:52:11,446 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-20 07:52:11,447 - main - INFO - [OK] Upload directory is writable
+2026-01-20 07:52:11,447 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-20 07:52:11,447 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-20 07:52:11,448 - main - INFO - ============================================================
+2026-01-20 07:52:11,448 - main - INFO - Startup Configuration:
+2026-01-20 07:52:11,448 - main - INFO -   Request Timeout: 30.0s
+2026-01-20 07:52:11,449 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-20 07:52:11,449 - main - INFO -   Max Retries: 3
+2026-01-20 07:52:11,450 - main - INFO -   Rate Limiting: Enabled
+2026-01-20 07:52:11,450 - main - INFO -   Metrics: Enabled
+2026-01-20 07:52:11,450 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-20 07:52:11,451 - main - INFO -   User Profiles: Enabled
+2026-01-20 07:52:11,451 - main - INFO - ============================================================
+2026-01-20 07:52:11,452 - main - INFO - Startup completed successfully
+2026-01-20 07:52:11,452 - main - INFO - ============================================================
+2026-01-20 07:52:11,453 - main - INFO - ============================================================
+2026-01-20 07:52:11,453 - main - INFO - Shutting down Kraftd Docs Backend
+2026-01-20 07:52:11,453 - main - INFO - ============================================================
+2026-01-20 07:52:11,455 - metrics - INFO - Metrics exported to metrics_export.json
+2026-01-20 07:52:11,455 - main - INFO - [OK] Metrics exported successfully
+2026-01-20 07:52:27,470 - main - INFO - Rate limiting enabled: 60 req/min
+2026-01-20 07:52:27,478 - main - INFO - [OK] Auth routes registered at /api/v1/auth
+2026-01-20 07:52:27,478 - main - WARNING - [WARN] Agent API routes not available - agent functionality disabled
+2026-01-20 07:52:27,478 - main - WARNING - [WARN] Template routes not available - document generation disabled
+2026-01-20 07:52:27,478 - main - WARNING - [WARN] Signals routes not available - signals intelligence disabled
+2026-01-20 07:52:27,481 - main - INFO - [OK] Streaming routes registered at /api/v1/ws
+2026-01-20 07:52:27,481 - main - WARNING - [WARN] Events routes not available - historical data disabled
+2026-01-20 07:52:27,482 - main - WARNING - [WARN] Advanced ML routes not available - advanced analytics disabled
+2026-01-20 07:52:27,486 - main - INFO - [OK] User profile routes registered at /api/v1/user
+2026-01-20 07:52:27,490 - main - INFO - [OK] Data enhancement routes registered at /api/v1/data-enhancement
+2026-01-20 07:52:27,499 - rate_limit - INFO - Rate limiting enabled: 60 req/min, 1000 req/hour
+2026-01-20 07:52:27,500 - main - INFO - ============================================================
+2026-01-20 07:52:27,500 - main - INFO - Starting Kraftd Docs Backend
+2026-01-20 07:52:27,500 - main - INFO - ============================================================
+2026-01-20 07:52:27,500 - main - INFO - Configuration valid - Timeout: 30.0s, Retries: 3
+2026-01-20 07:52:27,500 - main - INFO - Initializing Azure Cosmos DB...
+2026-01-20 07:52:27,500 - services.secrets_manager - INFO - Running in development mode - using environment variables for secrets
+2026-01-20 07:52:27,500 - main - WARNING - [WARN] Could not initialize Cosmos DB: Secret 'cosmos-endpoint' not found in Key Vault or environment variables. Set COSMOS_ENDPOINT environment variable or configure AZURE_KEYVAULT_URL.
+2026-01-20 07:52:27,500 - main - INFO -       Continuing with fallback mode (in-memory storage)
+2026-01-20 07:52:27,500 - services.cosmos_service - WARNING - Cosmos DB credentials not configured, running in development mode
+2026-01-20 07:52:27,500 - main - WARNING - [WARN] Cosmos DB not initialized, ProfileService in fallback mode
+2026-01-20 07:52:27,501 - main - WARNING - [WARN] Azure Document Intelligence is NOT configured
+2026-01-20 07:52:27,501 - main - WARNING -       Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY
+2026-01-20 07:52:27,501 - main - INFO - [OK] Upload directory exists: /tmp/kraftd_uploads
+2026-01-20 07:52:27,501 - main - INFO - [OK] Upload directory is writable
+2026-01-20 07:52:27,501 - main - INFO - [OK] ExtractionPipeline initialized and ready
+2026-01-20 07:52:27,501 - main - INFO - [INFO] Cosmos DB not initialized, export tracking in fallback mode
+2026-01-20 07:52:27,501 - main - INFO - ============================================================
+2026-01-20 07:52:27,501 - main - INFO - Startup Configuration:
+2026-01-20 07:52:27,501 - main - INFO -   Request Timeout: 30.0s
+2026-01-20 07:52:27,501 - main - INFO -   Document Processing Timeout: 25.0s
+2026-01-20 07:52:27,502 - main - INFO -   Max Retries: 3
+2026-01-20 07:52:27,502 - main - INFO -   Rate Limiting: Enabled
+2026-01-20 07:52:27,502 - main - INFO -   Metrics: Enabled
+2026-01-20 07:52:27,502 - main - INFO -   Cosmos DB: Fallback mode
+2026-01-20 07:52:27,502 - main - INFO -   User Profiles: Enabled
+2026-01-20 07:52:27,502 - main - INFO - ============================================================
+2026-01-20 07:52:27,502 - main - INFO - Startup completed successfully
+2026-01-20 07:52:27,502 - main - INFO - ============================================================
