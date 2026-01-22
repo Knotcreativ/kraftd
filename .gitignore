@@ -79,6 +79,9 @@ wheels/
 .installed.cfg
 *.egg
 
+# But keep frontend lib directory
+!frontend-next/lib/
+
 # Node
 node_modules/
 dist/
