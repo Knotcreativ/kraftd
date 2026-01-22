@@ -145,6 +145,136 @@ class CosmosService:
             logger.warning(f"Container not found: {database_id}/{container_id}")
             raise
     
+    async def create_item(self, container_name: str, item: dict) -> dict:
+        """
+        Create a new item in a container.
+        
+        Args:
+            container_name: Container ID (e.g., 'conversions', 'documents', 'schemas')
+            item: Dictionary containing the item to create (must include 'id' field)
+            
+        Returns:
+            Raw Cosmos DB response (created item)
+            
+        Raises:
+            RuntimeError: If service not initialized
+            exceptions.CosmosResourceExistsError: If item with same ID already exists
+            exceptions.CosmosHttpResponseError: For other Cosmos DB errors
+        """
+        if not self._is_initialized or not self._client:
+            raise RuntimeError("Cosmos service not initialized")
+        
+        try:
+            container = self._client.get_database_client("KraftdDB").get_container_client(container_name)
+            response = container.create_item(body=item)
+            logger.debug(f"Created item in {container_name}: {item.get('id', 'unknown')}")
+            return response
+        except exceptions.CosmosResourceExistsError:
+            logger.warning(f"Item already exists in {container_name}: {item.get('id', 'unknown')}")
+            raise
+        except Exception as e:
+            logger.error(f"Error creating item in {container_name}: {e}")
+            raise
+    
+    async def read_item(self, container_name: str, item_id: str, partition_key: str) -> dict:
+        """
+        Read an item from a container.
+        
+        Args:
+            container_name: Container ID
+            item_id: Item's unique ID
+            partition_key: Partition key value (typically user_email)
+            
+        Returns:
+            Raw Cosmos DB response (item document)
+            
+        Raises:
+            RuntimeError: If service not initialized
+            exceptions.CosmosResourceNotFoundError: If item not found
+            exceptions.CosmosHttpResponseError: For other Cosmos DB errors
+        """
+        if not self._is_initialized or not self._client:
+            raise RuntimeError("Cosmos service not initialized")
+        
+        try:
+            container = self._client.get_database_client("KraftdDB").get_container_client(container_name)
+            response = container.read_item(item=item_id, partition_key=partition_key)
+            logger.debug(f"Read item from {container_name}: {item_id}")
+            return response
+        except exceptions.CosmosResourceNotFoundError:
+            logger.warning(f"Item not found in {container_name}: {item_id}")
+            raise
+        except Exception as e:
+            logger.error(f"Error reading item from {container_name}: {e}")
+            raise
+    
+    async def replace_item(self, container_name: str, item_id: str, item: dict) -> dict:
+        """
+        Replace an existing item in a container.
+        
+        Args:
+            container_name: Container ID
+            item_id: Item's unique ID (should match item['id'])
+            item: Complete item document (must include '_etag' for concurrency control)
+            
+        Returns:
+            Raw Cosmos DB response (updated item)
+            
+        Raises:
+            RuntimeError: If service not initialized
+            exceptions.CosmosResourceNotFoundError: If item not found
+            exceptions.CosmosAccessConditionFailedError: If ETag mismatch (concurrent update)
+            exceptions.CosmosHttpResponseError: For other Cosmos DB errors
+        """
+        if not self._is_initialized or not self._client:
+            raise RuntimeError("Cosmos service not initialized")
+        
+        try:
+            container = self._client.get_database_client("KraftdDB").get_container_client(container_name)
+            response = container.replace_item(item=item_id, body=item)
+            logger.debug(f"Replaced item in {container_name}: {item_id}")
+            return response
+        except exceptions.CosmosResourceNotFoundError:
+            logger.warning(f"Item not found for replacement in {container_name}: {item_id}")
+            raise
+        except Exception as e:
+            logger.error(f"Error replacing item in {container_name}: {e}")
+            raise
+    
+    async def query_items(self, container_name: str, query: str, parameters: Optional[list] = None) -> list:
+        """
+        Query items from a container.
+        
+        Args:
+            container_name: Container ID
+            query: SQL query string (e.g., "SELECT * FROM c WHERE c.user_email = @email")
+            parameters: Optional list of parameter dicts (e.g., [{"name": "@email", "value": "user@example.com"}])
+            
+        Returns:
+            List of items matching the query
+            
+        Raises:
+            RuntimeError: If service not initialized
+            exceptions.CosmosHttpResponseError: For query errors
+        """
+        if not self._is_initialized or not self._client:
+            raise RuntimeError("Cosmos service not initialized")
+        
+        try:
+            container = self._client.get_database_client("KraftdDB").get_container_client(container_name)
+            
+            # Execute query with optional parameters
+            if parameters:
+                items = list(container.query_items(query=query, parameters=parameters))
+            else:
+                items = list(container.query_items(query=query))
+            
+            logger.debug(f"Query on {container_name} returned {len(items)} items")
+            return items
+        except Exception as e:
+            logger.error(f"Error querying items from {container_name}: {e}")
+            raise
+
     async def close(self) -> None:
         """Close Cosmos DB client connection."""
         if self._client:
