@@ -15,6 +15,7 @@ import logging
 
 from services.output_service import get_output_service
 from services.conversions_service import ConversionsService
+from services.feedback_service import get_feedback_service
 from azure.cosmos import exceptions
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,30 @@ class FeedbackResponse(BaseModel):
     feedback_id: str
     message: str
     recorded_at: str
+
+
+class CreateFeedbackRequest(BaseModel):
+    conversion_id: str = Field(..., description="Conversion ID")
+    target: str = Field(..., description="Feedback target (export, extraction, schema, summary, etc.)")
+    target_id: str = Field(..., description="ID of the target entity")
+    rating: int = Field(..., ge=1, le=5, description="Rating 1-5")
+    comments: Optional[str] = Field(None, description="Detailed feedback comments")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+
+
+class FeedbackItem(BaseModel):
+    feedback_id: str
+    conversion_id: str
+    target: str
+    target_id: str
+    rating: int
+    comments: str
+    created_at: str
+
+
+class FeedbackListResponse(BaseModel):
+    success: bool
+    feedback: List[FeedbackItem]
 
 
 class QuotaUsage(BaseModel):
@@ -268,6 +293,272 @@ async def get_document_outputs(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve outputs"
+        )
+
+
+# ===== POST /api/v1/feedback =====
+
+@router.post(
+    "/feedback",
+    status_code=201,
+    response_model=FeedbackResponse,
+    summary="Submit feedback on conversion processing",
+    description="Rate and comment on extraction, schema, or export quality"
+)
+async def create_feedback(
+    request: CreateFeedbackRequest,
+    authorization: str = Header(None)
+) -> FeedbackResponse:
+    """
+    Submit feedback on conversion processing.
+    
+    Feedback can be submitted for:
+    - export: Export/output quality
+    - extraction: Extraction accuracy
+    - schema: Schema generation quality
+    - summary: AI summary quality
+    
+    Ratings:
+    - 1 = Poor (many issues)
+    - 2 = Fair (some issues)
+    - 3 = Good (minor issues)
+    - 4 = Very Good (very few issues)
+    - 5 = Excellent (no issues)
+    """
+    try:
+        if not authorization:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing authorization header"
+            )
+        
+        if request.rating not in [1, 2, 3, 4, 5]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Rating must be between 1 and 5"
+            )
+        
+        # Extract user_email from authorization header
+        user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
+        
+        # Validate user owns the conversion
+        conversions_service = ConversionsService()
+        try:
+            conversion = await conversions_service.get_conversion(request.conversion_id)
+            if not conversion:
+                logger.warning(f"Conversion not found: {request.conversion_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Conversion not found: {request.conversion_id}"
+                )
+            
+            if conversion.get("user_email") != user_email:
+                logger.warning(f"User {user_email} tried to submit feedback for conversion {request.conversion_id} owned by {conversion.get('user_email')}")
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to access this conversion"
+                )
+        except exceptions.CosmosResourceNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Conversion not found: {request.conversion_id}"
+            )
+        
+        # Store feedback in Cosmos DB
+        feedback_service = get_feedback_service()
+        try:
+            feedback_item = await feedback_service.create_feedback(
+                conversion_id=request.conversion_id,
+                user_email=user_email,
+                target=request.target,
+                target_id=request.target_id,
+                rating=request.rating,
+                comments=request.comments,
+                metadata=request.metadata
+            )
+            
+            logger.info(f"Feedback submitted for {request.target} {request.target_id} in conversion {request.conversion_id}: rating {request.rating}/5")
+            
+            return FeedbackResponse(
+                feedback_id=feedback_item.get("id"),
+                message="Thank you for your feedback. This helps us improve accuracy.",
+                recorded_at=feedback_item.get("created_at", datetime.utcnow().isoformat() + "Z")
+            )
+        
+        except exceptions.CosmosResourceExistsError:
+            logger.warning(f"Feedback already exists for target {request.target_id}")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Feedback already exists for this target"
+            )
+        
+        except ValueError as e:
+            logger.error(f"Invalid feedback data: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid feedback data: {str(e)}"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to submit feedback for conversion {request.conversion_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to submit feedback"
+        )
+
+
+# ===== GET /api/v1/feedback/{feedback_id} =====
+
+@router.get(
+    "/feedback/{feedback_id}",
+    status_code=200,
+    response_model=FeedbackResponse,
+    summary="Retrieve specific feedback",
+    description="Get feedback by ID"
+)
+async def get_single_feedback(
+    feedback_id: str = Path(..., description="Feedback ID"),
+    authorization: str = Header(None)
+) -> FeedbackResponse:
+    """
+    Retrieve specific feedback by ID.
+    """
+    try:
+        if not authorization:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing authorization header"
+            )
+        
+        # Extract user_email from authorization header
+        user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
+        
+        # Retrieve feedback from Cosmos DB
+        feedback_service = get_feedback_service()
+        try:
+            feedback_item = await feedback_service.get_feedback(feedback_id, user_email)
+            
+            if not feedback_item:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Feedback not found: {feedback_id}"
+                )
+            
+            logger.info(f"Feedback retrieved: {feedback_id}")
+            
+            return FeedbackResponse(
+                feedback_id=feedback_item.get("id"),
+                message="Feedback retrieved successfully",
+                recorded_at=feedback_item.get("created_at", datetime.utcnow().isoformat() + "Z")
+            )
+        
+        except exceptions.CosmosResourceNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Feedback not found: {feedback_id}"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to retrieve feedback {feedback_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve feedback"
+        )
+
+
+# ===== GET /api/v1/feedback/conversion/{conversion_id} =====
+
+@router.get(
+    "/feedback/conversion/{conversion_id}",
+    status_code=200,
+    response_model=FeedbackListResponse,
+    summary="Get feedback for conversion",
+    description="Retrieve all feedback submitted for a conversion"
+)
+async def get_conversion_feedback(
+    conversion_id: str = Path(..., description="Conversion ID"),
+    authorization: str = Header(None)
+) -> FeedbackListResponse:
+    """
+    Get all feedback submitted for a specific conversion.
+    """
+    try:
+        if not authorization:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing authorization header"
+            )
+        
+        # Extract user_email from authorization header
+        user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
+        
+        # Validate user owns the conversion
+        conversions_service = ConversionsService()
+        try:
+            conversion = await conversions_service.get_conversion(conversion_id)
+            if not conversion:
+                logger.warning(f"Conversion not found: {conversion_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Conversion not found: {conversion_id}"
+                )
+            
+            if conversion.get("user_email") != user_email:
+                logger.warning(f"User {user_email} tried to access feedback for conversion {conversion_id} owned by {conversion.get('user_email')}")
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to access this conversion"
+                )
+        except exceptions.CosmosResourceNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Conversion not found: {conversion_id}"
+            )
+        
+        # Retrieve feedback for conversion
+        feedback_service = get_feedback_service()
+        try:
+            feedback_items = await feedback_service.get_feedback_for_conversion(conversion_id, user_email)
+            
+            # Convert to FeedbackItem list
+            feedback_list = [
+                FeedbackItem(
+                    feedback_id=item.get("id"),
+                    conversion_id=item.get("conversion_id"),
+                    target=item.get("target"),
+                    target_id=item.get("target_id"),
+                    rating=item.get("rating"),
+                    comments=item.get("comments", ""),
+                    created_at=item.get("created_at")
+                )
+                for item in feedback_items
+            ]
+            
+            logger.info(f"Retrieved {len(feedback_list)} feedback items for conversion {conversion_id}")
+            
+            return FeedbackListResponse(
+                success=True,
+                feedback=feedback_list
+            )
+        
+        except Exception as e:
+            logger.error(f"Failed to retrieve feedback for conversion {conversion_id}: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to retrieve feedback"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to process feedback request for conversion {conversion_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process feedback request"
         )
 
 
