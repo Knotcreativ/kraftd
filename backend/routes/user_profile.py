@@ -5,7 +5,7 @@ Handles user profile CRUD operations and preference management
 
 import logging
 from typing import Optional, Tuple
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import APIRouter, Depends, status, UploadFile, File, Request
 from fastapi.responses import JSONResponse
 
 from middleware.rbac import require_authenticated
@@ -21,6 +21,8 @@ from services.rbac_service import rbac_service
 from services.tenant_service import TenantService
 from services.audit_service import AuditService, AuditEventType, AuditEvent, AuditResult
 from utils.query_scope import QueryScope
+
+from models.errors import KraftdHTTPException, ErrorCode, authentication_error, internal_server_error, validation_error, not_found_error, quota_exceeded_error
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +41,7 @@ def set_profile_service(service: ProfileService):
 def get_profile_service() -> ProfileService:
     """Get ProfileService instance"""
     if not profile_service:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Profile service not initialized"
-        )
+        raise internal_server_error("Profile service not initialized")
     return profile_service
 
 
@@ -101,10 +100,7 @@ async def get_user_profile(
         
     except Exception as e:
         logger.error(f"Error retrieving profile for {email}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve profile"
-        )
+        raise internal_server_error("Failed to retrieve profile")
 
 
 @router.put("/profile", response_model=UserProfile)
@@ -132,9 +128,10 @@ async def update_user_profile(
         # Task 4: Validate tenant context
         current_tenant = TenantService.get_current_tenant()
         if not current_tenant:
-            raise HTTPException(
+            raise KraftdHTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tenant context found"
+                error_code=ErrorCode.INSUFFICIENT_PERMISSIONS,
+                message="No tenant context found"
             )
         
         # Task 5: Verify ownership - User can only update own profile
@@ -145,10 +142,7 @@ async def update_user_profile(
                 f"Ownership violation: {email} attempted to update "
                 f"profile of {current_user[0]} in tenant {current_tenant.tenant_id}"
             )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can only update your own profile"
-            )
+            raise authentication_error("You can only update your own profile")
         
         # Get existing profile or create if not exists
         existing = await service.get_profile(email)
@@ -206,10 +200,7 @@ async def update_user_profile(
         raise
     except Exception as e:
         logger.error(f"Error updating profile for {email}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update profile"
-        )
+        raise internal_server_error("Failed to update profile")
 
 
 @router.post("/profile/avatar", response_model=dict)
@@ -235,10 +226,7 @@ async def upload_profile_avatar(
         # Task 4: Validate tenant context
         current_tenant = TenantService.get_current_tenant()
         if not current_tenant:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tenant context found"
-            )
+            raise authentication_error("No tenant context found")
         
         # Task 5: Verify ownership - User can only upload own avatar
         # Avatar ownership is self-owned (email = owner)
@@ -247,27 +235,18 @@ async def upload_profile_avatar(
                 f"Ownership violation: {email} attempted to upload avatar for "
                 f"{current_user[0]} in tenant {current_tenant.tenant_id}"
             )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can only upload your own avatar"
-            )
+            raise authentication_error("You can only upload your own avatar")
         
         # Validate file type
         allowed_types = {"image/jpeg", "image/png", "image/gif", "image/webp"}
         if file.content_type not in allowed_types:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid file type. Allowed: {allowed_types}"
-            )
+            raise validation_error(f"Invalid file type. Allowed: {allowed_types}")
         
         # Validate file size (max 5MB)
         max_size = 5 * 1024 * 1024
         content = await file.read()
         if len(content) > max_size:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail="File too large. Maximum size: 5MB"
-            )
+            raise validation_error("File too large. Maximum size: 5MB")
         
         # TODO: Upload to Azure Blob Storage or similar
         # For now, generate a mock avatar URL
@@ -321,10 +300,7 @@ async def upload_profile_avatar(
         raise
     except Exception as e:
         logger.error(f"Error uploading avatar for {email}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to upload avatar"
-        )
+        raise internal_server_error("Failed to upload avatar")
 
 
 # Preferences endpoints
@@ -357,10 +333,7 @@ async def get_user_preferences(
         
     except Exception as e:
         logger.error(f"Error retrieving preferences for {email}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve preferences"
-        )
+        raise internal_server_error("Failed to retrieve preferences")
 
 
 @router.put("/preferences", response_model=UserPreferencesResponse)
@@ -387,10 +360,7 @@ async def update_user_preferences(
         # Task 4: Validate tenant context
         current_tenant = TenantService.get_current_tenant()
         if not current_tenant:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tenant context found"
-            )
+            raise authentication_error("No tenant context found")
         
         # Task 5: Verify ownership - User can only update own preferences
         # Preferences ownership is self-owned (email = owner)
@@ -399,10 +369,7 @@ async def update_user_preferences(
                 f"Ownership violation: {email} attempted to update preferences for "
                 f"{current_user[0]} in tenant {current_tenant.tenant_id}"
             )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can only update your own preferences"
-            )
+            raise authentication_error("You can only update your own preferences")
         
         # Perform update
         updated_prefs = await service.update_preferences(email, preferences_data)
@@ -459,10 +426,7 @@ async def update_user_preferences(
         raise
     except Exception as e:
         logger.error(f"Error updating preferences for {email}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update preferences"
-        )
+        raise internal_server_error("Failed to update preferences")
 
 
 # Admin endpoints (future)
@@ -491,16 +455,10 @@ async def list_all_profiles(
     try:
         current_tenant = TenantService.get_current_tenant()
         if not current_tenant:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tenant context found"
-            )
+            raise authentication_error("No tenant context found")
     except Exception as e:
         logger.error(f"Error getting tenant context: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Failed to retrieve tenant context"
-        )
+        raise authentication_error("Failed to retrieve tenant context")
     
     # Note: RBAC check should be added here to ensure admin-only access
     # This will be implemented in a follow-up task
@@ -525,10 +483,7 @@ async def list_all_profiles(
         
     except Exception as e:
         logger.error(f"Error retrieving profiles for tenant {current_tenant}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve profiles"
-        )
+        raise internal_server_error("Failed to retrieve profiles")
 
 
 @router.get("/export")
@@ -550,15 +505,13 @@ async def export_user_data(
     try:
         current_tenant = TenantService.get_current_tenant()
         if not current_tenant:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tenant context found"
-            )
+            raise authentication_error("No tenant context found")
     except Exception as e:
         logger.error(f"Error getting tenant context: {e}")
-        raise HTTPException(
+        raise KraftdHTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Failed to retrieve tenant context"
+            error_code=ErrorCode.INSUFFICIENT_PERMISSIONS,
+            message="Failed to retrieve tenant context"
         )
 
     try:
@@ -579,8 +532,5 @@ async def export_user_data(
         
     except Exception as e:
         logger.error(f"Error exporting data for {email}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to export user data"
-        )
+        raise internal_server_error("Failed to export user data")
 

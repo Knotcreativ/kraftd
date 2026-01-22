@@ -7,7 +7,7 @@ Implements export endpoints from /docs/api-spec.md:
 - GET /api/v1/quota — Check user quota
 """
 
-from fastapi import APIRouter, HTTPException, status, Header, Path, Request
+from fastapi import APIRouter, status, Header, Path, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
@@ -18,6 +18,8 @@ from services.conversions_service import ConversionsService
 from services.feedback_service import get_feedback_service
 from services.quota_service import get_quota_service
 from azure.cosmos import exceptions
+
+from models.errors import KraftdHTTPException, ErrorCode, authentication_error, internal_server_error, validation_error, not_found_error, quota_exceeded_error
 
 logger = logging.getLogger(__name__)
 
@@ -139,16 +141,10 @@ async def generate_output(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         if request.format not in ["json", "csv", "pdf", "xml"]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid format. Must be json|csv|pdf|xml"
-            )
+            raise validation_error("Invalid format. Must be json|csv|pdf|xml")
         
         # Extract user_email from authorization header
         user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
@@ -159,22 +155,13 @@ async def generate_output(
             conversion = await conversions_service.get_conversion(request.conversion_id)
             if not conversion:
                 logger.warning(f"Conversion not found: {request.conversion_id}")
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Conversion not found: {request.conversion_id}"
-                )
+                raise not_found_error("conversion", request.conversion_id)
             
             if conversion.get("user_email") != user_email:
                 logger.warning(f"User {user_email} tried to generate output for conversion {request.conversion_id} owned by {conversion.get('user_email')}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have permission to access this conversion"
-                )
+                raise authentication_error("You do not have permission to access this conversion")
         except exceptions.CosmosResourceNotFoundError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Conversion not found: {request.conversion_id}"
-            )
+            raise not_found_error("conversion", request.conversion_id)
         
         # Check quota before generating output
         quota_service = get_quota_service()
@@ -183,18 +170,12 @@ async def generate_output(
             limit_check = await quota_service.check_limits(user_email, "exports_used")
             if limit_check["exceeded"]:
                 logger.warning(f"Output generation quota exceeded for user {user_email}")
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Output generation quota exceeded"
-                )
+                raise quota_exceeded_error(limit_check.get("limit", 0), limit_check.get("usage", 0), "Output generation quota exceeded")
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Quota check failed for {user_email}: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Quota check failed"
-            )
+            raise internal_server_error("Quota check failed")
         
         # Store output in Cosmos DB
         output_service = get_output_service()
@@ -233,26 +214,17 @@ async def generate_output(
         
         except exceptions.CosmosResourceExistsError:
             logger.warning(f"Output already exists for document {request.document_id}")
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Output already exists for this document"
-            )
+            raise validation_error("Output already exists for this document")
         
         except ValueError as e:
             logger.error(f"Invalid output data: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid output data: {str(e)}"
-            )
+            raise validation_error(f"Invalid output data: {str(e)}")
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Output generation failed for {request.document_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Output generation failed"
-        )
+        raise internal_server_error("Output generation failed")
 
 
 # ===== GET /api/v1/documents/{document_id}/output =====
@@ -279,10 +251,7 @@ async def get_document_outputs(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         # TODO: Verify user owns this document
         # TODO: Query Cosmos DB for outputs table
@@ -319,10 +288,7 @@ async def get_document_outputs(
         raise
     except Exception as e:
         logger.error(f"Failed to retrieve outputs for {document_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve outputs"
-        )
+        raise internal_server_error("Failed to retrieve outputs")
 
 
 # ===== POST /api/v1/feedback =====
@@ -356,16 +322,10 @@ async def create_feedback(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         if request.rating not in [1, 2, 3, 4, 5]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Rating must be between 1 and 5"
-            )
+            raise validation_error("Rating must be between 1 and 5")
         
         # Extract user_email from authorization header
         user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
@@ -376,22 +336,13 @@ async def create_feedback(
             conversion = await conversions_service.get_conversion(request.conversion_id)
             if not conversion:
                 logger.warning(f"Conversion not found: {request.conversion_id}")
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Conversion not found: {request.conversion_id}"
-                )
+                raise not_found_error("conversion", request.conversion_id)
             
             if conversion.get("user_email") != user_email:
                 logger.warning(f"User {user_email} tried to submit feedback for conversion {request.conversion_id} owned by {conversion.get('user_email')}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have permission to access this conversion"
-                )
+                raise authentication_error("You do not have permission to access this conversion")
         except exceptions.CosmosResourceNotFoundError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Conversion not found: {request.conversion_id}"
-            )
+            raise not_found_error("conversion", request.conversion_id)
         
         # Store feedback in Cosmos DB
         feedback_service = get_feedback_service()
@@ -416,26 +367,17 @@ async def create_feedback(
         
         except exceptions.CosmosResourceExistsError:
             logger.warning(f"Feedback already exists for target {request.target_id}")
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Feedback already exists for this target"
-            )
+            raise validation_error("Feedback already exists for this target")
         
         except ValueError as e:
             logger.error(f"Invalid feedback data: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid feedback data: {str(e)}"
-            )
+            raise validation_error(f"Invalid feedback data: {str(e)}")
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to submit feedback for conversion {request.conversion_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to submit feedback"
-        )
+        raise internal_server_error("Failed to submit feedback")
 
 
 # ===== GET /api/v1/feedback/{feedback_id} =====
@@ -456,10 +398,7 @@ async def get_single_feedback(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         # Extract user_email from authorization header
         user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
@@ -470,10 +409,7 @@ async def get_single_feedback(
             feedback_item = await feedback_service.get_feedback(feedback_id, user_email)
             
             if not feedback_item:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Feedback not found: {feedback_id}"
-                )
+                raise not_found_error("feedback", feedback_id)
             
             logger.info(f"Feedback retrieved: {feedback_id}")
             
@@ -484,19 +420,13 @@ async def get_single_feedback(
             )
         
         except exceptions.CosmosResourceNotFoundError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Feedback not found: {feedback_id}"
-            )
+            raise not_found_error("feedback", feedback_id)
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to retrieve feedback {feedback_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve feedback"
-        )
+        raise internal_server_error("Failed to retrieve feedback")
 
 
 # ===== GET /api/v1/feedback/conversion/{conversion_id} =====
@@ -517,10 +447,7 @@ async def get_conversion_feedback(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         # Extract user_email from authorization header
         user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
@@ -531,22 +458,13 @@ async def get_conversion_feedback(
             conversion = await conversions_service.get_conversion(conversion_id)
             if not conversion:
                 logger.warning(f"Conversion not found: {conversion_id}")
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Conversion not found: {conversion_id}"
-                )
+                raise not_found_error("conversion", conversion_id)
             
             if conversion.get("user_email") != user_email:
                 logger.warning(f"User {user_email} tried to access feedback for conversion {conversion_id} owned by {conversion.get('user_email')}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have permission to access this conversion"
-                )
+                raise authentication_error("You do not have permission to access this conversion")
         except exceptions.CosmosResourceNotFoundError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Conversion not found: {conversion_id}"
-            )
+            raise not_found_error("conversion", conversion_id)
         
         # Retrieve feedback for conversion
         feedback_service = get_feedback_service()
@@ -576,19 +494,13 @@ async def get_conversion_feedback(
         
         except Exception as e:
             logger.error(f"Failed to retrieve feedback for conversion {conversion_id}: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to retrieve feedback"
-            )
+            raise internal_server_error("Failed to retrieve feedback")
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to process feedback request for conversion {conversion_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process feedback request"
-        )
+        raise internal_server_error("Failed to process feedback request")
 
 
 # ===== POST /api/v1/exports/{export_id}/feedback =====
@@ -619,10 +531,7 @@ async def submit_feedback(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         # TODO: Verify user owns this export
         # TODO: Store feedback in Cosmos DB
@@ -644,10 +553,7 @@ async def submit_feedback(
         raise
     except Exception as e:
         logger.error(f"Failed to submit feedback for {export_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to submit feedback"
-        )
+        raise internal_server_error("Failed to submit feedback")
 
 
 # ===== GET /api/v1/quota =====
@@ -674,10 +580,7 @@ async def get_quota(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         # TODO: Parse user email from JWT
         # TODO: Query usage statistics from Cosmos DB
@@ -702,7 +605,4 @@ async def get_quota(
         raise
     except Exception as e:
         logger.error(f"Failed to retrieve quota: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve quota"
-        )
+        raise internal_server_error("Failed to retrieve quota")

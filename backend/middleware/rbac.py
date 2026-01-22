@@ -14,12 +14,27 @@ from fastapi import Depends, HTTPException, Header, status
 from services.token_service import TokenService
 from services.rbac_service import RBACService, UserRole, Permission
 from services.tenant_service import TenantService, get_or_create_tenant_context
+from services.user_service import UserService
 from models.user import User
 
 logger = logging.getLogger(__name__)
 
 # In-memory user store (temporary - would use Cosmos DB in production)
 users_db = {}
+
+# UserService instance (will be injected with database)
+user_service: Optional[UserService] = None
+
+def set_user_service(service: UserService):
+    """Inject UserService instance"""
+    global user_service
+    user_service = service
+
+def get_user_service() -> UserService:
+    """Get UserService instance"""
+    if not user_service:
+        raise HTTPException(status_code=500, detail="User service not initialized")
+    return user_service
 
 
 async def get_current_user_with_role(
@@ -78,8 +93,13 @@ async def get_current_user_with_role(
         )
     
     # Fetch user to get role
-    # In production, this would query Cosmos DB
-    user = users_db.get(email)
+    user = None
+    try:
+        service = get_user_service()
+        user = await service.get_user_by_email(email)
+    except Exception:
+        # Fallback to in-memory lookup if UserService not available
+        user = users_db.get(email)
     
     if user is None:
         raise HTTPException(

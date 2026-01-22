@@ -16,7 +16,15 @@ from services.email_service import EmailService
 from services.rbac_service import RBACService, Permission
 from services.audit_service import AuditService, AuditEventType, AuditEvent, AuditResult
 from services.tenant_service import TenantService
+from services.quota_service import get_quota_service
+from services.user_service import UserService
 from middleware.rbac import get_current_user_with_role, require_permission
+
+# Import standardized error handling
+from models.errors import (
+    KraftdHTTPException, ErrorCode, validation_error,
+    authentication_error, not_found_error, internal_server_error
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +33,20 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # In-memory user store (for MVP - replace with Cosmos DB later)
 # Key: email, Value: User object
 users_db = {}
+
+# UserService instance (will be injected with database)
+user_service: Optional[UserService] = None
+
+def set_user_service(service: UserService):
+    """Inject UserService instance"""
+    global user_service
+    user_service = service
+
+def get_user_service() -> UserService:
+    """Get UserService instance"""
+    if not user_service:
+        raise HTTPException(status_code=500, detail="User service not initialized")
+    return user_service
 
 # In-memory reset token store (for MVP - replace with Redis later)
 # Key: token, Value: {"email": str, "expires_at": datetime}
@@ -38,20 +60,12 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
     This function kept for backward compatibility.
     """
     if not authorization:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization header",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise authentication_error("Missing authorization header")
     
     # Extract token from "Bearer <token>"
     parts = authorization.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header format",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise authentication_error("Invalid authorization header format")
     
     token = parts[1]
     
@@ -59,19 +73,11 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
     payload = TokenService.verify_token(token, check_revocation=True)
     
     if payload is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise authentication_error("Invalid or expired token")
     
     email = payload.get("sub")
     if email is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise authentication_error("Invalid token")
     
     return email
 
@@ -79,22 +85,51 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
 async def register(user_data: UserRegister, request: Request):
     """Register a new user with token generation"""
     # Check if user already exists
-    if user_data.email in users_db:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
+    try:
+        user_service = get_user_service()
+        existing_user = await user_service.get_user_by_email(user_data.email)
+        if existing_user:
+            raise KraftdHTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                error_code=ErrorCode.RESOURCE_ALREADY_EXISTS,
+                message="Email already registered"
+            )
+    except Exception:
+        # Fallback to in-memory check if UserService not available
+        if user_data.email in users_db:
+            raise KraftdHTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                error_code=ErrorCode.RESOURCE_ALREADY_EXISTS,
+                message="Email already registered"
+            )
     
-    # Create user
+    # Combine first and last name
+    full_name = f"{user_data.firstName} {user_data.lastName}".strip()
+    
+    # Create user (organization is not stored in User model currently)
     user = AuthService.create_user(
         email=user_data.email,
-        name=user_data.name,
-        organization=user_data.organization,
+        name=full_name,
+        organization="",  # Not stored in User model
         password=user_data.password
     )
     
-    # Store user
-    users_db[user.email] = user
+    # Store user in database if available, otherwise in memory
+    try:
+        user_service = get_user_service()
+        await user_service.create_user(user)
+        logger.info(f"User stored in database: {user.email}")
+    except Exception as e:
+        logger.warning(f"Failed to store user in database, using in-memory storage: {e}")
+        users_db[user.email] = user
+    
+    # Initialize user quota
+    try:
+        await get_quota_service().get_or_create_quota(user.email, tier="free")
+        logger.info(f"Quota initialized for user {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to initialize quota for user {user.email}: {e}")
+        # Don't fail registration if quota init fails - user can still register
     
     # Get client IP and user agent for audit logging
     client_ip = request.client.host if request.client else None
@@ -154,7 +189,14 @@ async def login(user_data: UserLogin, request: Request):
     tenant_id = TenantService.get_current_tenant() or "default"
     
     # Find user
-    user = users_db.get(user_data.email)
+    user = None
+    try:
+        user_service = get_user_service()
+        user = await user_service.get_user_by_email(user_data.email)
+    except Exception:
+        # Fallback to in-memory lookup if UserService not available
+        user = users_db.get(user_data.email)
+    
     if user is None:
         # Log failed login (user not found)
         try:
@@ -374,15 +416,12 @@ async def get_profile(email: str = Depends(get_current_user_email)):
     """Get current user profile"""
     user = users_db.get(email)
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise not_found_error("User", email)
     
     return UserProfile(
         email=user.email,
         name=user.name,
-        organization=user.organization,
+        organization="",  # User model doesn't have organization
         created_at=user.created_at,
         is_active=user.is_active
     )

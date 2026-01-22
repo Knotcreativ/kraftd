@@ -8,7 +8,7 @@ Implements schema generation and AI summary endpoints:
 - POST /api/v1/summary/generate — Generate AI summary of document
 """
 
-from fastapi import APIRouter, HTTPException, status, Header
+from fastapi import APIRouter, Header
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
@@ -118,10 +118,7 @@ async def generate_schema(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         # Extract user_email from authorization header (JWT token)
         # In production, this would be decoded from JWT
@@ -140,15 +137,9 @@ async def generate_schema(
             
             if conversion.get("user_email") != user_email:
                 logger.warning(f"User {user_email} tried to access conversion {conversion_id} owned by {conversion.get('user_email')}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have permission to access this conversion"
-                )
+                raise KraftdHTTPException(ErrorCode.INSUFFICIENT_PERMISSIONS, "You do not have permission to access this conversion")
         except exceptions.CosmosResourceNotFoundError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Conversion not found: {conversion_id}"
-            )
+            raise resource_not_found_error("conversion", conversion_id)
         
         # Check quota before generating schema
         quota_service = get_quota_service()
@@ -157,18 +148,12 @@ async def generate_schema(
             limit_check = await quota_service.check_limits(user_email, "api_calls_used")
             if limit_check["exceeded"]:
                 logger.warning(f"Schema generation quota exceeded for user {user_email}")
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Schema generation quota exceeded"
-                )
+                raise quota_exceeded_error(limit_check["limit"], limit_check["usage"], "Schema generation quota exceeded")
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Quota check failed for {user_email}: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Quota check failed"
-            )
+            raise internal_server_error("Quota check failed")
         
         schema_service = get_schema_service()
         
@@ -257,26 +242,17 @@ async def generate_schema(
         
         except exceptions.CosmosResourceExistsError:
             logger.warning(f"Schema already exists for document {document_id}")
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Schema already exists for this document"
-            )
+            raise validation_error("Schema already exists for this document")
         
         except ValueError as e:
             logger.error(f"Invalid schema data: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid schema data: {str(e)}"
-            )
+            raise validation_error(f"Invalid schema data: {str(e)}")
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Schema generation failed for conversion {conversion_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Schema generation failed"
-        )
+        raise internal_server_error("Schema generation failed")
 
 
 # ===== POST /api/v1/schema/revise =====

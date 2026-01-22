@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -48,6 +48,12 @@ from config import (
     RATE_LIMIT_ENABLED, RATE_LIMIT_REQUESTS_PER_MINUTE, RATE_LIMIT_REQUESTS_PER_HOUR,
     METRICS_ENABLED, UPLOAD_DIR, MAX_UPLOAD_SIZE_MB, validate_config
 )
+
+# Import error handling
+from models.errors import (
+    KraftdHTTPException, APIErrorResponse, ErrorCode,
+    internal_server_error, service_unavailable_error, authentication_error
+)
 from metrics import metrics_collector
 from rate_limit import RateLimitMiddleware
 
@@ -66,12 +72,20 @@ from models.extraction import (
 
 # Import Auth Routes (Phase 1: Authentication)
 try:
-    from routes.auth import router as auth_router
+    from routes.auth import router as auth_router, set_user_service
     AUTH_ROUTES_AVAILABLE = True
     logger.info("[OK] Auth routes imported successfully")
 except ImportError as e:
     logger.error(f"[CRITICAL] Auth routes import failed - ImportError: {e}")
     logger.error(f"[CRITICAL] This is likely a missing dependency. Check: sendgrid, email-validator, azure dependencies")
+
+# Import RBAC middleware
+try:
+    from middleware.rbac import set_user_service as set_rbac_user_service
+    RBAC_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"RBAC middleware not available: {e}")
+    RBAC_AVAILABLE = False
     AUTH_ROUTES_AVAILABLE = False
 except Exception as e:
     logger.error(f"[CRITICAL] Auth routes import failed - {type(e).__name__}: {e}")
@@ -190,6 +204,14 @@ try:
 except Exception as e:
     logger.warning(f"ProfileService not available: {e}")
     PROFILE_SERVICE_AVAILABLE = False
+
+# Import UserService (Phase 4: Database Integration)
+try:
+    from services.user_service import UserService
+    USER_SERVICE_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"UserService not available: {e}")
+    USER_SERVICE_AVAILABLE = False
 
 # Export Tracking Service (Three-stage recording)
 from services.export_tracking_service import (
@@ -354,6 +376,23 @@ async def lifespan(app: FastAPI):
                 logger.warning(f"[WARN] ProfileService initialization failed: {str(e)}")
                 logger.info("      User profile functionality will be limited")
         
+        # Initialize UserService (Phase 4: Database Integration)
+        if USER_SERVICE_AVAILABLE:
+            try:
+                cosmos_service = get_cosmos_service()
+                if cosmos_service and cosmos_service.is_initialized():
+                    user_service = UserService(cosmos_service)
+                    await user_service.initialize()
+                    set_user_service(user_service)
+                    if RBAC_AVAILABLE:
+                        set_rbac_user_service(user_service)
+                    logger.info("[OK] UserService initialized and wired to routes")
+                else:
+                    logger.warning("[WARN] Cosmos DB not initialized, UserService in fallback mode")
+            except Exception as e:
+                logger.warning(f"[WARN] UserService initialization failed: {str(e)}")
+                logger.info("      User management will use in-memory storage")
+        
         # Check Azure configuration
         if is_azure_configured():
             logger.info("[OK] Azure Document Intelligence is configured")
@@ -406,6 +445,7 @@ async def lifespan(app: FastAPI):
         logger.info(f"  Rate Limiting: {'Enabled' if RATE_LIMIT_ENABLED else 'Disabled'}")
         logger.info(f"  Metrics: {'Enabled' if METRICS_ENABLED else 'Disabled'}")
         logger.info(f"  Cosmos DB: {'Connected' if cosmos_service and cosmos_service.is_initialized() else 'Fallback mode'}")
+        logger.info(f"  User Service: {'Enabled' if USER_SERVICE_AVAILABLE else 'Disabled'}")
         logger.info(f"  User Profiles: {'Enabled' if USER_PROFILE_ROUTES_AVAILABLE and PROFILE_SERVICE_AVAILABLE else 'Disabled'}")
         logger.info("=" * 60)
         logger.info("Startup completed successfully")
@@ -448,6 +488,37 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods (not wildcard)
     allow_headers=["*"],
 )
+
+# ===== Global Exception Handlers =====
+
+@app.exception_handler(KraftdHTTPException)
+async def kraftd_exception_handler(request, exc: KraftdHTTPException):
+    """Handle KraftdHTTPException with standardized error response."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.detail,
+        headers=exc.headers
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc: Exception):
+    """Handle all unhandled exceptions with standardized error response."""
+    logger.error(f"Unhandled exception in {request.url.path}: {exc}", exc_info=True)
+
+    # Create standardized error response
+    error_response = APIErrorResponse(
+        success=False,
+        error=ErrorCode.INTERNAL_SERVER_ERROR,
+        message="An unexpected error occurred",
+        request_id=getattr(getattr(request, 'state', None), 'request_id', None),
+        timestamp=datetime.utcnow().isoformat() + "Z",
+        path=str(request.url.path)
+    )
+
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=error_response.model_dump()
+    )
 
 # ===== Auth System (JWT + User Management) =====
 from services.auth_service import AuthService
@@ -594,34 +665,22 @@ async def get_or_init_agent():
 def get_current_user_email(authorization: str = None) -> str:
     """Extract and validate current user from JWT token (for protected endpoints)."""
     if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing authorization header"
-        )
+        raise authentication_error("Missing authorization header")
     
     # Extract token from "Bearer <token>"
     parts = authorization.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authorization header format"
-        )
+        raise authentication_error("Invalid authorization header format")
     
     token = parts[1]
     payload = AuthService.verify_token(token)
     
     if payload is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token"
-        )
+        raise authentication_error("Invalid or expired token")
     
     email = payload.get("sub")
     if email is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid token"
-        )
+        raise authentication_error("Invalid token")
     
     return email
 
@@ -706,33 +765,27 @@ async def register(user_data: UserRegister):
         if user_repo:
             try:
                 if await user_repo.user_exists(user_data.email):
-                    raise HTTPException(
+                    raise KraftdHTTPException(
                         status_code=409,
-                        detail={
-                            "error": "EMAIL_ALREADY_EXISTS",
-                            "message": "This email is already registered."
-                        }
+                        error_code=ErrorCode.RESOURCE_ALREADY_EXISTS,
+                        message="This email is already registered."
                     )
             except Exception as e:
                 logger.warning(f"Could not check user existence in DB: {e}")
                 # Fall back to in-memory
                 if user_data.email in users_db:
-                    raise HTTPException(
+                    raise KraftdHTTPException(
                         status_code=409,
-                        detail={
-                            "error": "EMAIL_ALREADY_EXISTS",
-                            "message": "This email is already registered."
-                        }
+                        error_code=ErrorCode.RESOURCE_ALREADY_EXISTS,
+                        message="This email is already registered."
                     )
         else:
             # In-memory fallback
             if user_data.email in users_db:
-                raise HTTPException(
+                raise KraftdHTTPException(
                     status_code=409,
-                    detail={
-                        "error": "EMAIL_ALREADY_EXISTS",
-                        "message": "This email is already registered."
-                    }
+                    error_code=ErrorCode.RESOURCE_ALREADY_EXISTS,
+                    message="This email is already registered."
                 )
         
         # ===== USER CREATION LOGIC =====

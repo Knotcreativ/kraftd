@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm run build",
+  "outputLocation": ".next",
   "routes": [
     {
       "route": "/api/*",

@@ -27,7 +27,7 @@ import json
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-# Configuration
+# Configuration (can be overridden by --base-url argument)
 BASE_URL = "http://localhost:8000/api/v1"
 HEADERS = {
     "Content-Type": "application/json",
@@ -693,13 +693,22 @@ def main():
     """Main entry point."""
     if len(sys.argv) < 2:
         print("\n📋 USAGE:")
-        print(f"   python {sys.argv[0]} <JWT_TOKEN>\n")
-        print("📌 EXAMPLE:")
-        print("   python KRAFTD_E2E_TEST.py 'eyJhbGciOiJIUzI1NiIs...'\n")
-        print("⚠️  You must provide a valid JWT token as argument.\n")
+        print(f"   python {sys.argv[0]} <JWT_TOKEN> [--base-url URL]\n")
+        print("📌 EXAMPLE (localhost):")
+        print("   python KRAFTD_E2E_TEST.py 'eyJhbGc...'\n")
+        print("📌 EXAMPLE (Azure deployment):")
+        print("   python KRAFTD_E2E_TEST.py 'eyJhbGc...' --base-url 'https://api.kraftd.azurecontainerapps.io/api/v1'\n")
         sys.exit(1)
     
+    global BASE_URL
+    
     token = sys.argv[1]
+    
+    # Check for --base-url argument
+    if len(sys.argv) > 3 and sys.argv[2] == "--base-url":
+        BASE_URL = sys.argv[3]
+        print(f"🔄 Using custom base URL: {BASE_URL}\n")
+    
     success = run_full_workflow(token)
     sys.exit(0 if success else 1)
 

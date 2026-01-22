@@ -14,7 +14,7 @@ from typing import Dict, List, Tuple
 import sys
 
 # Configuration
-PROD_URL = "https://kraftd-a4gfhqa2axb2h6cd.uaenorth-01.azurewebsites.net"
+PROD_URL = "https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io"
 API_PREFIX = "/api/v1"
 TEST_EMAIL = f"test.launch.{int(time.time())}@kraftd.io"
 TEST_PASSWORD = "Test@Kraftd2024Secure!"
@@ -162,7 +162,8 @@ def test_login_flow(email: str, password: str):
     try:
         payload = {
             "email": email,
-            "password": password
+            "password": password,
+            "recaptchaToken": "test-token"
         }
         
         response = requests.post(
@@ -212,7 +213,8 @@ def test_token_refresh():
         # First, get a token
         payload = {
             "email": TEST_EMAIL,
-            "password": TEST_PASSWORD
+            "password": TEST_PASSWORD,
+            "recaptchaToken": "test-token"
         }
         
         response = requests.post(

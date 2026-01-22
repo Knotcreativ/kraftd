@@ -6,12 +6,14 @@ Implements document extraction endpoints from /docs/api-spec.md:
 - POST /api/v1/docs/convert — Convert to target output format
 """
 
-from fastapi import APIRouter, HTTPException, status, Header, Request
+from fastapi import APIRouter, Header, Request
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
 import uuid
 import logging
+
+from models.errors import KraftdHTTPException, ErrorCode, authentication_error, internal_server_error, validation_error
 
 logger = logging.getLogger(__name__)
 
@@ -112,10 +114,7 @@ async def extract_document(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         # TODO: Verify user owns this document
         # TODO: Call extraction service to process document
@@ -196,10 +195,7 @@ async def extract_document(
         raise
     except Exception as e:
         logger.error(f"Extraction failed for {request.document_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Extraction processing failed"
-        )
+        raise internal_server_error("Extraction processing failed")
 
 
 # ===== POST /api/v1/docs/convert =====
@@ -228,16 +224,10 @@ async def convert_document(
     """
     try:
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authorization header"
-            )
+            raise authentication_error("Missing authorization header")
         
         if request.output_format not in ["json", "csv", "xlsx", "pdf"]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid format. Must be json|csv|xlsx|pdf"
-            )
+            raise validation_error(f"Invalid format. Must be json|csv|xlsx|pdf")
         
         # TODO: Verify user owns document
         # TODO: Call conversion service
@@ -265,7 +255,4 @@ async def convert_document(
         raise
     except Exception as e:
         logger.error(f"Conversion failed for {request.document_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Conversion processing failed"
-        )
+        raise internal_server_error("Conversion processing failed")

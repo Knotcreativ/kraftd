@@ -6,7 +6,7 @@ Implements the Conversions endpoints defined in /docs/api-spec.md:
 - GET /api/v1/conversions/:conversion_id — Get conversion metadata
 """
 
-from fastapi import APIRouter, HTTPException, status, Depends, Header, Request
+from fastapi import APIRouter, Depends, Header, Request
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
@@ -18,6 +18,12 @@ from services.conversions_service import ConversionsService
 from services.auth_service import AuthService
 from services.quota_service import get_quota_service
 from middleware.quota import check_quota
+
+# Import standardized error handling
+from models.errors import (
+    KraftdHTTPException, ErrorCode, validation_error,
+    authentication_error, not_found_error, quota_exceeded_error, internal_server_error
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,23 +43,15 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
         User email from token payload
         
     Raises:
-        HTTPException: 401 if token is missing, invalid, or expired
+        KraftdHTTPException: 401 if token is missing, invalid, or expired
     """
     if not authorization:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization header",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise authentication_error("Missing authorization header")
     
     # Extract token from "Bearer <token>"
     parts = authorization.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header format",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise authentication_error("Invalid authorization header format")
     
     token = parts[1]
     
@@ -62,31 +60,19 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
         payload = auth_service.verify_token(token)
         
         if payload is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise authentication_error("Invalid or expired token")
         
         email = payload.get("sub")
         if email is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise authentication_error("Invalid token")
         
         return email
         
-    except HTTPException:
+    except KraftdHTTPException:
         raise
     except Exception as e:
         logger.error(f"Token verification error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token verification failed",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise authentication_error("Token verification failed")
 
 
 # ===== POST /api/v1/conversions =====
@@ -140,13 +126,7 @@ async def create_conversion(
         # 1. Authenticate user
         user_email = get_current_user_email(authorization)
         if not user_email:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={
-                    "error": "INVALID_TOKEN",
-                    "message": "Invalid or missing authentication token"
-                }
-            )
+            raise authentication_error("Invalid or missing authentication token")
         
         logger.info(f"Creating conversion for user: {user_email}")
         
@@ -160,34 +140,18 @@ async def create_conversion(
             limit_check = await quota_service.check_limits(user_email, "conversions_used")
             if limit_check["exceeded"]:
                 logger.warning(f"Conversion quota exceeded for user {user_email}")
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail={
-                        "error": "QUOTA_EXCEEDED",
-                        "message": "User has reached their conversion quota",
-                        "limit": limit_check["limit"],
-                        "usage": limit_check["usage"],
-                        "remaining": limit_check["remaining"]
-                    }
+                raise quota_exceeded_error(
+                    limit=limit_check["limit"],
+                    usage=limit_check["usage"],
+                    message="User has reached their conversion quota"
                 )
-        except HTTPException:
-            raise
         except Exception as e:
             logger.error(f"Quota check failed for {user_email}: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Quota check failed"
-            )
+            raise internal_server_error("Quota check failed")
         
         user = await auth_service.get_user_by_email(user_email)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail={
-                    "error": "USER_NOT_FOUND",
-                    "message": "User account not found"
-                }
-            )
+            raise not_found_error("user", user_email)
         
         # 3. Create conversion
         conversion_id = str(uuid.uuid4())
@@ -216,17 +180,11 @@ async def create_conversion(
             completed_at=conversion.get('completed_at')
         )
     
-    except HTTPException:
+    except KraftdHTTPException:
         raise
     except Exception as e:
         logger.error(f"Error creating conversion: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "error": "INTERNAL_SERVER_ERROR",
-                "message": "Failed to create conversion session"
-            }
-        )
+        raise internal_server_error("Failed to create conversion session")
 
 
 # ===== GET /api/v1/conversions/:conversion_id =====
@@ -280,26 +238,14 @@ async def get_conversion(
         # 1. Authenticate user
         user_email = get_current_user_email(authorization)
         if not user_email:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={
-                    "error": "INVALID_TOKEN",
-                    "message": "Invalid or missing authentication token"
-                }
-            )
+            raise authentication_error("Invalid or missing authentication token")
         
         logger.info(f"Fetching conversion: {conversion_id} for user: {user_email}")
         
         # 2. Fetch conversion
         conversion = await conversions_service.get_conversion(conversion_id)
         if not conversion:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail={
-                    "error": "CONVERSION_NOT_FOUND",
-                    "message": f"Conversion {conversion_id} does not exist"
-                }
-            )
+            raise not_found_error("conversion", conversion_id)
         
         # 3. Verify ownership
         if conversion['user_email'] != user_email:
@@ -307,13 +253,7 @@ async def get_conversion(
                 f"Unauthorized access attempt to conversion {conversion_id} "
                 f"by user {user_email}"
             )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "error": "FORBIDDEN",
-                    "message": "You do not have access to this conversion"
-                }
-            )
+            raise KraftdHTTPException(ErrorCode.INSUFFICIENT_PERMISSIONS, "You do not have access to this conversion")
         
         # 4. Return conversion
         return ConversionResponse(
@@ -324,14 +264,8 @@ async def get_conversion(
             completed_at=conversion.get('completed_at')
         )
     
-    except HTTPException:
+    except KraftdHTTPException:
         raise
     except Exception as e:
         logger.error(f"Error fetching conversion {conversion_id}: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "error": "INTERNAL_SERVER_ERROR",
-                "message": "Failed to fetch conversion"
-            }
-        )
+        raise internal_server_error("Failed to fetch conversion")
