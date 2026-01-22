@@ -17,6 +17,7 @@ import logging
 
 from services.schema_service import get_schema_service
 from services.conversions_service import ConversionsService
+from services.summary_service import get_summary_service
 from azure.cosmos import exceptions
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,7 @@ class SchemaRevision(BaseModel):
 
 
 class AISummaryRequest(BaseModel):
+    conversion_id: str
     document_id: str
     summary_length: str = Field("medium", description="short|medium|long")
     focus_areas: Optional[List[str]] = None
@@ -510,6 +512,14 @@ async def generate_summary(
     """
     Generate AI-powered summary of document.
     
+    Flow:
+    1. Verify user owns the conversion
+    2. Fetch extraction result from document
+    3. Generate summary using AI (placeholder: static text)
+    4. Extract key points and entities
+    5. Store summary in Cosmos DB
+    6. Return summary with metadata
+    
     Summary includes:
     - Natural language overview of document
     - Key points and highlights
@@ -531,43 +541,93 @@ async def generate_summary(
                 detail="Invalid summary_length. Must be short|medium|long"
             )
         
-        # TODO: Fetch extraction result from Cosmos DB
-        # TODO: Call Azure OpenAI with document data
-        # TODO: Generate summary based on length
-        # TODO: Extract key points and entities
-        # TODO: Store summary in Cosmos DB
+        # Extract user_email from authorization header
+        user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
         
-        now = datetime.utcnow().isoformat() + "Z"
+        # Validate user owns the conversion
+        conversions_service = ConversionsService()
+        try:
+            conversion = await conversions_service.get_conversion(request.conversion_id)
+            if not conversion:
+                logger.warning(f"Conversion not found: {request.conversion_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Conversion not found: {request.conversion_id}"
+                )
+            
+            if conversion.get("user_email") != user_email:
+                logger.warning(f"User {user_email} tried to generate summary for conversion {request.conversion_id} owned by {conversion.get('user_email')}")
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to access this conversion"
+                )
+        except exceptions.CosmosResourceNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Conversion not found: {request.conversion_id}"
+            )
         
+        # Generate summary (placeholder - would call Azure OpenAI in production)
         summary_text = "This is a quotation for website redesign services from Tech Solutions Inc to Acme Corp. The quote includes 180 hours of development work (frontend and backend) totaling USD 29,000 with a 5% VAT. The quote is valid until February 20, 2026, with payment terms of Net 30."
         
-        logger.info(f"Summary generated for document {request.document_id} ({request.summary_length})")
+        # Store summary in Cosmos DB
+        summary_service = get_summary_service()
+        try:
+            summary_item = await summary_service.create_summary(
+                conversion_id=request.conversion_id,
+                user_email=user_email,
+                summary_text=summary_text,
+                metadata={
+                    "source": "ai",
+                    "document_id": request.document_id,
+                    "summary_length": request.summary_length,
+                    "focus_areas": request.focus_areas or []
+                }
+            )
+            
+            logger.info(f"Summary generated and stored for document {request.document_id} in conversion {request.conversion_id}")
+            
+            now = datetime.utcnow().isoformat() + "Z"
+            
+            return AISummaryResponse(
+                document_id=request.document_id,
+                summary=summary_text,
+                summary_length=request.summary_length,
+                key_points=[
+                    "Website redesign project",
+                    "180 hours of development work",
+                    "USD 29,000 total cost including VAT",
+                    "Net 30 payment terms",
+                    "Valid until February 20, 2026"
+                ],
+                entities_extracted={
+                    "parties": ["Tech Solutions Inc", "Acme Corp"],
+                    "dates": ["2026-01-20", "2026-02-03", "2026-02-20"],
+                    "amounts": ["USD 29,000"],
+                    "services": ["Frontend Development", "Backend API Development"]
+                },
+                sentiment="professional",
+                generated_at=now
+            )
         
-        return AISummaryResponse(
-            document_id=request.document_id,
-            summary=summary_text,
-            summary_length=request.summary_length,
-            key_points=[
-                "Website redesign project",
-                "180 hours of development work",
-                "USD 29,000 total cost including VAT",
-                "Net 30 payment terms",
-                "Valid until February 20, 2026"
-            ],
-            entities_extracted={
-                "parties": ["Tech Solutions Inc", "Acme Corp"],
-                "dates": ["2026-01-20", "2026-02-03", "2026-02-20"],
-                "amounts": ["USD 29,000"],
-                "services": ["Frontend Development", "Backend API Development"]
-            },
-            sentiment="professional",
-            generated_at=now
-        )
+        except exceptions.CosmosResourceExistsError:
+            logger.warning(f"Summary already exists for document {request.document_id}")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Summary already exists for this document"
+            )
+        
+        except ValueError as e:
+            logger.error(f"Invalid summary data: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid summary data: {str(e)}"
+            )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Summary generation failed for {request.document_id}: {e}")
+        logger.error(f"Summary generation failed for {request.document_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Summary generation failed"
