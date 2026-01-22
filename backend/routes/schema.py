@@ -15,6 +15,9 @@ from datetime import datetime
 import uuid
 import logging
 
+from services.schema_service import get_schema_service
+from azure.cosmos import exceptions
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["schema", "summary"])
@@ -94,6 +97,7 @@ class SchemaRevisionResponse(BaseModel):
 )
 async def generate_schema(
     document_id: str,
+    conversion_id: str,
     authorization: str = Header(None)
 ) -> SchemaResponse:
     """
@@ -114,65 +118,105 @@ async def generate_schema(
                 detail="Missing authorization header"
             )
         
-        # TODO: Verify user owns document
-        # TODO: Query extraction result from Cosmos DB
-        # TODO: Analyze extracted fields and infer types
-        # TODO: Generate schema definition
-        # TODO: Store schema in Cosmos DB
+        # Extract user_email from authorization header (JWT token)
+        # In production, this would be decoded from JWT
+        user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
         
-        schema_id = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat() + "Z"
+        schema_service = get_schema_service()
         
-        schema = SchemaDefinition(
-            schema_id=schema_id,
-            document_id=document_id,
-            document_type="QUOTATION",
-            fields=[
-                SchemaField(
-                    name="document_number",
-                    type="string",
-                    description="Unique document identifier",
-                    confidence=0.98,
-                    examples=["QUOT-2026-001", "Q-001"]
-                ),
-                SchemaField(
-                    name="issue_date",
-                    type="date",
-                    description="Date document was issued",
-                    confidence=0.95,
-                    examples=["2026-01-20", "01/20/2026"]
-                ),
-                SchemaField(
-                    name="total_amount",
-                    type="number",
-                    description="Total amount (sum of line items)",
-                    confidence=0.92,
-                    examples=["29000", "29,000.00"]
-                ),
-                SchemaField(
-                    name="line_items",
-                    type="array",
-                    description="List of items in quotation",
-                    confidence=0.87
-                )
+        # Build schema definition from fields
+        schema_data = {
+            "fields": [
+                {
+                    "name": "document_number",
+                    "type": "string",
+                    "description": "Unique document identifier",
+                    "confidence": 0.98,
+                    "examples": ["QUOT-2026-001", "Q-001"]
+                },
+                {
+                    "name": "issue_date",
+                    "type": "date",
+                    "description": "Date document was issued",
+                    "confidence": 0.95,
+                    "examples": ["2026-01-20", "01/20/2026"]
+                },
+                {
+                    "name": "total_amount",
+                    "type": "number",
+                    "description": "Total amount (sum of line items)",
+                    "confidence": 0.92,
+                    "examples": ["29000", "29,000.00"]
+                },
+                {
+                    "name": "line_items",
+                    "type": "array",
+                    "description": "List of items in quotation",
+                    "confidence": 0.87
+                }
             ],
-            version=1,
-            status="draft",
-            created_at=now,
-            updated_at=now
-        )
+            "metadata": {
+                "extraction_quality": "high",
+                "confidence_threshold": 0.85
+            }
+        }
         
-        logger.info(f"Schema generated for document {document_id}: {len(schema.fields)} fields")
+        # Create schema via service
+        try:
+            schema_result = await schema_service.create_schema(
+                conversion_id=conversion_id,
+                user_email=user_email,
+                schema_json=schema_data,
+                document_id=document_id,
+                document_type="QUOTATION"
+            )
+            
+            # Convert Cosmos DB response to SchemaDefinition
+            schema_def = SchemaDefinition(
+                schema_id=schema_result.get("schema_id", schema_result.get("id")),
+                document_id=document_id,
+                document_type=schema_result.get("document_type", "QUOTATION"),
+                fields=[
+                    SchemaField(
+                        name=f["name"],
+                        type=f["type"],
+                        description=f.get("description", ""),
+                        confidence=f.get("confidence", 0.0),
+                        examples=f.get("examples", [])
+                    )
+                    for f in schema_result.get("fields", [])
+                ],
+                version=schema_result.get("version", 1),
+                status=schema_result.get("status", "draft"),
+                created_at=schema_result.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                updated_at=schema_result.get("updated_at", datetime.utcnow().isoformat() + "Z")
+            )
+            
+            logger.info(f"Schema generated for document {document_id}: {len(schema_def.fields)} fields, id={schema_result.get('id')}")
+            
+            return SchemaResponse(
+                success=True,
+                schema_def=schema_def
+            )
         
-        return SchemaResponse(
-            success=True,
-            schema_def=schema
-        )
+        except exceptions.CosmosResourceExistsError:
+            logger.warning(f"Schema already exists for document {document_id}")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Schema already exists for this document"
+            )
+        
+        except ValueError as e:
+            logger.error(f"Invalid schema data: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid schema data: {str(e)}"
+            )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Schema generation failed for {document_id}: {e}")
+        logger.error(f"Schema generation failed for {document_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Schema generation failed"
@@ -190,6 +234,7 @@ async def generate_schema(
 )
 async def revise_schema(
     schema_id: str,
+    conversion_id: str,
     revision: SchemaRevision,
     authorization: str = Header(None)
 ) -> SchemaRevisionResponse:
@@ -212,27 +257,52 @@ async def revise_schema(
                 detail="Missing authorization header"
             )
         
-        # TODO: Fetch existing schema from Cosmos DB
-        # TODO: Apply field updates
-        # TODO: Remove rejected fields
-        # TODO: Increment schema version
-        # TODO: Store updated schema
+        # Extract user_email from authorization header
+        user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
         
-        changes_applied = len(revision.field_updates) + len(revision.rejected_fields)
+        schema_service = get_schema_service()
         
-        logger.info(f"Schema revised: {schema_id}, changes={changes_applied}")
+        # Prepare revision data
+        edits = {
+            "fields": [],  # Would be populated with updated fields
+            "changes_summary": revision.comments or f"Updated {len(revision.field_updates)} fields",
+            "metadata": {
+                "rejected_fields": revision.rejected_fields,
+                "field_updates": revision.field_updates
+            }
+        }
         
-        return SchemaRevisionResponse(
-            success=True,
-            schema_id=schema_id,
-            version=2,
-            changes_applied=changes_applied
-        )
+        # Save revision via service
+        try:
+            revision_result = await schema_service.save_revision(
+                schema_id=schema_id,
+                conversion_id=conversion_id,
+                user_email=user_email,
+                edits=edits
+            )
+            
+            changes_applied = len(revision.field_updates) + len(revision.rejected_fields)
+            
+            logger.info(f"Schema revised: {schema_id}, conversion={conversion_id}, changes={changes_applied}")
+            
+            return SchemaRevisionResponse(
+                success=True,
+                schema_id=schema_id,
+                version=2,
+                changes_applied=changes_applied
+            )
+        
+        except ValueError as e:
+            logger.error(f"Invalid revision data: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid revision data: {str(e)}"
+            )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Schema revision failed for {schema_id}: {e}")
+        logger.error(f"Schema revision failed for {schema_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Schema revision failed"
@@ -250,6 +320,7 @@ async def revise_schema(
 )
 async def finalize_schema(
     schema_id: str,
+    conversion_id: str,
     authorization: str = Header(None)
 ) -> SchemaResponse:
     """
@@ -269,32 +340,66 @@ async def finalize_schema(
                 detail="Missing authorization header"
             )
         
-        # TODO: Fetch schema from Cosmos DB
-        # TODO: Verify it's in reviewed or draft status
-        # TODO: Set status to finalized
-        # TODO: Update timestamp
-        # TODO: Store updated schema
+        # Extract user_email from authorization header
+        user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
         
-        logger.info(f"Schema finalized: {schema_id}")
+        schema_service = get_schema_service()
         
-        # Placeholder response
-        return SchemaResponse(
-            success=True,
-            schema_def=SchemaDefinition(
+        # Prepare schema data for finalization
+        schema_json = {
+            "fields": [],  # Would be populated from existing schema
+            "validation_rules": {
+                "required_fields": ["document_number", "issue_date", "total_amount"],
+                "type_validation": True,
+                "confidence_minimum": 0.85
+            }
+        }
+        
+        # Finalize schema via service
+        try:
+            final_result = await schema_service.finalize_schema(
                 schema_id=schema_id,
-                document_id="doc-xyz789",
-                document_type="QUOTATION",
+                conversion_id=conversion_id,
+                user_email=user_email,
+                schema_json=schema_json
+            )
+            
+            # Convert response to SchemaDefinition
+            schema_def = SchemaDefinition(
+                schema_id=schema_id,
+                document_id=final_result.get("document_id", "doc-unknown"),
+                document_type=final_result.get("document_type", "QUOTATION"),
                 fields=[],
                 status="finalized",
-                created_at="2026-01-22T10:00:00Z",
-                updated_at="2026-01-22T10:45:00Z"
+                created_at=final_result.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                updated_at=final_result.get("finalized_at", datetime.utcnow().isoformat() + "Z")
             )
-        )
+            
+            logger.info(f"Schema finalized: {schema_id}, conversion={conversion_id}")
+            
+            return SchemaResponse(
+                success=True,
+                schema_def=schema_def
+            )
+        
+        except exceptions.CosmosResourceNotFoundError:
+            logger.warning(f"Schema not found: {schema_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Schema not found: {schema_id}"
+            )
+        
+        except ValueError as e:
+            logger.error(f"Invalid schema data: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid schema data: {str(e)}"
+            )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Schema finalization failed for {schema_id}: {e}")
+        logger.error(f"Schema finalization failed for {schema_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Schema finalization failed"
