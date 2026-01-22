@@ -16,6 +16,7 @@ import uuid
 import logging
 
 from services.schema_service import get_schema_service
+from services.conversions_service import ConversionsService
 from azure.cosmos import exceptions
 
 logger = logging.getLogger(__name__)
@@ -104,10 +105,11 @@ async def generate_schema(
     Generate initial schema from document extraction.
     
     Flow:
-    1. Analyze extracted fields and data types
-    2. Generate schema definition with field types and constraints
-    3. Assign confidence scores based on extraction quality
-    4. Return schema in draft status for review
+    1. Verify user owns the conversion
+    2. Analyze extracted fields and data types
+    3. Generate schema definition with field types and constraints
+    4. Assign confidence scores based on extraction quality
+    5. Return schema in draft status for review
     
     The schema can be revised before finalization.
     """
@@ -121,6 +123,29 @@ async def generate_schema(
         # Extract user_email from authorization header (JWT token)
         # In production, this would be decoded from JWT
         user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
+        
+        # Validate user owns the conversion
+        conversions_service = ConversionsService()
+        try:
+            conversion = await conversions_service.get_conversion(conversion_id)
+            if not conversion:
+                logger.warning(f"Conversion not found: {conversion_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Conversion not found: {conversion_id}"
+                )
+            
+            if conversion.get("user_email") != user_email:
+                logger.warning(f"User {user_email} tried to access conversion {conversion_id} owned by {conversion.get('user_email')}")
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to access this conversion"
+                )
+        except exceptions.CosmosResourceNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Conversion not found: {conversion_id}"
+            )
         
         schema_service = get_schema_service()
         
@@ -192,7 +217,7 @@ async def generate_schema(
                 updated_at=schema_result.get("updated_at", datetime.utcnow().isoformat() + "Z")
             )
             
-            logger.info(f"Schema generated for document {document_id}: {len(schema_def.fields)} fields, id={schema_result.get('id')}")
+            logger.info(f"Schema generated for document {document_id} in conversion {conversion_id}: {len(schema_def.fields)} fields")
             
             return SchemaResponse(
                 success=True,
@@ -216,7 +241,7 @@ async def generate_schema(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Schema generation failed for {document_id}: {e}", exc_info=True)
+        logger.error(f"Schema generation failed for conversion {conversion_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Schema generation failed"
@@ -241,14 +266,19 @@ async def revise_schema(
     """
     Revise existing schema definition.
     
+    Flow:
+    1. Verify user owns the conversion
+    2. Validate revision changes
+    3. Create a new schema_revision document with status "pending_review"
+    4. Link revision to parent schema
+    5. Return revision for review before finalization
+    
     Supported changes:
     - Update field type or description
     - Mark fields as optional
     - Add new fields
     - Remove irrelevant fields
     - Adjust confidence scores
-    
-    Returns updated schema version.
     """
     try:
         if not authorization:
@@ -259,6 +289,29 @@ async def revise_schema(
         
         # Extract user_email from authorization header
         user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
+        
+        # Validate user owns the conversion
+        conversions_service = ConversionsService()
+        try:
+            conversion = await conversions_service.get_conversion(conversion_id)
+            if not conversion:
+                logger.warning(f"Conversion not found: {conversion_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Conversion not found: {conversion_id}"
+                )
+            
+            if conversion.get("user_email") != user_email:
+                logger.warning(f"User {user_email} tried to revise schema from conversion {conversion_id} owned by {conversion.get('user_email')}")
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to access this conversion"
+                )
+        except exceptions.CosmosResourceNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Conversion not found: {conversion_id}"
+            )
         
         schema_service = get_schema_service()
         
@@ -276,20 +329,27 @@ async def revise_schema(
         try:
             revision_result = await schema_service.save_revision(
                 schema_id=schema_id,
-                conversion_id=conversion_id,
                 user_email=user_email,
-                edits=edits
+                revision_json=edits,
+                change_notes=revision.comments or "Schema revision from user feedback"
             )
             
             changes_applied = len(revision.field_updates) + len(revision.rejected_fields)
             
-            logger.info(f"Schema revised: {schema_id}, conversion={conversion_id}, changes={changes_applied}")
+            logger.info(f"Schema revision created for schema {schema_id}: changes={changes_applied}, status=pending_review")
             
             return SchemaRevisionResponse(
                 success=True,
                 schema_id=schema_id,
-                version=2,
+                version=revision_result.get("version", 2),
                 changes_applied=changes_applied
+            )
+        
+        except exceptions.CosmosResourceNotFoundError:
+            logger.warning(f"Schema not found: {schema_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Schema not found: {schema_id}"
             )
         
         except ValueError as e:
@@ -326,12 +386,18 @@ async def finalize_schema(
     """
     Finalize and lock schema for production use.
     
+    Flow:
+    1. Verify user owns the conversion
+    2. Validate schema is ready for production
+    3. Create final_schema document with status "active"
+    4. Lock schema (read-only)
+    5. Return finalized schema for production use
+    
     Once finalized:
     - Schema becomes read-only
     - Can be used for data validation
     - Becomes source of truth for document structure
-    
-    Finalized schemas cannot be edited (new version required).
+    - Cannot be edited (new version required)
     """
     try:
         if not authorization:
@@ -342,6 +408,29 @@ async def finalize_schema(
         
         # Extract user_email from authorization header
         user_email = authorization.split(":")[-1] if ":" in authorization else "user@example.com"
+        
+        # Validate user owns the conversion
+        conversions_service = ConversionsService()
+        try:
+            conversion = await conversions_service.get_conversion(conversion_id)
+            if not conversion:
+                logger.warning(f"Conversion not found: {conversion_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Conversion not found: {conversion_id}"
+                )
+            
+            if conversion.get("user_email") != user_email:
+                logger.warning(f"User {user_email} tried to finalize schema from conversion {conversion_id} owned by {conversion.get('user_email')}")
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to access this conversion"
+                )
+        except exceptions.CosmosResourceNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Conversion not found: {conversion_id}"
+            )
         
         schema_service = get_schema_service()
         
@@ -359,7 +448,6 @@ async def finalize_schema(
         try:
             final_result = await schema_service.finalize_schema(
                 schema_id=schema_id,
-                conversion_id=conversion_id,
                 user_email=user_email,
                 schema_json=schema_json
             )
@@ -375,7 +463,7 @@ async def finalize_schema(
                 updated_at=final_result.get("finalized_at", datetime.utcnow().isoformat() + "Z")
             )
             
-            logger.info(f"Schema finalized: {schema_id}, conversion={conversion_id}")
+            logger.info(f"Schema finalized: {schema_id}, conversion={conversion_id}, status=active")
             
             return SchemaResponse(
                 success=True,
