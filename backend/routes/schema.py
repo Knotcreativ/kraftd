@@ -66,10 +66,10 @@ class AISummaryResponse(BaseModel):
 
 class SchemaResponse(BaseModel):
     success: bool
-    schema_def: SchemaDefinition
+    schema_def: SchemaDefinition = Field(alias='schema')
     
     class Config:
-        fields = {"schema_def": {"alias": "schema"}}
+        populate_by_name = True
 
 
 class SchemaRevisionResponse(BaseModel):
@@ -77,10 +77,10 @@ class SchemaRevisionResponse(BaseModel):
     schema_id: str
     version: int
     changes_applied: int
-    schema_def: Optional[SchemaDefinition] = None
+    schema_def: Optional[SchemaDefinition] = Field(None, alias='schema')
     
     class Config:
-        fields = {"schema_def": {"alias": "schema"}}
+        populate_by_name = True
 
 
 # ===== POST /api/v1/schema/generate =====
