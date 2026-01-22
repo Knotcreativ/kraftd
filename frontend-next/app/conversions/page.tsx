@@ -3,13 +3,13 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getConversions } from '@/lib/api/conversions'
-import type { Conversion } from '@/lib/types'
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
-import { Card, CardContent, CardDescription } from '@/components/ui/Card'
-import Badge from '@/components/ui/Badge'
-import { CardSkeleton } from '@/components/ui/Skeleton'
+import { getConversions } from '../../lib/api/conversions'
+import type { Conversion } from '../../lib/types'
+import Button from '../../components/ui/Button'
+import Input from '../../components/ui/Input'
+import { Card, CardContent, CardDescription } from '../../components/ui/Card'
+import Badge from '../../components/ui/Badge'
+import { CardSkeleton } from '../../components/ui/Skeleton'
 
 export default function ConversionsPage() {
   const [searchTerm, setSearchTerm] = useState('')

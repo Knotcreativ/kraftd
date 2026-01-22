@@ -1,7 +1,7 @@
 'use client'
 
-import { useAuth } from '@/hooks/useAuth'
-import { useQuota } from '@/hooks/useQuota'
+import { useAuth } from '../../hooks/useAuth'
+import { useQuota } from '../../hooks/useQuota'
 
 export default function SettingsPage() {
   const { isAuthenticated } = useAuth()

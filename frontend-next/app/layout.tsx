@@ -3,9 +3,9 @@
  */
 
 import type { Metadata } from 'next'
-import { ReactQueryProvider } from '@/components/providers/ReactQueryProvider'
-import { ThemeProvider } from '@/components/providers/ThemeProvider'
-import AppShell from '@/components/layout/AppShell'
+import { ReactQueryProvider } from '../components/providers/ReactQueryProvider'
+import { ThemeProvider } from '../components/providers/ThemeProvider'
+import AppShell from '../components/layout/AppShell'
 import '@/app/globals.css'
 
 export const metadata: Metadata = {
