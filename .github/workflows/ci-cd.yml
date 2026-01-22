@@ -154,10 +154,51 @@ jobs:
         run: |
           echo "Staging deployment complete. Ready for production approval."
 
+  deploy-frontend:
+    name: Deploy Frontend to Azure App Service
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend-next/package-lock.json
+      
+      - name: Install frontend dependencies
+        run: |
+          cd frontend-next
+          npm ci
+      
+      - name: Build Next.js app
+        run: |
+          cd frontend-next
+          npm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'kraftdintel-frontend'
+          slot-name: 'production'
+          package: frontend-next
+
   deploy-prod:
     name: Deploy to Production (Container Apps)
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: [deploy-staging, deploy-frontend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
@@ -190,5 +231,6 @@ jobs:
       
       - name: Log deployment success
         run: |
-          echo "✅ Successfully deployed to production!"
-          echo "API URL: https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1/"
+          echo "✅ Full-stack deployment to production complete!"
+          echo "Backend API: https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1/"
+          echo "Frontend App: https://kraftdintel-frontend.azurewebsites.net"
