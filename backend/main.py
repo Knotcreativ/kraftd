@@ -334,16 +334,18 @@ async def lifespan(app: FastAPI):
         if os.access(UPLOAD_DIR, os.W_OK):
             logger.info(f"[OK] Upload directory is writable")
         else:
-            logger.error(f"[ERROR] Upload directory is NOT writable: {UPLOAD_DIR}")
-            raise PermissionError(f"Cannot write to {UPLOAD_DIR}")
+            logger.warning(f"[WARN] Upload directory is NOT writable: {UPLOAD_DIR}")
+            logger.warning("      Document uploads will fail, but app will continue")
+            logger.warning("      This is OK for read-only operations")
         
         # Validate pipeline
         try:
             pipeline = ExtractionPipeline()
             logger.info(f"[OK] ExtractionPipeline initialized and ready")
         except Exception as e:
-            logger.error(f"[ERROR] Failed to initialize ExtractionPipeline: {str(e)}")
-            raise
+            logger.warning(f"[WARN] ExtractionPipeline initialization failed: {str(e)}")
+            logger.warning("      Document processing will not be available")
+            logger.info("      App will continue with limited functionality")
         
         # Initialize Export Tracking Service (Three-stage recording)
         if cosmos_service and cosmos_service.is_initialized():
@@ -482,16 +484,18 @@ async def startup_event():
         if os.access(UPLOAD_DIR, os.W_OK):
             logger.info(f"[OK] Upload directory is writable")
         else:
-            logger.error(f"[ERROR] Upload directory is NOT writable: {UPLOAD_DIR}")
-            raise PermissionError(f"Cannot write to {UPLOAD_DIR}")
+            logger.warning(f"[WARN] Upload directory is NOT writable: {UPLOAD_DIR}")
+            logger.warning("      Document uploads will fail, but app will continue")
+            logger.warning("      This is OK for read-only operations")
         
         # Validate pipeline
         try:
             pipeline = ExtractionPipeline()
             logger.info(f"[OK] ExtractionPipeline initialized and ready")
         except Exception as e:
-            logger.error(f"[ERROR] Failed to initialize ExtractionPipeline: {str(e)}")
-            raise
+            logger.warning(f"[WARN] ExtractionPipeline initialization failed: {str(e)}")
+            logger.warning("      Document processing will not be available")
+            logger.info("      App will continue with limited functionality")
         
         logger.info("=" * 60)
         logger.info("Startup Configuration:")
