@@ -1,8 +1,8 @@
 'use client'
 
-import { useQuota } from '../../hooks/useQuota'
-import { useTheme } from '../providers/ThemeProvider'
-import Badge from '../ui/Badge'
+import { useQuota } from '@/hooks/useQuota'
+import { useTheme } from '@/components/providers/ThemeProvider'
+import Badge from '@/components/ui/Badge'
 
 interface TopBarProps {
   onSidebarToggle?: () => void

@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   typescript: {
     tsconfigPath: './tsconfig.json',
@@ -8,6 +10,10 @@ const nextConfig = {
   },
   experimental: {
     outputFileTracingRoot: undefined,
+  },
+  webpack: (config) => {
+    config.resolve.alias['@'] = path.resolve(__dirname, '.');
+    return config;
   },
 }
 

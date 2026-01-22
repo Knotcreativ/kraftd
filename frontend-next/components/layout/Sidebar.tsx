@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useAuth } from '../../hooks/useAuth'
-import Button from '../ui/Button'
+import { useAuth } from '@/hooks/useAuth'
+import Button from '@/components/ui/Button'
 
 const navigation = [
   {
