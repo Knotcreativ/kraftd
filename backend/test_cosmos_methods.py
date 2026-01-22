@@ -12,20 +12,20 @@ def test_cosmos_service():
     cosmos = CosmosService()
     methods = ['create_item', 'read_item', 'replace_item', 'query_items']
     
-    print('✓ CosmosService Methods Verification:')
+    print('[OK] CosmosService Methods Verification:')
     print('=' * 50)
     
     for method_name in methods:
         method = getattr(cosmos, method_name, None)
         if not method:
-            print(f'✗ {method_name} - NOT FOUND')
+            print(f'[FAIL] {method_name} - NOT FOUND')
             return False
         
         if not inspect.iscoroutinefunction(method):
-            print(f'✗ {method_name} - NOT ASYNC')
+            print(f'[FAIL] {method_name} - NOT ASYNC')
             return False
         
-        print(f'✓ {method_name:20} (async)')
+        print(f'[OK] {method_name:20} (async)')
     
     return True
 
@@ -36,23 +36,23 @@ def test_app_boot():
         from main import app
         
         print()
-        print('✓ FastAPI App Status:')
+        print('[OK] FastAPI App Status:')
         print('=' * 50)
         
         routes = [r for r in app.routes if hasattr(r, 'path')]
-        print(f'✓ Total routes loaded: {len(routes)}')
+        print(f'[OK] Total routes loaded: {len(routes)}')
         
         schema = app.openapi()
         endpoints = len(schema.get('paths', {}))
-        print(f'✓ OpenAPI endpoints: {endpoints}')
+        print(f'[OK] OpenAPI endpoints: {endpoints}')
         
         # Verify schema routes are present
         schema_endpoints = [p for p in schema.get('paths', {}).keys() if 'schema' in p or 'summary' in p]
-        print(f'✓ Schema/Summary endpoints: {len(schema_endpoints)}')
+        print(f'[OK] Schema/Summary endpoints: {len(schema_endpoints)}')
         
         return True
     except Exception as e:
-        print(f'✗ App boot error: {e}')
+        print(f'[FAIL] App boot error: {e}')
         import traceback
         traceback.print_exc()
         return False
@@ -72,13 +72,13 @@ def main():
     print('=' * 50)
     
     if cosmos_ok and app_ok:
-        print('✓ All methods available')
-        print('✓ App boots successfully')
-        print('✓ conversions_service.py can now use await self.cosmos.create_item()')
-        print('✓ Ready for new services: schema_service, summary_service, output_service')
+        print('[OK] All methods available')
+        print('[OK] App boots successfully')
+        print('[OK] conversions_service.py can now use await self.cosmos.create_item()')
+        print('[OK] Ready for new services: schema_service, summary_service, output_service')
         return 0
     else:
-        print('✗ Verification failed')
+        print('[FAIL] Verification failed')
         return 1
 
 
