@@ -16,6 +16,7 @@ import logging
 from models.conversion import ConversionCreate, ConversionResponse, ConversionStatus
 from services.conversions_service import ConversionsService
 from services.auth_service import AuthService
+from services.quota_service import get_quota_service
 from middleware.quota import check_quota
 
 logger = logging.getLogger(__name__)
@@ -149,7 +150,35 @@ async def create_conversion(
         
         logger.info(f"Creating conversion for user: {user_email}")
         
-        # 2. Check quota (middleware will handle this, but we verify here)
+        # 2. Check quota via QuotaService
+        quota_service = get_quota_service()
+        try:
+            # Initialize or retrieve existing quota
+            await quota_service.get_or_create_quota(user_email)
+            
+            # Check if user has exceeded conversions limit
+            limit_check = await quota_service.check_limits(user_email, "conversions_used")
+            if limit_check["exceeded"]:
+                logger.warning(f"Conversion quota exceeded for user {user_email}")
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail={
+                        "error": "QUOTA_EXCEEDED",
+                        "message": "User has reached their conversion quota",
+                        "limit": limit_check["limit"],
+                        "usage": limit_check["usage"],
+                        "remaining": limit_check["remaining"]
+                    }
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Quota check failed for {user_email}: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Quota check failed"
+            )
+        
         user = await auth_service.get_user_by_email(user_email)
         if not user:
             raise HTTPException(
@@ -157,17 +186,6 @@ async def create_conversion(
                 detail={
                     "error": "USER_NOT_FOUND",
                     "message": "User account not found"
-                }
-            )
-        
-        if user.get('quota_used', 0) >= user.get('quota_limit', 0):
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail={
-                    "error": "QUOTA_EXCEEDED",
-                    "message": "User has reached their document conversion quota",
-                    "quota_limit": user.get('quota_limit', 0),
-                    "quota_used": user.get('quota_used', 0)
                 }
             )
         
@@ -179,8 +197,13 @@ async def create_conversion(
             user_id=user.get('user_id')
         )
         
-        # 4. Increment user quota
-        await auth_service.increment_quota_used(user_email, 1)
+        # 4. Increment conversion usage
+        try:
+            await quota_service.increment_usage(user_email, "conversions_used")
+            logger.debug(f"Incremented conversions_used for {user_email}")
+        except Exception as e:
+            logger.error(f"Failed to increment usage for {user_email}: {e}", exc_info=True)
+            # Log but don't fail - conversion was created successfully
         
         logger.info(f"Conversion created: {conversion_id} for user: {user_email}")
         

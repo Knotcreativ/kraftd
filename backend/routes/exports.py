@@ -16,6 +16,7 @@ import logging
 from services.output_service import get_output_service
 from services.conversions_service import ConversionsService
 from services.feedback_service import get_feedback_service
+from services.quota_service import get_quota_service
 from azure.cosmos import exceptions
 
 logger = logging.getLogger(__name__)
@@ -175,6 +176,26 @@ async def generate_output(
                 detail=f"Conversion not found: {request.conversion_id}"
             )
         
+        # Check quota before generating output
+        quota_service = get_quota_service()
+        try:
+            await quota_service.get_or_create_quota(user_email)
+            limit_check = await quota_service.check_limits(user_email, "exports_used")
+            if limit_check["exceeded"]:
+                logger.warning(f"Output generation quota exceeded for user {user_email}")
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Output generation quota exceeded"
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Quota check failed for {user_email}: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Quota check failed"
+            )
+        
         # Store output in Cosmos DB
         output_service = get_output_service()
         try:
@@ -191,6 +212,14 @@ async def generate_output(
             )
             
             logger.info(f"Output generated for conversion {request.conversion_id}, document {request.document_id}, format {request.format}")
+            
+            # Increment exports usage
+            try:
+                await quota_service.increment_usage(user_email, "exports_used")
+                logger.debug(f"Incremented exports_used for {user_email}")
+            except Exception as e:
+                logger.error(f"Failed to increment usage for {user_email}: {e}", exc_info=True)
+                # Log but don't fail - output was created successfully
             
             return OutputResponse(
                 success=True,

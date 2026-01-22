@@ -18,6 +18,7 @@ import logging
 from services.schema_service import get_schema_service
 from services.conversions_service import ConversionsService
 from services.summary_service import get_summary_service
+from services.quota_service import get_quota_service
 from azure.cosmos import exceptions
 
 logger = logging.getLogger(__name__)
@@ -149,6 +150,26 @@ async def generate_schema(
                 detail=f"Conversion not found: {conversion_id}"
             )
         
+        # Check quota before generating schema
+        quota_service = get_quota_service()
+        try:
+            await quota_service.get_or_create_quota(user_email)
+            limit_check = await quota_service.check_limits(user_email, "api_calls_used")
+            if limit_check["exceeded"]:
+                logger.warning(f"Schema generation quota exceeded for user {user_email}")
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Schema generation quota exceeded"
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Quota check failed for {user_email}: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Quota check failed"
+            )
+        
         schema_service = get_schema_service()
         
         # Build schema definition from fields
@@ -220,6 +241,14 @@ async def generate_schema(
             )
             
             logger.info(f"Schema generated for document {document_id} in conversion {conversion_id}: {len(schema_def.fields)} fields")
+            
+            # Increment API usage
+            try:
+                await quota_service.increment_usage(user_email, "api_calls_used")
+                logger.debug(f"Incremented api_calls_used for {user_email}")
+            except Exception as e:
+                logger.error(f"Failed to increment usage for {user_email}: {e}", exc_info=True)
+                # Log but don't fail - schema was created successfully
             
             return SchemaResponse(
                 success=True,
@@ -567,6 +596,26 @@ async def generate_summary(
                 detail=f"Conversion not found: {request.conversion_id}"
             )
         
+        # Check quota before generating summary
+        quota_service = get_quota_service()
+        try:
+            await quota_service.get_or_create_quota(user_email)
+            limit_check = await quota_service.check_limits(user_email, "api_calls_used")
+            if limit_check["exceeded"]:
+                logger.warning(f"Summary generation quota exceeded for user {user_email}")
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Summary generation quota exceeded"
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Quota check failed for {user_email}: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Quota check failed"
+            )
+        
         # Generate summary (placeholder - would call Azure OpenAI in production)
         summary_text = "This is a quotation for website redesign services from Tech Solutions Inc to Acme Corp. The quote includes 180 hours of development work (frontend and backend) totaling USD 29,000 with a 5% VAT. The quote is valid until February 20, 2026, with payment terms of Net 30."
         
@@ -586,6 +635,14 @@ async def generate_summary(
             )
             
             logger.info(f"Summary generated and stored for document {request.document_id} in conversion {request.conversion_id}")
+            
+            # Increment API usage
+            try:
+                await quota_service.increment_usage(user_email, "api_calls_used")
+                logger.debug(f"Incremented api_calls_used for {user_email}")
+            except Exception as e:
+                logger.error(f"Failed to increment usage for {user_email}: {e}", exc_info=True)
+                # Log but don't fail - summary was created successfully
             
             now = datetime.utcnow().isoformat() + "Z"
             
