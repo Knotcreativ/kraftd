@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { getConversion } from '../../../lib/api/conversions'
-import { getConversionSchema } from '../../../lib/api/schema'
-import { getConversionSummary } from '../../../lib/api/summary'
-import { getConversionOutputs } from '../../../lib/api/outputs'
-import { useQuota } from '../../../hooks/useQuota'
-import type { Schema, Summary, Output } from '../../../lib/types'
+import { getConversion } from '../../../../lib/api/conversions'
+import { getConversionSchema } from '../../../../lib/api/schema'
+import { getConversionSummary } from '../../../../lib/api/summary'
+import { getConversionOutputs } from '../../../../lib/api/outputs'
+import { useQuota } from '../../../../hooks/useQuota'
+import type { Schema, Summary, Output } from '../../../../lib/types'
 
 type TabType = 'schema' | 'summary' | 'outputs'
 
