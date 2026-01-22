@@ -151,6 +151,38 @@ except Exception as e:
     logger.warning(f"Conversions routes not available: {e}")
     CONVERSIONS_ROUTES_AVAILABLE = False
 
+# Import Documents Routes (Document Upload & Management)
+try:
+    from routes.documents import router as documents_router
+    DOCUMENTS_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Documents routes not available: {e}")
+    DOCUMENTS_ROUTES_AVAILABLE = False
+
+# Import Extraction Routes (Extract & Convert)
+try:
+    from routes.extraction import router as extraction_router
+    EXTRACTION_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Extraction routes not available: {e}")
+    EXTRACTION_ROUTES_AVAILABLE = False
+
+# Import Exports Routes (Output, Feedback, Quota)
+try:
+    from routes.exports import router as exports_router
+    EXPORTS_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Exports routes not available: {e}")
+    EXPORTS_ROUTES_AVAILABLE = False
+
+# Import Schema Routes (Schema Generation & Revision)
+try:
+    from routes.schema import router as schema_router
+    SCHEMA_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Schema routes not available: {e}")
+    SCHEMA_ROUTES_AVAILABLE = False
+
 # Import ProfileService (Phase 4: Database Integration)
 try:
     from services.profile_service import ProfileService
@@ -1178,6 +1210,34 @@ if CONVERSIONS_ROUTES_AVAILABLE:
     logger.info("[OK] Conversions routes registered at /api/v1/conversions")
 else:
     logger.warning("[WARN] Conversions routes not available - conversion management disabled")
+
+# ===== Documents Routes (Document Upload & Management) =====
+if DOCUMENTS_ROUTES_AVAILABLE:
+    app.include_router(documents_router, prefix="/api/v1")
+    logger.info("[OK] Documents routes registered at /api/v1/documents")
+else:
+    logger.warning("[WARN] Documents routes not available - document upload disabled")
+
+# ===== Extraction Routes (Extract & Convert) =====
+if EXTRACTION_ROUTES_AVAILABLE:
+    app.include_router(extraction_router, prefix="/api/v1")
+    logger.info("[OK] Extraction routes registered at /api/v1/docs")
+else:
+    logger.warning("[WARN] Extraction routes not available - extraction disabled")
+
+# ===== Exports Routes (Output, Feedback, Quota) =====
+if EXPORTS_ROUTES_AVAILABLE:
+    app.include_router(exports_router, prefix="/api/v1")
+    logger.info("[OK] Exports routes registered at /api/v1/documents, /api/v1/exports, /api/v1/quota")
+else:
+    logger.warning("[WARN] Exports routes not available - exports disabled")
+
+# ===== Schema Routes (Schema Generation & Revision) =====
+if SCHEMA_ROUTES_AVAILABLE:
+    app.include_router(schema_router, prefix="/api/v1")
+    logger.info("[OK] Schema routes registered at /api/v1/schema, /api/v1/summary")
+else:
+    logger.warning("[WARN] Schema routes not available - schema management disabled")
 
 # ===== Health Check Endpoint =====
 @app.get("/api/v1/health")
