@@ -68,8 +68,15 @@ from models.extraction import (
 try:
     from routes.auth import router as auth_router
     AUTH_ROUTES_AVAILABLE = True
+    logger.info("[OK] Auth routes imported successfully")
+except ImportError as e:
+    logger.error(f"[CRITICAL] Auth routes import failed - ImportError: {e}")
+    logger.error(f"[CRITICAL] This is likely a missing dependency. Check: sendgrid, email-validator, azure dependencies")
+    AUTH_ROUTES_AVAILABLE = False
 except Exception as e:
-    logger.warning(f"Auth routes not available: {e}")
+    logger.error(f"[CRITICAL] Auth routes import failed - {type(e).__name__}: {e}")
+    import traceback
+    logger.error(f"[CRITICAL] Traceback: {traceback.format_exc()}")
     AUTH_ROUTES_AVAILABLE = False
 
 # Import Agent Routes

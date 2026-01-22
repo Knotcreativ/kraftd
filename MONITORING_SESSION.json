@@ -1,0 +1,25 @@
+{
+  "session_start": "2026-01-22T01:55:56.338654",
+  "frontend_url": "https://kraftd-a4gfhqa2axb2h6cd.uaenorth-01.azurewebsites.net",
+  "status": "ACTIVE",
+  "kpis": {
+    "uptime_minutes": 0,
+    "requests_total": 0,
+    "requests_success": 0,
+    "requests_failed": 0,
+    "error_rate": 0.0,
+    "avg_response_time": 0.0,
+    "incidents": 0,
+    "critical_alerts": 0
+  },
+  "checks": [
+    {
+      "time": "2026-01-22T01:55:58.272107",
+      "check": "Frontend HTTP",
+      "status": "PASS",
+      "status_code": 200,
+      "latency_ms": 1932.04,
+      "content_size": 149794
+    }
+  ]
+}
