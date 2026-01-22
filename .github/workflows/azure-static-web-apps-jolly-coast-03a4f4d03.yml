@@ -20,40 +20,22 @@ jobs:
           submodules: true
           lfs: false
       
-      - name: Copy static files
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend-next/package-lock.json
+      
+      - name: Install dependencies
         run: |
-          mkdir -p frontend/dist
-          
-          # Copy all HTML pages
-          cp frontend/landing.html frontend/dist/
-          cp frontend/signin.html frontend/dist/
-          cp frontend/signup.html frontend/dist/
-          cp frontend/chat.html frontend/dist/
-          cp frontend/forgot-password.html frontend/dist/
-          cp frontend/reset-password.html frontend/dist/
-          cp frontend/verify-email.html frontend/dist/
-          cp frontend/terms.html frontend/dist/
-          cp frontend/privacy.html frontend/dist/
-          cp frontend/index.html frontend/dist/ 2>/dev/null || echo "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>Kraftd</title><script>window.location.href=\"/landing.html\";</script></head><body><p>Redirecting...</p></body></html>" > frontend/dist/index.html
-          
-          # Copy configuration and build files
-          cp frontend/staticwebapp.config.json frontend/dist/
-          cp frontend/vite.config.ts frontend/dist/ 2>/dev/null || true
-          cp frontend/tsconfig.json frontend/dist/ 2>/dev/null || true
-          cp frontend/tsconfig.node.json frontend/dist/ 2>/dev/null || true
-          cp frontend/package.json frontend/dist/ 2>/dev/null || true
-          
-          # Copy assets and dependencies
-          if [ -d "frontend/assets" ]; then
-            cp -r frontend/assets frontend/dist/
-            echo "✓ Assets copied successfully"
-          else
-            echo "⚠ Assets directory not found"
-          fi
-          
-          # Verify deployment contents
-          echo "📦 Deployed files:"
-          ls -la frontend/dist/ | grep -E "\.html|\.json|assets"
+          cd frontend-next
+          npm ci
+      
+      - name: Build Next.js app
+        run: |
+          cd frontend-next
+          npm run build
       
       - name: Deploy to Static Web Apps
         id: builddeploy
@@ -62,9 +44,9 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_JOLLY_COAST_03A4F4D03 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "frontend/dist"
+          app_location: "frontend-next"
           api_location: ""
-          output_location: "."
+          output_location: ".next/static"
           skip_app_build: true
 
   close_pull_request_job:
