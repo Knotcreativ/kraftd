@@ -19,6 +19,7 @@ from services.schema_service import get_schema_service
 from services.conversions_service import ConversionsService
 from services.summary_service import get_summary_service
 from services.quota_service import get_quota_service
+from models.errors import KraftdHTTPException, ErrorCode, authentication_error, not_found_error, quota_exceeded_error, internal_server_error, validation_error
 from azure.cosmos import exceptions
 
 logger = logging.getLogger(__name__)
@@ -139,7 +140,7 @@ async def generate_schema(
                 logger.warning(f"User {user_email} tried to access conversion {conversion_id} owned by {conversion.get('user_email')}")
                 raise KraftdHTTPException(ErrorCode.INSUFFICIENT_PERMISSIONS, "You do not have permission to access this conversion")
         except exceptions.CosmosResourceNotFoundError:
-            raise resource_not_found_error("conversion", conversion_id)
+            raise not_found_error("conversion", conversion_id)
         
         # Check quota before generating schema
         quota_service = get_quota_service()
