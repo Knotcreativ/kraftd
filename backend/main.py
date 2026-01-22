@@ -143,6 +143,14 @@ except Exception as e:
     logger.warning(f"Data enhancement routes not available: {e}")
     DATA_ENHANCEMENT_ROUTES_AVAILABLE = False
 
+# Import Conversions Routes (Conversion Session Management)
+try:
+    from routes.conversions import router as conversions_router
+    CONVERSIONS_ROUTES_AVAILABLE = True
+except Exception as e:
+    logger.warning(f"Conversions routes not available: {e}")
+    CONVERSIONS_ROUTES_AVAILABLE = False
+
 # Import ProfileService (Phase 4: Database Integration)
 try:
     from services.profile_service import ProfileService
@@ -1163,6 +1171,13 @@ if DATA_ENHANCEMENT_ROUTES_AVAILABLE:
     logger.info("[OK] Data enhancement routes registered at /api/v1/data-enhancement")
 else:
     logger.warning("[WARN] Data enhancement routes not available - data enhancement disabled")
+
+# ===== Conversions Routes (Conversion Session Management) =====
+if CONVERSIONS_ROUTES_AVAILABLE:
+    app.include_router(conversions_router, prefix="/api/v1")
+    logger.info("[OK] Conversions routes registered at /api/v1/conversions")
+else:
+    logger.warning("[WARN] Conversions routes not available - conversion management disabled")
 
 # ===== Health Check Endpoint =====
 @app.get("/api/v1/health")
