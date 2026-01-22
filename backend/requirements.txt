@@ -29,3 +29,4 @@ pytest-asyncio
 scikit-learn
 numpy
 scipy
+jinja2
