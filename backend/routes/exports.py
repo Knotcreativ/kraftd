@@ -7,7 +7,7 @@ Implements export endpoints from /docs/api-spec.md:
 - GET /api/v1/quota — Check user quota
 """
 
-from fastapi import APIRouter, status, Header, Path, Request
+from fastapi import APIRouter, status, Header, Path, Request, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime

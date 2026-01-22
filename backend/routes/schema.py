@@ -8,7 +8,7 @@ Implements schema generation and AI summary endpoints:
 - POST /api/v1/summary/generate — Generate AI summary of document
 """
 
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime

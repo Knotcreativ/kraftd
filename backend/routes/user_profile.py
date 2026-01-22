@@ -5,7 +5,7 @@ Handles user profile CRUD operations and preference management
 
 import logging
 from typing import Optional, Tuple
-from fastapi import APIRouter, Depends, status, UploadFile, File, Request
+from fastapi import APIRouter, Depends, status, UploadFile, File, Request, HTTPException
 from fastapi.responses import JSONResponse
 
 from middleware.rbac import require_authenticated

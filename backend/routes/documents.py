@@ -7,7 +7,7 @@ Implements the Documents endpoints defined in /docs/api-spec.md:
 - GET /api/v1/documents/:conversion_id/status — Get document processing status
 """
 
-from fastapi import APIRouter, Header, UploadFile, File, Form, Request
+from fastapi import APIRouter, Header, UploadFile, File, Form, Request, HTTPException
 from typing import Optional
 import uuid
 import logging

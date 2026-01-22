@@ -6,7 +6,7 @@ Implements document extraction endpoints from /docs/api-spec.md:
 - POST /api/v1/docs/convert — Convert to target output format
 """
 
-from fastapi import APIRouter, Header, Request
+from fastapi import APIRouter, Header, Request, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
