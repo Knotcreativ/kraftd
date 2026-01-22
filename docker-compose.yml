@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # KRAFTD Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kraftd-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Load from .env file in backend directory
+      COSMOS_ENDPOINT: ${COSMOS_ENDPOINT}
+      COSMOS_KEY: ${COSMOS_KEY}
+      COSMOS_DATABASE: ${COSMOS_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      ENVIRONMENT: development
+      LOG_LEVEL: debug
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      # Mount source code for live reload during development
+      - ./backend:/app:cached
+      - /app/__pycache__
+    networks:
+      - kraftd-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    depends_on:
+      - cosmos-db
+    command: >
+      sh -c "python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+
+  # Azure Cosmos DB Emulator (for local development)
+  # Note: For production, use actual Azure Cosmos DB
+  cosmos-db:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    container_name: kraftd-cosmos-emulator
+    environment:
+      AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 3
+      AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: "true"
+    ports:
+      - "8081:8081"
+      - "10255:10255"
+    networks:
+      - kraftd-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost:8081/_dbs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - cosmos-data:/data/db
+    restart: unless-stopped
+
+networks:
+  kraftd-network:
+    driver: bridge
+
+volumes:
+  cosmos-data:
+    driver: local
