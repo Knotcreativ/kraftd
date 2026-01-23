@@ -1,4 +1,4 @@
-# KraftdIntel Frontend - Complete React Application
+# Kraftd Docs Frontend - Complete React Application
 
 **Status:** ✅ Generated & Ready to Deploy  
 **Type:** React 18 + TypeScript + Vite  

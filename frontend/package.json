@@ -1,7 +1,7 @@
 {
-  "name": "kraftdintel-frontend",
+  "name": "kraftd-docs-frontend",
   "version": "1.0.1",
-  "description": "KraftdIntel - Intelligent Procurement Management System Frontend",
+  "description": "Kraftd Docs - AI-Powered Document Intelligence SaaS Frontend",
   "type": "module",
   "scripts": {
     "dev": "vite",

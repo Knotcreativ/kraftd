@@ -1,4 +1,4 @@
-metadata description = 'Deploy KraftdIntel infrastructure and application to Azure'
+metadata description = 'Deploy Kraftd Docs - AI-Powered Document Intelligence SaaS to Azure'
 
 @minLength(3)
 @maxLength(24)
