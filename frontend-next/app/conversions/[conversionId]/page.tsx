@@ -258,3 +258,12 @@ function OutputsTab({
     </div>
   )
 }
+
+export async function generateStaticParams() {
+  // For static export, we need to provide some placeholder conversion IDs
+  // In a real SaaS app, these would be generated at build time from your data
+  return [
+    { conversionId: 'placeholder-1' },
+    { conversionId: 'placeholder-2' },
+  ]
+}
