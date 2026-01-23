@@ -2,6 +2,8 @@
 const path = require('path');
 
 const nextConfig = {
+  output: 'export',
+  trailingSlash: true,
   typescript: {
     tsconfigPath: './tsconfig.json',
   },
