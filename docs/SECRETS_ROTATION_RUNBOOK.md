@@ -44,6 +44,24 @@ Manual:
 
 ---
 
+## 4) Azure Communication Services (Email) — recommended replacement for SendGrid
+
+Provision ACS Email:
+- Create an ACS resource (Portal / Bicep / CLI). Example script in `scripts/setup_acs.sh` automates deploying the ACS resource and setting the GitHub secret `AZURE_COMMUNICATION_CONNECTION_STRING` (call: `./scripts/setup_acs.sh kraftdintel-rg kraftd-comm uaenorth`).
+- Get the connection string via `az resource invoke-action --action listKeys --ids <resourceId> --api-version 2021-10-01` (the script does this), then add to GH secrets.
+- Set Container App secret: `az containerapp secret set -g <rg> -n <app> --secrets azure-comm-conn='<connection-string>'` and update the app env var to reference `secretRef:azure-comm-conn`.
+- Replace SendGrid SDK usage with ACS Email SDK in code and add a smoke test for sending email.
+
+Verification & rollout:
+- Configure DNS (SPF/DKIM) for sending domain.
+- Run a staging smoke test and verify deliverability.
+- Revoke old SendGrid keys after verification.
+
+Notes:
+- The ACS approach keeps everything inside Azure and integrates with KeyVault and managed identities if required. Use `scripts/setup_acs.sh` to create and set the GH secret automatically.
+
+---
+
 ## 4) Verification steps (common)
 - Run smoke tests and integration tests that exercise the relevant integration.
 - Check application logs for authentication errors.
