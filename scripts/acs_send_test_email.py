@@ -2,7 +2,7 @@
 import os
 import asyncio
 import logging
-from services.email_acs import ACSEmailService
+from backend.services.email_acs import ACSEmailService
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
