@@ -1,0 +1,51 @@
+name: Deploy infra to Staging (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "YES" to confirm running this deploy workflow'
+        required: true
+        default: 'NO'
+      resource_group:
+        description: 'Resource group name to create or use'
+        required: true
+        default: 'kraftd-staging-rg'
+      location:
+        description: 'Azure location to deploy to'
+        required: true
+        default: 'eastus2'
+      prefix:
+        description: 'Resource name prefix'
+        required: true
+        default: 'kraftd-staging'
+
+jobs:
+  deploy:
+    if: github.event.inputs.confirm == 'YES'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Run infra deployment script (PowerShell)
+        env:
+          AZURE_ENV: 'staging'
+        run: |
+          pwsh -NoProfile -NonInteractive -Command "./infrastructure/azure/deploy_function_infra.ps1 -rgName ${{ github.event.inputs.resource_group }} -location ${{ github.event.inputs.location }} -prefix ${{ github.event.inputs.prefix }}"
+
+      - name: Output instructions
+        run: |
+          echo "Deployment script completed. Verify resources and role assignments in the Azure Portal."
+
+  notify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify
+        run: echo "Staging infra deploy workflow finished. Check run logs for details." 
