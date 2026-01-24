@@ -1,0 +1,32 @@
+name: Lemon Squeezy smoke test
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Lemon Squeezy smoke test (products)
+        env:
+          LEMONSQUEEZY_API_KEY: ${{ secrets.LEMONSQUEEZY_API_KEY }}
+        run: |
+          set -euo pipefail
+          echo "Sending request to Lemon Squeezy API (products endpoint)"
+          status=$(curl -sS -o response.json -w "%{http_code}" -H "Authorization: Bearer $LEMONSQUEEZY_API_KEY" "https://api.lemonsqueezy.com/v1/products" || true)
+          echo "HTTP status: $status"
+          cat response.json | jq '.' || true
+          if [ "$status" != "200" ]; then
+            echo "Smoke test failed with status $status" >&2
+            exit 1
+          fi
+
+      - name: Upload response
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lemonsqueezy-response
+          path: response.json
