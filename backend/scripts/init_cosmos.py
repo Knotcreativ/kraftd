@@ -275,7 +275,7 @@ def get_credentials(production: bool = False) -> tuple[str, str]:
     logger.info("Using local Cosmos DB Emulator credentials")
     return (
         "https://localhost:8081/",
-        "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVo+2xNqaC8h/RVi12NewNQYoNkVRZo0v6a7t1E=="
+        "<REDACTED — emulator key removed; use emulator or set COSMOS_KEY env var>"
     )
 
 
