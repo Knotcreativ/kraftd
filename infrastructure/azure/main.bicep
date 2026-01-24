@@ -123,7 +123,7 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
 // Azure Communication Services (Email)
 resource communication 'Microsoft.Communication/communicationServices@2021-10-01' = {
   name: '${prefix}-comm'
-  location: location
+  location: 'global'
   sku: {
     name: 'Standard'
   }
