@@ -57,7 +57,8 @@ class ACSEmailService:
         try:
             # Build request payload per ACS Email REST shape
             message = {
-                "sender": self.from_email,
+                "senderAddress": self.from_email,
+                "senderDisplayName": os.getenv("ACS_SENDER_DISPLAY_NAME", "Kraftd"),
                 "content": {"subject": subject, "html": html_content},
                 "recipients": {"to": [{"address": to_email}]}
             }
@@ -101,7 +102,8 @@ class ACSEmailService:
 
         try:
             message = {
-                "sender": self.from_email,
+                "senderAddress": self.from_email,
+                "senderDisplayName": os.getenv("ACS_SENDER_DISPLAY_NAME", "Kraftd"),
                 "content": {"subject": subject, "html": html_content},
                 "recipients": {"to": [{"address": to_email}]}
             }
