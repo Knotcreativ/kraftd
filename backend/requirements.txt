@@ -23,6 +23,7 @@ python-dotenv
 email-validator
 sendgrid
 sendgrid-python
+azure-communication-email
 pytest
 pytest-cov
 pytest-asyncio

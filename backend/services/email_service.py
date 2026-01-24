@@ -10,10 +10,25 @@ logger = logging.getLogger(__name__)
 
 
 class EmailService:
-    """Service for sending emails via SendGrid"""
-    
+    """Service for sending emails. Chooses provider based on environment.
+
+    - If `AZURE_COMMUNICATION_CONNECTION_STRING` is set, uses ACS adapter
+    - Otherwise, uses SendGrid as previously
+    """
+
     def __init__(self):
-        """Initialize SendGrid client from environment variables"""
+        # Prefer ACS if configured
+        acs_conn = os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING")
+        if acs_conn:
+            try:
+                from services.email_acs import ACSEmailService
+                self._impl = ACSEmailService()
+                logger.info("Using Azure Communication Services for email")
+                return
+            except Exception:
+                logger.warning("Failed to initialize ACSEmailService; falling back to SendGrid")
+
+        # Fallback to SendGrid
         self.api_key = os.getenv("SENDGRID_API_KEY")
         self.from_email = os.getenv("SENDGRID_FROM_EMAIL", "noreply@kraftdintel.com")
         self.verification_url = os.getenv("VERIFICATION_URL", "http://localhost:3000/verify-email")
@@ -22,6 +37,7 @@ class EmailService:
             logger.warning("SENDGRID_API_KEY not configured. Email service will use mock mode.")
         
         self.client = SendGridAPIClient(self.api_key) if self.api_key else None
+        self._impl = None
     
     async def send_verification_email(
         self, 
@@ -87,6 +103,10 @@ class EmailService:
             </html>
             """
             
+            # If an underlying implementation exists (ACS), delegate
+            if self._impl:
+                return await self._impl.send_verification_email(to_email, verification_token, user_name)
+
             # If no API key, just log (development mode)
             if not self.client:
                 logger.info(f"[MOCK EMAIL] Verification email to {to_email}")
@@ -148,6 +168,10 @@ class EmailService:
         Returns:
             True if email sent successfully, False otherwise
         """
+        # Delegate to ACS impl if present
+        if self._impl:
+            return await self._impl.send_password_reset_email(to_email, reset_token, user_name)
+
         try:
             # Build reset link
             reset_url = os.getenv("RESET_PASSWORD_URL", "http://localhost:3000/reset-password")
