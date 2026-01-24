@@ -10,9 +10,8 @@
     "branch": "main"
   },
   "buildConfiguration": {
-    "appLocation": "frontend-next",
-    "outputLocation": ".next",
-    "buildPreset": "next",
+    "appLocation": "frontend",
+    "outputLocation": "dist",
     "buildCommand": "npm run build"
   },
   "environmentVariables": {

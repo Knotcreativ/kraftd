@@ -1,21 +1,13 @@
 {
   "routes": [
     {
-      "route": "/dashboard",
-      "allowedRoles": ["authenticated"],
-      "rewrite": "/index.html"
-    },
-    {
       "route": "/dashboard/*",
-      "allowedRoles": ["authenticated"],
-      "rewrite": "/index.html"
+      "rewrite": "/index.html",
+      "allowedRoles": ["authenticated"]
     },
     {
       "route": "/*",
       "rewrite": "/index.html"
     }
-  ],
-  "navigationFallback": {
-    "rewrite": "/index.html"
-  }
+  ]
 }
