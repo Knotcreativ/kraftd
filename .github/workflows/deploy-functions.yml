@@ -1,0 +1,41 @@
+name: Deploy Azure Functions (event-driven pipeline)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy_functions:
+    runs-on: ubuntu-latest
+    name: Build, test and deploy Azure Functions
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r azure/functions/requirements.txt
+
+      - name: Run backend unit tests
+        run: |
+          cd backend
+          python -m pytest -q
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Function App
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.FUNCTION_APP_NAME }}
+          package: azure/functions
