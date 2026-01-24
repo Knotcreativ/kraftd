@@ -59,7 +59,7 @@ Partition Key: /tenant_id
 ### Environment Variables (Ready to Use)
 ```powershell
 $env:COSMOS_DB_ENDPOINT = "https://kraftdintel-cosmos.documents.azure.com:443/"
-$env:COSMOS_DB_KEY = "Dg7UBtSjwXlavOZII1Da8M2lBuQVNhgaRYDcFHyfKVCtGcGLUbU9S2crsGlTB08dGR7LToOeYA6vACDb794KDA=="
+$env:COSMOS_DB_KEY = "<REDACTED — rotate & update deployment secrets, do not store in repo>"
 $env:COSMOS_DB_NAME = "kraftd_audit"
 $env:COSMOS_DB_AUDIT_CONTAINER = "audit_events"
 $env:COSMOS_DB_TTL_DAYS = "2555"

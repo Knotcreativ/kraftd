@@ -911,7 +911,7 @@ export const SubscriptionManager = () => {
 
 ```bash
 # Stripe
-STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxx
+STRIPE_SECRET_KEY=<REDACTED - rotate via Stripe dashboard and set GH secret STRIPE_SECRET_KEY>
 STRIPE_PUBLIC_KEY=pk_live_xxxxxxxxxxxxx
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
 

@@ -25,15 +25,15 @@ curl -X POST http://localhost:7071/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "buyer@company.com",
-    "password": "SecurePassword123!"
+    "password": "<REDACTED_PASSWORD>"
   }'
 ```
 
 **Response:**
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "access_token": "<REDACTED_JWT>",
+  "refresh_token": "<REDACTED_JWT>",
   "token_type": "bearer",
   "expires_in": 3600
 }

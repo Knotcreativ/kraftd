@@ -7,7 +7,7 @@
     "FUNCTIONS_WORKER_RUNTIME": "python",
     "AzureWebJobsStorage": "",
     "COSMOS_DB_ENDPOINT": "https://localhost:8081/",
-    "COSMOS_DB_KEY": "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLMUA7W0/Z0w=",
+    "COSMOS_DB_KEY": "<REDACTED — rotate & store in Key Vault>",
     "COSMOS_DB_DATABASE": "kraftdintel",
     "COSMOS_DB_CONTAINER": "documents",
     "JWT_SECRET_KEY": "dev-secret-key-change-in-production",
@@ -17,7 +17,7 @@
     "APPINSIGHTS_INSTRUMENTATION_KEY": ""
   },
   "ConnectionStrings": {
-    "DefaultConnection": "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLMUA7W0/Z0w=;"
+    "DefaultConnection": "AccountEndpoint=https://localhost:8081/;AccountKey=<REDACTED>;"
   }
 }
 

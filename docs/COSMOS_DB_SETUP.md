@@ -29,7 +29,7 @@ Once running, the emulator credentials are:
 
 ```
 Endpoint: https://localhost:8081/
-Key: C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVo+2xNqaC8h/RVi12NewNQYoNkVRZo0v6a7t1E==
+Key: <REDACTED — emulator key removed; use emulator or set COSMOS_KEY via env or Key Vault>
 ```
 
 ### Step 3: Create `.env` File
@@ -42,7 +42,7 @@ Create or update `.env`:
 
 ```
 COSMOS_ENDPOINT=https://localhost:8081/
-COSMOS_KEY=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVo+2xNqaC8h/RVi12NewNQYoNkVRZo0v6a7t1E==
+COSMOS_KEY=<REDACTED — do not commit secrets; use Key Vault or set locally>
 ENVIRONMENT=development
 ```
 

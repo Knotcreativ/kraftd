@@ -115,7 +115,8 @@ function Deploy-To-ACI {
     if (-not $cosmosKey) {
         $cosmosKey = Read-Host "Enter Cosmos DB key (or press Enter for emulator key)" -AsSecureString
         if ($cosmosKey.Length -eq 0) {
-            $cosmosKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVo+2xNqaC8h/RVi12NewNQYoNkVRZo0v6a7t1E=="
+            Write-Warning "⚠️ No Cosmos DB key provided — DO NOT commit secrets in repo. Use Key Vault or set the environment variable locally."
+            $cosmosKey = ""
         } else {
             $cosmosKey = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
                 [Runtime.InteropServices.Marshal]::SecureStringToBSTR($cosmosKey)
