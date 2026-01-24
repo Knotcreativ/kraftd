@@ -109,3 +109,7 @@ yarn-error.log*
 Thumbs.db
 .DS_Store
 *.tmp
+
+# Next.js build artifacts
+.next/
+ARCHIVE_OUTDATED_DOCS/frontend-next-deprecated/.next/
