@@ -1,7 +1,7 @@
 @description('Prefix for resource names')
 param prefix string = 'kraftd'
 
-resource communication 'Microsoft.Communication/communicationServices@2021-10-01' = {
+resource communication 'Microsoft.Communication/communicationServices@2023-04-01' = {
   name: '${prefix}-comm'
   location: 'global'
   sku: {
