@@ -1,0 +1,51 @@
+name: Integration tests (Azurite + Cosmos Emulator)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports:
+          - 10000:10000
+        options: >-
+          --health-cmd "curl -s http://localhost:10000 || exit 1" --health-interval 10s
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Start Cosmos Emulator (Linux preview if available)
+        run: |
+          docker pull mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest || echo "cosmos emulator not available"
+          docker run -d --name cosmos-emulator -p 8081:8081 mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest || echo "cosmos emulator fallback"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Wait for Azurite
+        run: |
+          for i in {1..15}; do curl -s http://localhost:10000/ || sleep 2; done
+
+      - name: Run integration smoke tests
+        env:
+          AZURITE_BLOB_ENDPOINT: http://127.0.0.1:10000
+        run: |
+          cd backend
+          python -m pytest tests/integration -q
+
+      - name: Tear down cosmos emulator
+        if: always()
+        run: |
+          docker rm -f cosmos-emulator || true
