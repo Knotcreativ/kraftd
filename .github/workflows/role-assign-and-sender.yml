@@ -1,0 +1,65 @@
+name: Assign role + Create sender + Smoke send
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_smoke:
+        description: 'Run the final smoke send after role + sender created'
+        required: false
+        default: 'true'
+
+jobs:
+  assign-and-send:
+    name: Assign role & Create sender & Smoke send (manual)
+    runs-on: ubuntu-latest
+    environment: production # configure environment protections in repo settings if you want manual approvals
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Azure CLI
+        uses: azure/setup-azure-cli@v2
+
+      - name: Login with Service Principal
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Run role assignment + sender creation script
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          ./scripts/assign_role_and_create_sender.ps1
+        env:
+          SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
+          RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
+          COMM_SERVICE_NAME: ${{ vars.COMM_SERVICE_NAME }}
+          EMAIL_SERVICE_NAME: ${{ vars.EMAIL_SERVICE_NAME }}
+          DOMAIN_NAME: ${{ vars.DOMAIN_NAME }}
+          SENDER_USERNAME: ${{ vars.SENDER_USERNAME }}
+          SENDER_DISPLAY_NAME: ${{ vars.SENDER_DISPLAY_NAME }}
+          AZURE_COMM_CONNECTION_STRING: ${{ secrets.AZURE_COMM_CONNECTION_STRING }}
+          ACS_TEST_RECIPIENT: ${{ secrets.ACS_TEST_RECIPIENT }}
+
+      - name: Optionally run smoke send
+        if: ${{ github.event.inputs.run_smoke == 'true' }}
+        shell: pwsh
+        run: |
+          Write-Host "Running smoke send using connection string..."
+          python scripts/acs_send_test_email.py
+        env:
+          AZURE_COMMUNICATION_CONNECTION_STRING: ${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}
+          ACS_TEST_RECIPIENT: ${{ secrets.ACS_TEST_RECIPIENT }}
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: role-assign-logs
+          path: |
+            ./role-assign-log.txt
+            ./sender-create-log.txt
+            ./smoke-send-log.txt
