@@ -113,3 +113,7 @@ Thumbs.db
 # Next.js build artifacts
 .next/
 ARCHIVE_OUTDATED_DOCS/frontend-next-deprecated/.next/
+
+# Security: Ignore any committed azure credential JSON files
+azure-credentials.json
+azure-credentials-*.json

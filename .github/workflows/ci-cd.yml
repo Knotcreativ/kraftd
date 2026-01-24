@@ -119,6 +119,25 @@ jobs:
           echo "Checking signed-in account..."
           az account show --query "{name:name, id:id, tenantId:tenantId}" -o json
       
+      - name: Pre-check Container App exists
+        run: |
+          echo "Checking container app 'kraftdintel-app' in 'kraftdintel-rg' (retries: 5)..."
+          for i in 1 2 3 4 5; do
+            if az containerapp show --name kraftdintel-app --resource-group kraftdintel-rg >/dev/null 2>&1; then
+              echo "Found container app"
+              break
+            else
+              echo "Not found, retrying ($i/5)..."
+              az account show --output json || true
+              az containerapp list -g kraftdintel-rg --query "[].{name:name}" -o table || true
+              sleep $((i * 5))
+            fi
+            if [ "$i" -eq 5 ]; then
+              echo "Container app not found after retries, aborting."
+              exit 1
+            fi
+          done
+
       - name: Deploy to Container Apps
         run: |
           az containerapp update \
@@ -154,6 +173,25 @@ jobs:
           echo "Checking signed-in account..."
           az account show --query "{name:name, id:id, tenantId:tenantId}" -o json
       
+      - name: Pre-check Container App exists
+        run: |
+          echo "Checking container app 'kraftdintel-app' in 'kraftdintel-rg' (retries: 5)..."
+          for i in 1 2 3 4 5; do
+            if az containerapp show --name kraftdintel-app --resource-group kraftdintel-rg >/dev/null 2>&1; then
+              echo "Found container app"
+              break
+            else
+              echo "Not found, retrying ($i/5)..."
+              az account show --output json || true
+              az containerapp list -g kraftdintel-rg --query "[].{name:name}" -o table || true
+              sleep $((i * 5))
+            fi
+            if [ "$i" -eq 5 ]; then
+              echo "Container app not found after retries, aborting."
+              exit 1
+            fi
+          done
+
       - name: Deploy to Container Apps
         run: |
           az containerapp update \
@@ -199,6 +237,25 @@ jobs:
           echo "Checking signed-in account..."
           az account show --query "{name:name, id:id, tenantId:tenantId}" -o json
       
+      - name: Pre-check Container App exists (Production)
+        run: |
+          echo "Checking container app 'kraftdintel-app' in 'kraftdintel-rg' (retries: 5)..."
+          for i in 1 2 3 4 5; do
+            if az containerapp show --name kraftdintel-app --resource-group kraftdintel-rg >/dev/null 2>&1; then
+              echo "Found container app"
+              break
+            else
+              echo "Not found, retrying ($i/5)..."
+              az account show --output json || true
+              az containerapp list -g kraftdintel-rg --query "[].{name:name}" -o table || true
+              sleep $((i * 5))
+            fi
+            if [ "$i" -eq 5 ]; then
+              echo "Container app not found after retries, aborting."
+              exit 1
+            fi
+          done
+
       - name: Deploy to Container Apps (Production)
         run: |
           az containerapp update \
