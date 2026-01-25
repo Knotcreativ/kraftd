@@ -3,6 +3,10 @@ name: Assign role + Create sender + Smoke send
 on:
   workflow_dispatch:
     inputs:
+      confirm:
+        description: "Type 'CONFIRM' to run this workflow (safety check)"
+        required: true
+        default: ""
       run_smoke:
         description: 'Run the final smoke send after role + sender created'
         required: false
@@ -12,23 +16,37 @@ jobs:
   assign-and-send:
     name: Assign role & Create sender & Smoke send (manual)
     runs-on: ubuntu-latest
-    environment: production # configure environment protections in repo settings if you want manual approvals
+    environment: production # configure environment protections and environment secrets in repo settings; approvals required
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Azure CLI
-        uses: azure/setup-azure-cli@v2
+      - name: Confirm manual approval
+        if: "${{ github.event.inputs.confirm != 'CONFIRM' }}"
+        run: |
+          echo "Confirmation not provided or incorrect. To run this workflow, provide input 'confirm' with value 'CONFIRM'."
+          exit 1
 
-      - name: Login with Service Principal
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Verify required admin secrets (environment)
+        run: |
+          if [ -z "${{ secrets.AZURE_ADMIN_CLIENT_ID }}" ] || [ -z "${{ secrets.AZURE_ADMIN_CLIENT_SECRET }}" ] || [ -z "${{ secrets.AZURE_ADMIN_TENANT_ID }}" ]; then
+            echo "Missing environment admin secrets (AZURE_ADMIN_CLIENT_ID/SECRET/TENANT_ID). Please set them in the 'production' environment and require approvals for runs.";
+            exit 1;
+          fi
 
-      - name: Run role assignment + sender creation script
+      - name: Install Azure CLI and login with admin Service Principal
+        run: |
+          echo "Installing Azure CLI..."
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          echo "Logging in with admin service principal from environment secrets..."
+          az login --service-principal -u ${{ secrets.AZURE_ADMIN_CLIENT_ID }} -p ${{ secrets.AZURE_ADMIN_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_ADMIN_TENANT_ID }}
+          az account set --subscription ${{ secrets.SUBSCRIPTION_ID }}
+
+      - name: Install Azure Communication CLI extension
+        run: |
+          az extension add --name communication || true
+
+      - name: Run role assignment + sender creation script (idempotent)
         shell: pwsh
         run: |
           Set-StrictMode -Version Latest
@@ -41,8 +59,39 @@ jobs:
           DOMAIN_NAME: ${{ vars.DOMAIN_NAME }}
           SENDER_USERNAME: ${{ vars.SENDER_USERNAME }}
           SENDER_DISPLAY_NAME: ${{ vars.SENDER_DISPLAY_NAME }}
-          AZURE_COMM_CONNECTION_STRING: ${{ secrets.AZURE_COMM_CONNECTION_STRING }}
-          ACS_TEST_RECIPIENT: ${{ secrets.ACS_TEST_RECIPIENT }}
+
+      - name: Wait for role propagation (verify the assignment exists)
+        run: |
+          scope="/subscriptions/${{ secrets.SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.RESOURCE_GROUP }}/providers/Microsoft.Communication/emailServices/${{ vars.EMAIL_SERVICE_NAME }}"
+          principalId=$(az resource show --ids "/subscriptions/${{ secrets.SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.RESOURCE_GROUP }}/providers/Microsoft.Communication/communicationServices/${{ vars.COMM_SERVICE_NAME }}" --query identity.principalId -o tsv || true)
+          echo "principalId=$principalId"
+          if [ -z "$principalId" ]; then
+            echo "No system-assigned principalId found on communication resource; the script should have created it. Re-run as an Owner if needed.";
+            exit 1;
+          fi
+          for i in {1..12}; do
+            echo "Checking role assignment (attempt $i)..."
+            found=$(az role assignment list --scope "$scope" --query "[?principalId=='$principalId']" -o tsv || true)
+            if [ -n "$found" ]; then
+              echo "Role assignment found"; break
+            fi
+            sleep 5
+          done
+          if [ -z "$found" ]; then
+            echo "Role assignment not found after polling; check permissions and re-run"; exit 1
+          fi
+
+      - name: Create sender username (idempotent check)
+        run: |
+          echo "Checking for existing sender username..."
+          existing=$(az communication email domain sender-username list --resource-group ${{ secrets.RESOURCE_GROUP }} --email-service-name ${{ vars.COMM_SERVICE_NAME }} --domain-name ${{ vars.DOMAIN_NAME }} -o json || echo '[]')
+          echo "$existing" | jq -e ".[] | select(.username==\"${{ vars.SENDER_USERNAME }}\")" >/dev/null 2>&1 && echo "Sender exists" || (
+            echo "Creating sender username '${{ vars.SENDER_USERNAME }}'..." && az communication email domain sender-username create --domain-name ${{ vars.DOMAIN_NAME }} --email-service-name ${{ vars.COMM_SERVICE_NAME }} --sender-username ${{ vars.SENDER_USERNAME }} --username ${{ vars.SENDER_USERNAME }} --display-name "${{ vars.SENDER_DISPLAY_NAME }}" -g ${{ secrets.RESOURCE_GROUP }}
+          )
+
+      - name: Verify sender exists
+        run: |
+          az communication email domain sender-username list --resource-group ${{ secrets.RESOURCE_GROUP }} --email-service-name ${{ vars.COMM_SERVICE_NAME }} --domain-name ${{ vars.DOMAIN_NAME }} -o table
 
       - name: Optionally run smoke send
         if: ${{ github.event.inputs.run_smoke == 'true' }}

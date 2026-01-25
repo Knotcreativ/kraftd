@@ -26,9 +26,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Choose connection string (prefer email service key if present)
+        run: |
+          if [ -n "${{ secrets.AZURE_EMAIL_SERVICE_CONNECTION_STRING }}" ]; then
+            echo "Using AZURE_EMAIL_SERVICE_CONNECTION_STRING";
+            echo "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_EMAIL_SERVICE_CONNECTION_STRING }}" >> $GITHUB_ENV;
+          else
+            echo "Using AZURE_COMMUNICATION_CONNECTION_STRING";
+            echo "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}" >> $GITHUB_ENV;
+          fi
+
       - name: Run ACS smoke script
         env:
-          AZURE_COMMUNICATION_CONNECTION_STRING: ${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}
+          PYTHONPATH: ./backend
+          AZURE_COMMUNICATION_CONNECTION_STRING: ${{ env.AZURE_COMMUNICATION_CONNECTION_STRING }}
           ACS_TEST_RECIPIENT: ${{ secrets.ACS_TEST_RECIPIENT }}
         run: |
           python scripts/acs_send_test_email.py

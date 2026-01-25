@@ -270,7 +270,7 @@ curl -X GET http://localhost:8000/api/v1/documents \
 
 **What:** Move `frontend-next/` to archive and remove from CI/CD  
 **Why:** Dual frontends create confusion and increase maintenance burden  
-**Current State:** frontend-next exists but isn't used in GitHub Actions
+**Current State:** frontend-next has been archived to `ARCHIVE_OUTDATED_DOCS/frontend-next-deprecated` and CI/CD updated to use `frontend/` (action completed)
 
 #### Steps:
 

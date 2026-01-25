@@ -6,6 +6,8 @@ AZURE CREDENTIALS CONFIGURATION SCRIPT
 This script helps configure Azure service credentials for Kraftd deployment.
 Run this to automatically retrieve and update your .env file with real Azure keys.
 
+Note: For GitHub Actions, prefer using explicit per-field secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_SUBSCRIPTION_ID`) instead of the full `AZURE_CREDENTIALS` JSON to avoid parsing issues. See `docs/SECRETS_AZURE.md` for details.
+
 Requirements:
 - Azure CLI installed and logged in (az login)
 - Access to the Azure subscription and resources

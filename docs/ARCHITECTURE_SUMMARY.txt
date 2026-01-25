@@ -427,7 +427,8 @@ Infrastructure as Code:
 Secrets Management:
   - Azure Key Vault stores: DB connection, API keys, SendGrid token
   - services/secrets_manager.py retrieves at runtime
-  - GitHub Secrets: AZURE_CREDENTIALS, AZURE_FUNCTIONAPP_PUBLISH_PROFILE
+  - GitHub Secrets (preferred): AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID, AZURE_FUNCTIONAPP_PUBLISH_PROFILE
+  - Note: `AZURE_CREDENTIALS` (full SP JSON) is deprecated; see `docs/SECRETS_AZURE.md` for guidance.
 
 ================================================================================
 7. END-TO-END DOCUMENT CONVERSION FLOW

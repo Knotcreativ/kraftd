@@ -65,7 +65,9 @@ class ACSEmailService:
 
             poller = self.client.begin_send(message)
             result = poller.result()
-            logger.info(f"ACS email send initiated, operation id: {result.id}")
+            # poller.result() can return either an object with attribute 'id' or a dict
+            op_id = getattr(result, 'id', None) or (result.get('id') if isinstance(result, dict) else None)
+            logger.info(f"ACS email send initiated, operation id: {op_id}")
             return True
         except Exception as e:
             logger.error(f"Error sending ACS verification email: {e}")

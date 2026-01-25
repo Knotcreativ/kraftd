@@ -2,7 +2,21 @@
 import os
 import asyncio
 import logging
-from backend.services.email_acs import ACSEmailService
+import sys
+from pathlib import Path
+
+# Ensure script can import backend package when run from workflow or local
+try:
+    from backend.services.email_acs import ACSEmailService
+except Exception:
+    repo_root = Path(__file__).resolve().parent
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    try:
+        from backend.services.email_acs import ACSEmailService
+    except Exception as e:
+        logging.error("Failed to import ACSEmailService: %s", e)
+        raise
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

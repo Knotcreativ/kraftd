@@ -383,9 +383,14 @@ db.documents.aggregate([
 
 # 3. Required secrets:
 # - AZURE_STATIC_WEB_APPS_API_TOKEN
-# - AZURE_CREDENTIALS
+# - AZURE_CLIENT_ID
+# - AZURE_TENANT_ID
+# - AZURE_CLIENT_SECRET
+# - AZURE_SUBSCRIPTION_ID
 # - DOCKER_USERNAME
 # - DOCKER_PASSWORD
+#
+# Note: `AZURE_CREDENTIALS` (full SP JSON) is deprecated — prefer the separate `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`, and `AZURE_SUBSCRIPTION_ID` secrets. See `docs/SECRETS_AZURE.md` for validation and troubleshooting steps.
 
 # 4. Re-run workflow
 # GitHub > Actions > Workflow > Re-run jobs
