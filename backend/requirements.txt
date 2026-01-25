@@ -11,7 +11,7 @@ pandas
 azure-storage-blob
 azure-cosmos
 psycopg2-binary
-azure-ai-documentintelligence
+azure-ai-inference
 reportlab
 openai
 httpx
