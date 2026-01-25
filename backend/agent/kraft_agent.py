@@ -96,33 +96,54 @@ class KraftdAIAgent:
         logger.info("KraftdAIAgent with OCR learning initialized")
         
     async def initialize(self) -> bool:
-        """Initialize GitHub Models client and Cosmos DB clients."""
+        """Initialize AI client (Azure OpenAI preferred, GitHub Models fallback) and Cosmos DB clients."""
         try:
             # Get configuration from environment
+            azure_openai_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+            azure_openai_key = os.environ.get("AZURE_OPENAI_API_KEY")
+            azure_openai_deployment = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4o-mini")
             github_token = os.environ.get("GITHUB_TOKEN")
-            model_provider = os.environ.get("MODEL_PROVIDER", "github")
             model_name = os.environ.get("MODEL_NAME", "gpt-4o")
-            
-            # Check if GitHub token is available
-            if not github_token:
-                logger.warning(
-                    "GitHub token not configured. "
-                    "Set GITHUB_TOKEN environment variable to use GitHub Models."
+
+            # Try Azure OpenAI first (preferred)
+            if azure_openai_endpoint and azure_openai_key:
+                try:
+                    from azure.ai.inference import ChatCompletionsClient
+                    from azure.core.credentials import AzureKeyCredential
+
+                    self.client = ChatCompletionsClient(
+                        endpoint=azure_openai_endpoint,
+                        credential=AzureKeyCredential(azure_openai_key)
+                    )
+                    self.model_deployment = azure_openai_deployment
+                    logger.info(f"✓ Kraftd AI Agent initialized with Azure OpenAI: {azure_openai_deployment}")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Azure OpenAI client: {e}. Falling back to GitHub Models.")
+                    azure_openai_endpoint = None  # Force fallback
+
+            # Fallback to GitHub Models if Azure OpenAI not available or failed
+            if not azure_openai_endpoint and github_token:
+                try:
+                    from azure.ai.inference import ChatCompletionsClient
+                    from azure.core.credentials import AzureKeyCredential
+
+                    self.client = ChatCompletionsClient(
+                        endpoint="https://models.inference.ai.azure.com",
+                        credential=AzureKeyCredential(github_token)
+                    )
+                    self.model_deployment = model_name
+                    logger.info(f"✓ Kraftd AI Agent initialized with GitHub Models: {model_name}")
+                except Exception as e:
+                    logger.error(f"Failed to initialize GitHub Models client: {e}")
+                    return False
+            elif not github_token and not azure_openai_endpoint:
+                logger.error(
+                    "Neither Azure OpenAI nor GitHub token configured. "
+                    "Set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, and AZURE_OPENAI_DEPLOYMENT "
+                    "or GITHUB_TOKEN environment variables."
                 )
                 return False
-            
-            # Create GitHub Models client using azure-ai-inference
-            from azure.ai.inference import ChatCompletionsClient
-            from azure.core.credentials import AzureKeyCredential
-            
-            self.client = ChatCompletionsClient(
-                endpoint="https://models.inference.ai.azure.com",
-                credential=AzureKeyCredential(github_token)
-            )
-            
-            self.model_deployment = model_name
-            logger.info(f"✓ Kraftd AI Agent initialized with GitHub Models: {model_name}")
-            
+
             # Initialize Cosmos DB client if available
             if COSMOS_AVAILABLE:
                 cosmos_connection = os.environ.get("AZURE_COSMOS_CONNECTION_STRING")
@@ -136,7 +157,7 @@ class KraftdAIAgent:
                         logger.warning(f"Failed to initialize Cosmos DB: {e}. Conversations will not persist.")
                 else:
                     logger.info("AZURE_COSMOS_CONNECTION_STRING not set. Conversation persistence disabled.")
-            
+
             return True
                 
         except Exception as e:
@@ -161,7 +182,8 @@ class KraftdAIAgent:
         if not success:
             raise RuntimeError(
                 "Failed to initialize KraftdAIAgent. "
-                "Ensure AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY are set."
+                "Ensure Azure OpenAI (AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT) "
+                "or GitHub Models (GITHUB_TOKEN) environment variables are set."
             )
         
         logger.info("✓ KraftdAIAgent created successfully")
