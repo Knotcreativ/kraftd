@@ -121,15 +121,15 @@ jobs:
       
       - name: Pre-check Container App exists
         run: |
-          echo "Checking container app 'kraftdintel-app' in 'kraftdintel-rg' (retries: 5)..."
+          echo "Checking container app 'kraftd-api' in 'KraftdRG' (retries: 5)..."
           for i in 1 2 3 4 5; do
-            if az containerapp show --name kraftdintel-app --resource-group kraftdintel-rg >/dev/null 2>&1; then
+            if az containerapp show --name kraftd-api --resource-group KraftdRG >/dev/null 2>&1; then
               echo "Found container app"
               break
             else
               echo "Not found, retrying ($i/5)..."
               az account show --output json || true
-              az containerapp list -g kraftdintel-rg --query "[].{name:name}" -o table || true
+              az containerapp list -g KraftdRG --query "[].{name:name}" -o table || true
               sleep $((i * 5))
             fi
             if [ "$i" -eq 5 ]; then
@@ -141,14 +141,14 @@ jobs:
       - name: Deploy to Container Apps
         run: |
           az containerapp update \
-            --name kraftdintel-app \
-            --resource-group kraftdintel-rg \
+            --name kraftd-api \
+            --resource-group KraftdRG \
             --image kraftdintel.azurecr.io/kraftdintel:latest
       
       - name: Run smoke tests
         run: |
           sleep 15  # Wait for deployment
-          curl -k -X GET https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1/health \
+          curl -k -X GET https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io/api/v1/health \
             -H "Accept: application/json" \
             -w "\nStatus: %{http_code}\n"
 
@@ -175,15 +175,15 @@ jobs:
       
       - name: Pre-check Container App exists
         run: |
-          echo "Checking container app 'kraftdintel-app' in 'kraftdintel-rg' (retries: 5)..."
+          echo "Checking container app 'kraftd-api' in 'KraftdRG' (retries: 5)..."
           for i in 1 2 3 4 5; do
-            if az containerapp show --name kraftdintel-app --resource-group kraftdintel-rg >/dev/null 2>&1; then
+            if az containerapp show --name kraftd-api --resource-group KraftdRG >/dev/null 2>&1; then
               echo "Found container app"
               break
             else
               echo "Not found, retrying ($i/5)..."
               az account show --output json || true
-              az containerapp list -g kraftdintel-rg --query "[].{name:name}" -o table || true
+              az containerapp list -g KraftdRG --query "[].{name:name}" -o table || true
               sleep $((i * 5))
             fi
             if [ "$i" -eq 5 ]; then
@@ -195,14 +195,14 @@ jobs:
       - name: Deploy to Container Apps
         run: |
           az containerapp update \
-            --name kraftdintel-app \
-            --resource-group kraftdintel-rg \
+            --name kraftd-api \
+            --resource-group KraftdRG \
             --image kraftdintel.azurecr.io/kraftdintel:latest
       
       - name: Run integration tests against staging
         run: |
           sleep 15  # Wait for deployment
-          curl -k -X GET https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1/health \
+          curl -k -X GET https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io/api/v1/health \
             -H "Accept: application/json" \
             -w "\nStatus: %{http_code}\n"
       
@@ -220,7 +220,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-      url: https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io
+      url: https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io
     
     steps:
       - name: Checkout code
@@ -239,15 +239,15 @@ jobs:
       
       - name: Pre-check Container App exists (Production)
         run: |
-          echo "Checking container app 'kraftdintel-app' in 'kraftdintel-rg' (retries: 5)..."
+          echo "Checking container app 'kraftd-api' in 'KraftdRG' (retries: 5)..."
           for i in 1 2 3 4 5; do
-            if az containerapp show --name kraftdintel-app --resource-group kraftdintel-rg >/dev/null 2>&1; then
+            if az containerapp show --name kraftd-api --resource-group KraftdRG >/dev/null 2>&1; then
               echo "Found container app"
               break
             else
               echo "Not found, retrying ($i/5)..."
               az account show --output json || true
-              az containerapp list -g kraftdintel-rg --query "[].{name:name}" -o table || true
+              az containerapp list -g KraftdRG --query "[].{name:name}" -o table || true
               sleep $((i * 5))
             fi
             if [ "$i" -eq 5 ]; then
@@ -259,8 +259,8 @@ jobs:
       - name: Deploy to Container Apps (Production)
         run: |
           az containerapp update \
-            --name kraftdintel-app \
-            --resource-group kraftdintel-rg \
+            --name kraftd-api \
+            --resource-group KraftdRG \
             --image kraftdintel.azurecr.io/kraftdintel:latest
       
       - name: Wait for deployment
@@ -268,12 +268,12 @@ jobs:
       
       - name: Run production smoke tests
         run: |
-          curl -k -X GET https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1/health \
+          curl -k -X GET https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io/api/v1/health \
             -H "Accept: application/json" \
             -w "\nStatus: %{http_code}\n"
       
       - name: Log deployment success
         run: |
           echo "✅ Full-stack deployment to production complete!"
-          echo "Backend API: https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1/"
+          echo "Backend API: https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io/api/v1/"
           echo "Frontend App: https://kraftdintel-frontend.azurewebsites.net"
