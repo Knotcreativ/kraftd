@@ -1,0 +1,26 @@
+{
+  "name": "kraftdintel-web",
+  "resourceGroup": "kraftdintel-rg",
+  "region": "westeurope",
+  "sku": "Standard",
+  "source": {
+    "provider": "github",
+    "owner": "Knotcreativ",
+    "repo": "kraftd",
+    "branch": "main"
+  },
+  "buildConfiguration": {
+    "appLocation": "frontend",
+    "outputLocation": "dist",
+    "buildCommand": "npm run build"
+  },
+  "environmentVariables": {
+    "VITE_API_URL": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1"
+  },
+  "expectedUrl": "https://jolly-coast-03a4f4d03.4.azurestaticapps.net",
+  "backendApiUrl": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1",
+  "status": "Updated for Next.js deployment",
+  "createdAt": "2026-01-17T00:00:00Z",
+  "updatedAt": "2026-01-22T18:34:00Z",
+  "notes": "Configuration updated to deploy Next.js frontend from frontend-next directory with proper build configuration"
+}
