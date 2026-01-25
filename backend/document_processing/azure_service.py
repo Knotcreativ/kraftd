@@ -26,7 +26,7 @@ class AzureDocumentIntelligenceService:
                 "Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY environment variables."
             )
         
-        self.client = DocumentIntelligenceClient(
+        self.client = DocumentAnalysisClient(
             endpoint=self.endpoint,
             credential=AzureKeyCredential(self.key)
         )
