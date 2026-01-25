@@ -8,9 +8,11 @@ logger = logging.getLogger(__name__)
 
 try:
     from azure.communication.email import EmailClient
+    from azure.identity import DefaultAzureCredential
     _HAS_ACS = True
 except Exception:
     EmailClient = None
+    DefaultAzureCredential = None
     _HAS_ACS = False
 
 
@@ -19,14 +21,26 @@ class ACSEmailService:
 
     def __init__(self):
         self.connection_string = os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING")
+        self.endpoint = os.getenv("AZURE_COMMUNICATION_ENDPOINT", "https://kraftd-comm.unitedstates.communication.azure.com/")
         self.from_email = os.getenv("SENDGRID_FROM_EMAIL", "noreply@kraftdintel.com")
         self.verification_url = os.getenv("VERIFICATION_URL", "http://localhost:3000/verify-email")
 
-        if not self.connection_string or not _HAS_ACS:
-            logger.warning("AZURE_COMMUNICATION_CONNECTION_STRING not configured or ACS SDK missing. Email service will use mock mode.")
+        if not _HAS_ACS:
+            logger.warning("ACS SDK missing. Email service will use mock mode.")
             self.client = None
-        else:
+        elif self.connection_string:
+            # Use connection string if provided (for backward compatibility)
+            logger.info("Using ACS with connection string")
             self.client = EmailClient.from_connection_string(self.connection_string)
+        else:
+            # Use managed identity
+            try:
+                logger.info("Using ACS with managed identity")
+                credential = DefaultAzureCredential()
+                self.client = EmailClient(endpoint=self.endpoint, credential=credential)
+            except Exception as e:
+                logger.error(f"Failed to initialize ACS with managed identity: {e}")
+                self.client = None
 
     async def send_verification_email(self, to_email: str, verification_token: str, user_name: Optional[str] = None) -> bool:
         verification_link = f"{self.verification_url}?token={verification_token}"

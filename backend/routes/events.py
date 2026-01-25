@@ -11,7 +11,7 @@ Endpoints:
 - GET /api/v1/events/aggregate - Get aggregated event data for charts
 """
 
-from fastapi import APIRouter, Query, Depends, HTTPException, status
+from fastapi import APIRouter, Query, Path, Depends, HTTPException, status
 from datetime import datetime, timedelta
 from typing import Optional, List, Tuple
 from pydantic import BaseModel, Field
@@ -629,7 +629,7 @@ async def get_event_stats(
     description="Get aggregated events for charting (grouped by period)"
 )
 async def get_aggregated_events(
-    event_type: str = Query(..., description="Event type (price, alert, anomaly, signal, trend)"),
+    event_type: str = Path(..., description="Event type (price, alert, anomaly, signal, trend)"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     group_by: str = Query("day", description="Grouping period (day, week, month, hour)"),

@@ -247,7 +247,7 @@ def get_current_user_email(authorization: str = Header(None)) -> str:
 async def analyze_document(
     request: AgentAnalyzeRequest,
     agent=Depends(get_agent),
-    current_user: Tuple[str, UserRole] = Depends(require_permission(Permission.DOCUMENTS_READ))
+    current_user: Tuple[str, UserRole] = Depends(require_permission(Permission.DOCUMENTS_READ_OWN))
 ):
     """
     Analyze a document using the Kraftd AI agent.

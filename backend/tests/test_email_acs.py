@@ -47,3 +47,13 @@ async def test_acs_fallbacks_to_mock_when_sdk_missing(monkeypatch):
     svc = EmailService()
     res = await svc.send_verification_email("test@example.com", "tok123")
     assert res is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(not os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING") or "fake" in os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING").lower(), reason="Requires real ACS connection string")
+async def test_acs_email_real_integration():
+    """Integration test with real ACS - only runs with valid connection string"""
+    svc = EmailService()
+    # Use a test email that won't actually send (or use a service like mailtrap)
+    result = await svc.send_verification_email("test@kraftdintel.com", "integration-test-token")
+    assert result is True  # Should succeed with real ACS

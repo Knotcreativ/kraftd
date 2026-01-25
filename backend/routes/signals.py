@@ -6,7 +6,7 @@ Part of Phase 5: Signals Intelligence layer.
 
 import logging
 from typing import Optional, List, Tuple
-from fastapi import APIRouter, Depends, Query, HTTPException, status, Header
+from fastapi import APIRouter, Depends, Query, Path, HTTPException, status, Header
 
 from models.signals import (
     TrendListResponse, AlertListResponse, SupplierListResponse,
@@ -119,7 +119,7 @@ async def get_trends(
 
 @router.get("/trends/{item_id}", response_model=PriceTrend)
 async def get_item_trend(
-    item_id: str = Query(..., min_length=1),
+    item_id: str = Path(..., min_length=1),
     period: AnalysisPeriod = Query(AnalysisPeriod.MONTHLY),
     days_back: int = Query(90, ge=1, le=365),
     current_user: Tuple[str, UserRole] = Depends(require_authenticated())
@@ -294,7 +294,7 @@ async def get_alerts(
 
 @router.get("/alerts/{alert_id}")
 async def get_alert_detail(
-    alert_id: str = Query(..., min_length=1),
+    alert_id: str = Path(..., min_length=1),
     current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """
@@ -468,7 +468,7 @@ async def get_suppliers(
 
 @router.get("/suppliers/{supplier_id}")
 async def get_supplier_detail(
-    supplier_id: str = Query(..., min_length=1),
+    supplier_id: str = Path(..., min_length=1),
     current_user: Tuple[str, UserRole] = Depends(require_authenticated())
 ):
     """

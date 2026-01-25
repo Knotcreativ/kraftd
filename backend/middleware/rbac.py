@@ -306,26 +306,42 @@ def require_permission_any(*permissions: Permission):
 
 # Convenience dependencies for common role checks
 
-async def require_admin(
-    current_user: Tuple[str, UserRole] = Depends(require_role(UserRole.ADMIN))
-) -> Tuple[str, UserRole]:
-    """Require ADMIN role"""
-    return current_user
+def require_admin():
+    """
+    Dependency to require ADMIN role
+    
+    Returns:
+        Dependency function
+    """
+    async def dependency(
+        current_user: Tuple[str, UserRole] = Depends(require_role(UserRole.ADMIN))
+    ) -> Tuple[str, UserRole]:
+        return current_user
+    
+    return dependency
 
 
-async def require_authenticated(
-    current_user: Tuple[str, UserRole] = Depends(get_current_user_with_role)
-) -> Tuple[str, UserRole]:
-    """Require any authenticated user (not GUEST)"""
-    user_email, user_role = current_user
+def require_authenticated():
+    """
+    Dependency to require any authenticated user (not GUEST)
     
-    if user_role == UserRole.GUEST:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
-        )
+    Returns:
+        Dependency function
+    """
+    async def dependency(
+        current_user: Tuple[str, UserRole] = Depends(get_current_user_with_role)
+    ) -> Tuple[str, UserRole]:
+        user_email, user_role = current_user
+        
+        if user_role == UserRole.GUEST:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required"
+            )
+        
+        return current_user
     
-    return current_user
+    return dependency
 
 
 def check_resource_ownership(

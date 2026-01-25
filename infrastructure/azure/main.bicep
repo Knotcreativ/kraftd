@@ -2,8 +2,8 @@
 param location string = resourceGroup().location
 param prefix string = 'kraftd'
 
-var storageAccountName = toLower('${prefix}storage${uniqueString(resourceGroup().id)}')
-var serviceBusNamespace = '${prefix}-sb-${uniqueString(resourceGroup().id)}'
+var storageAccountName = toLower('${prefix}stg${substring(uniqueString(resourceGroup().id), 0, 8)}')
+var serviceBusNamespace = '${prefix}sb${substring(uniqueString(resourceGroup().id), 0, 8)}'
 var serviceBusQueue = 'documents-processing'
 var appServicePlanName = '${prefix}-plan'
 var functionAppName = '${prefix}-functions'
@@ -121,13 +121,23 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
 }
 
 // Azure Communication Services (Email)
-resource communication 'Microsoft.Communication/communicationServices@2021-10-01' = {
+resource communication 'Microsoft.Communication/communicationServices@2023-04-01' = {
   name: '${prefix}-comm'
   location: 'global'
-  sku: {
-    name: 'Standard'
+  properties: {
+    dataLocation: 'UnitedStates'
   }
-  properties: {}
+}
+
+// RBAC Role Assignment for Function App to access ACS
+resource acsRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(resourceGroup().id, communication.id, subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c'))
+  scope: communication
+  properties: {
+    principalId: functionApp.identity.principalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')  // Contributor role
+    principalType: 'ServicePrincipal'
+  }
 }
 
 output functionAppName string = functionApp.name
@@ -137,3 +147,4 @@ output serviceBusNamespace string = sbNamespace.name
 output serviceBusQueue string = sbQueue.name
 output appInsightsInstrumentationKey string = appInsights.properties.InstrumentationKey
 output communicationServiceName string = communication.name
+output communicationPrincipalId string = communication.identity.principalId

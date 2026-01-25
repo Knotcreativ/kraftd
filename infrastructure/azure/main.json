@@ -1,0 +1,221 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.38.33.27573",
+      "templateHash": "10968169099944275757"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources"
+      }
+    },
+    "prefix": {
+      "type": "string",
+      "defaultValue": "kraftd"
+    }
+  },
+  "variables": {
+    "storageAccountName": "[toLower(format('{0}storage{1}', parameters('prefix'), uniqueString(resourceGroup().id)))]",
+    "serviceBusNamespace": "[format('{0}-sb-{1}', parameters('prefix'), uniqueString(resourceGroup().id))]",
+    "serviceBusQueue": "documents-processing",
+    "appServicePlanName": "[format('{0}-plan', parameters('prefix'))]",
+    "functionAppName": "[format('{0}-functions', parameters('prefix'))]",
+    "appInsightsName": "[format('{0}-ai', parameters('prefix'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "minimumTlsVersion": "TLS1_2",
+        "allowBlobPublicAccess": false
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/default', variables('storageAccountName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/default/documents', variables('storageAccountName'))]",
+      "properties": {
+        "publicAccess": "None"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', split(format('{0}/default', variables('storageAccountName')), '/')[0], split(format('{0}/default', variables('storageAccountName')), '/')[1])]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces",
+      "apiVersion": "2021-11-01",
+      "name": "[variables('serviceBusNamespace')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard"
+      },
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/queues",
+      "apiVersion": "2021-11-01",
+      "name": "[format('{0}/{1}', variables('serviceBusNamespace'), variables('serviceBusQueue'))]",
+      "properties": {
+        "enablePartitioning": false,
+        "lockDuration": "PT30S"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', variables('serviceBusNamespace'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web"
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2022-03-01",
+      "name": "[variables('appServicePlanName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "EP1",
+        "tier": "ElasticPremium",
+        "capacity": 1
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-03-01",
+      "name": "[variables('functionAppName')]",
+      "location": "[parameters('location')]",
+      "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "python"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2022-09-01').keys[0].value]"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "SERVICE_BUS_QUEUE",
+              "value": "[variables('serviceBusQueue')]"
+            },
+            {
+              "name": "SERVICE_BUS_FQDN",
+              "value": "[format('{0}.servicebus.windows.net', variables('serviceBusNamespace'))]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "[resourceId('Microsoft.ServiceBus/namespaces', variables('serviceBusNamespace'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Communication/communicationServices",
+      "apiVersion": "2021-10-01",
+      "name": "[format('{0}-comm', parameters('prefix'))]",
+      "location": "global",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {},
+      "identity": {
+        "type": "SystemAssigned"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Communication/communicationServices/{0}', format('{0}-comm', parameters('prefix')))]",
+      "name": "[guid(resourceGroup().id, resourceId('Microsoft.Communication/communicationServices', format('{0}-comm', parameters('prefix'))), subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c'))]",
+      "properties": {
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2022-03-01', 'full').identity.principalId]",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Communication/communicationServices', format('{0}-comm', parameters('prefix')))]",
+        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "functionAppName": {
+      "type": "string",
+      "value": "[variables('functionAppName')]"
+    },
+    "functionPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2022-03-01', 'full').identity.principalId]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[variables('storageAccountName')]"
+    },
+    "serviceBusNamespace": {
+      "type": "string",
+      "value": "[variables('serviceBusNamespace')]"
+    },
+    "serviceBusQueue": {
+      "type": "string",
+      "value": "[format('{0}/{1}', variables('serviceBusNamespace'), variables('serviceBusQueue'))]"
+    },
+    "appInsightsInstrumentationKey": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').InstrumentationKey]"
+    },
+    "communicationServiceName": {
+      "type": "string",
+      "value": "[format('{0}-comm', parameters('prefix'))]"
+    },
+    "communicationPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Communication/communicationServices', format('{0}-comm', parameters('prefix'))), '2021-10-01', 'full').identity.principalId]"
+    }
+  }
+}

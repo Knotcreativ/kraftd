@@ -345,18 +345,20 @@ async def lifespan(app: FastAPI):
         # Initialize Cosmos DB
         logger.info("Initializing Azure Cosmos DB...")
         try:
-            secrets_mgr = get_secrets_manager()
-            endpoint = secrets_mgr.get_cosmos_endpoint()
-            key = secrets_mgr.get_cosmos_key()
-            
-            if endpoint and key:
-                await initialize_cosmos(endpoint, key)
-                cosmos_service = get_cosmos_service()
-                logger.info("[OK] Azure Cosmos DB initialized successfully")
-            else:
-                logger.warning("[WARN] Cosmos DB credentials not configured")
-                logger.warning("      Set COSMOS_ENDPOINT and COSMOS_KEY in environment or Azure Key Vault")
-                logger.info("      Continuing with fallback mode (in-memory storage)")
+            # TEMPORARILY DISABLE COSMOS DB FOR TESTING
+            logger.warning("[TEMP] Cosmos DB initialization disabled for testing")
+            # secrets_mgr = get_secrets_manager()
+            # endpoint = secrets_mgr.get_cosmos_endpoint()
+            # key = secrets_mgr.get_cosmos_key()
+            # 
+            # if endpoint and key:
+            #     await initialize_cosmos(endpoint, key)
+            #     cosmos_service = get_cosmos_service()
+            #     logger.info("[OK] Azure Cosmos DB initialized successfully")
+            # else:
+            #     logger.warning("[WARN] Cosmos DB credentials not configured")
+            #     logger.warning("      Set COSMOS_ENDPOINT and COSMOS_KEY in environment or Azure Key Vault")
+            #     logger.info("      Continuing with fallback mode (in-memory storage)")
         except Exception as e:
             logger.warning(f"[WARN] Could not initialize Cosmos DB: {str(e)}")
             logger.info("      Continuing with fallback mode (in-memory storage)")
@@ -1179,11 +1181,11 @@ async def get_profile(authorization: str = None):
             )
         
         return UserProfile(
-            email=user.email,
-            name=user.name,
-            organization=user.organization,
-            created_at=user.created_at,
-            is_active=user.is_active
+            email=user.get("email") if isinstance(user, dict) else user.email,
+            name=user.get("name") if isinstance(user, dict) else user.name,
+            organization=user.get("organization", "") if isinstance(user, dict) else getattr(user, "organization", ""),
+            created_at=user.get("created_at") if isinstance(user, dict) else user.created_at,
+            is_active=user.get("is_active", True) if isinstance(user, dict) else user.is_active
         )
     
     except HTTPException:

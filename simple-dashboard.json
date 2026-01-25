@@ -1,0 +1,43 @@
+{
+  "lenses": [
+    {
+      "order": 0,
+      "parts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0,
+            "colSpan": 12,
+            "rowSpan": 4
+          },
+          "metadata": {
+            "inputs": [],
+            "type": "Extension/HubsExtension/PartType/MarkdownPart",
+            "settings": {
+              "content": {
+                "settings": {
+                  "content": "## KraftdIntel Monitoring Dashboard\n\nThis dashboard provides real-time monitoring for the KraftdIntel API.",
+                  "title": "",
+                  "subtitle": ""
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "model": {
+      "timeRange": {
+        "value": {
+          "relative": {
+            "duration": 24,
+            "timeUnit": 1
+          }
+        },
+        "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange"
+      }
+    }
+  }
+}

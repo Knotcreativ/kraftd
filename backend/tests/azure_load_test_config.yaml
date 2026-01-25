@@ -1,0 +1,94 @@
+# Azure Load Testing Configuration for KraftdIntel
+# This configuration file defines load testing scenarios for Azure Load Testing service
+
+# Test Configuration
+testName: "KraftdIntel-API-Load-Test"
+testType: "JMeter"
+description: "Comprehensive load testing for KraftdIntel API endpoints"
+
+# Test Plan File
+testPlan: "backend/tests/load_test.jmx"
+
+# Load Configuration
+loadTestConfig:
+  engineInstances: 1
+  splitAllCSVs: false
+
+# Test Criteria (Pass/Fail conditions)
+testCriteria:
+  - aggregate:
+      clientmetric: response_time_ms_p95
+      condition: "<"
+      value: "5000"
+      action: "continue"
+      result: "pass"
+  - aggregate:
+      clientmetric: error
+      condition: "<"
+      value: "0.05"
+      action: "continue"
+      result: "pass"
+
+# Environment Variables
+environmentVariables:
+  HOST: "kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io"
+  TOKEN: "Bearer ${AZURE_LOAD_TEST_TOKEN}"
+
+# Secrets (configured in Azure Key Vault)
+secrets:
+  - name: "AZURE_LOAD_TEST_TOKEN"
+    value: ""  # Set in Azure portal or via az cli
+
+# Test Run Configuration
+quickTest:
+  load:
+    engineInstances: 1
+    splitAllCSVs: false
+  testCriteria:
+    - aggregate:
+        clientmetric: response_time_ms_p95
+        condition: "<"
+        value: "5000"
+        action: "continue"
+        result: "pass"
+
+# Regional Load Testing (optional)
+regionalLoadTestConfig:
+  regions:
+    - region: "uaenorth"
+      load: 0.5
+    - region: "eastus"
+      load: 0.3
+    - region: "westeurope"
+      load: 0.2
+
+# Monitoring Configuration
+appComponents:
+  - resourceId: "/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP}/providers/Microsoft.App/containerApps/kraftd-api"
+    resourceName: "kraftd-api"
+    resourceType: "Microsoft.App/containerApps"
+    kind: "ContainerApp"
+
+# Metrics to collect
+metrics:
+  - id: "cpu_usage"
+    metric: "CPU Usage"
+    aggregation: "Average"
+    unit: "Percent"
+  - id: "memory_usage"
+    metric: "Memory Usage"
+    aggregation: "Average"
+    unit: "Bytes"
+  - id: "requests_per_second"
+    metric: "Requests/Second"
+    aggregation: "Average"
+    unit: "CountPerSecond"
+  - id: "response_time"
+    metric: "Response Time"
+    aggregation: "Average"
+    unit: "Milliseconds"
+
+# Failure Criteria
+failureCriteria:
+  - "avg(response_time_ms) > 5000"
+  - "percentage(error) > 5"

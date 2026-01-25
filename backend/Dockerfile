@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
+# Copy requirements (updated for azure-ai-formrecognizer - cache bust 2026-01-25 v2)
 COPY requirements.txt .
 
 # Install Python dependencies

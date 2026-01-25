@@ -12,6 +12,7 @@ azure-storage-blob
 azure-cosmos
 psycopg2-binary
 azure-ai-inference
+azure-ai-formrecognizer
 reportlab
 openai
 httpx
@@ -31,3 +32,4 @@ scikit-learn
 numpy
 scipy
 jinja2
+locust

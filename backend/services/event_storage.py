@@ -17,7 +17,6 @@ from typing import List, Dict, Any, Optional
 from enum import Enum
 
 from azure.cosmos import CosmosClient, PartitionKey, exceptions
-from azure.cosmos.partition_key import NoneType
 import asyncio
 from functools import lru_cache
 

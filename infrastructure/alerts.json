@@ -28,12 +28,19 @@
       "metadata": {
         "description": "Email address for alert notifications"
       }
+    },
+    "communicationServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Communication Service"
+      }
     }
   },
   "variables": {
     "appServiceResourceId": "[resourceId('Microsoft.Web/sites', parameters('appServiceName'))]",
     "appInsightsResourceId": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
-    "actionGroupResourceId": "[resourceId('Microsoft.Insights/actionGroups', parameters('actionGroupName'))]"
+    "actionGroupResourceId": "[resourceId('Microsoft.Insights/actionGroups', parameters('actionGroupName'))]",
+    "communicationServiceResourceId": "[resourceId('Microsoft.Communication/communicationServices', parameters('communicationServiceName'))]"
   },
   "resources": [
     {
@@ -227,6 +234,43 @@
               "operator": "LessThan",
               "threshold": 1,
               "timeAggregation": "Average",
+              "criterionType": "StaticThresholdCriterion"
+            }
+          ]
+        },
+        "actions": [
+          {
+            "actionGroupId": "[variables('actionGroupResourceId')]"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/metricAlerts",
+      "apiVersion": "2018-03-01",
+      "name": "ACSEmailFailures",
+      "location": "global",
+      "dependsOn": [
+        "[variables('actionGroupResourceId')]"
+      ],
+      "properties": {
+        "description": "Alert when ACS email send failures exceed threshold",
+        "severity": 2,
+        "enabled": true,
+        "scopes": [
+          "[variables('communicationServiceResourceId')]"
+        ],
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT15M",
+        "criteria": {
+          "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria",
+          "allOf": [
+            {
+              "name": "EmailSendFailures",
+              "metricName": "EmailSendFailures",
+              "operator": "GreaterThan",
+              "threshold": 5,
+              "timeAggregation": "Count",
               "criterionType": "StaticThresholdCriterion"
             }
           ]

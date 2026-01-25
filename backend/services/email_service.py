@@ -17,6 +17,9 @@ class EmailService:
     """
 
     def __init__(self):
+        # Common settings
+        self.verification_url = os.getenv("VERIFICATION_URL", "http://localhost:3000/verify-email")
+        
         # Prefer ACS if configured
         acs_conn = os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING")
         if acs_conn:
@@ -31,7 +34,6 @@ class EmailService:
         # Fallback to SendGrid
         self.api_key = os.getenv("SENDGRID_API_KEY")
         self.from_email = os.getenv("SENDGRID_FROM_EMAIL", "noreply@kraftdintel.com")
-        self.verification_url = os.getenv("VERIFICATION_URL", "http://localhost:3000/verify-email")
         
         if not self.api_key:
             logger.warning("SENDGRID_API_KEY not configured. Email service will use mock mode.")

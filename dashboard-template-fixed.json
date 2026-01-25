@@ -1,0 +1,567 @@
+{
+  "lenses": [
+    {
+      "order": 0,
+      "parts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0,
+            "colSpan": 6,
+            "rowSpan": 4
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "ComponentId",
+                "value": {
+                  "Subscription": "d8061784-4369-43da-995f-e901a822a523",
+                  "ResourceGroup": "KraftdRG",
+                  "Name": "kraftd-api-insights"
+                },
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "value": "P1D",
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/AppInsightsExtension/PartType/AppMapGalPt",
+            "settings": {
+              "content": {
+                "Version": "1.0.0",
+                "ControlProperties": {
+                  "ContainerApp Resource Id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                }
+              }
+            }
+          }
+        },
+        {
+          "position": {
+            "x": 6,
+            "y": 0,
+            "colSpan": 6,
+            "rowSpan": 4
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "ComponentId",
+                "value": {
+                  "Subscription": "d8061784-4369-43da-995f-e901a822a523",
+                  "ResourceGroup": "KraftdRG",
+                  "Name": "kraftd-api-insights"
+                },
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "value": "P1D",
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/AppInsightsExtension/PartType/QuickPulseButtonSmallGalPt",
+            "settings": {}
+          }
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 4,
+            "colSpan": 4,
+            "rowSpan": 3
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "value": "P1D",
+                "isOptional": true
+              },
+              {
+                "name": "Metrics",
+                "value": [
+                  {
+                    "resourceMetadata": {
+                      "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                    },
+                    "name": "Requests",
+                    "aggregationType": 1,
+                    "namespace": "Microsoft.App/containerApps",
+                    "metricVisualization": {
+                      "displayName": "Total Requests",
+                      "resourceDisplayName": "kraftd-api"
+                    }
+                  }
+                ],
+                "isOptional": true
+              },
+              {
+                "name": "GroupByDimensions",
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+            "settings": {
+              "content": {
+                "options": {
+                  "chart": {
+                    "metrics": [
+                      {
+                        "resourceMetadata": {
+                          "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                        },
+                        "name": "Requests",
+                        "aggregationType": 1,
+                        "namespace": "Microsoft.App/containerApps"
+                      }
+                    ],
+                    "title": "API Requests (Last 24 Hours)",
+                    "titleKind": 2,
+                    "visualization": {
+                      "chartType": 2,
+                      "legend": {
+                        "isVisible": true,
+                        "position": 2
+                      },
+                      "axis": {
+                        "x": {
+                          "isVisible": true,
+                          "axisType": 2
+                        },
+                        "y": {
+                          "isVisible": true,
+                          "axisType": 1
+                        }
+                      }
+                    },
+                    "timespan": {
+                      "relative": {
+                        "duration": 24,
+                        "timeUnit": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "position": {
+            "x": 4,
+            "y": 4,
+            "colSpan": 4,
+            "rowSpan": 3
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "value": "P1D",
+                "isOptional": true
+              },
+              {
+                "name": "Metrics",
+                "value": [
+                  {
+                    "resourceMetadata": {
+                      "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                    },
+                    "name": "ResponseTime",
+                    "aggregationType": 4,
+                    "namespace": "Microsoft.App/containerApps",
+                    "metricVisualization": {
+                      "displayName": "Average Response Time",
+                      "resourceDisplayName": "kraftd-api"
+                    }
+                  }
+                ],
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+            "settings": {
+              "content": {
+                "options": {
+                  "chart": {
+                    "metrics": [
+                      {
+                        "resourceMetadata": {
+                          "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                        },
+                        "name": "ResponseTime",
+                        "aggregationType": 4,
+                        "namespace": "Microsoft.App/containerApps"
+                      }
+                    ],
+                    "title": "API Response Time (Last 24 Hours)",
+                    "titleKind": 2,
+                    "visualization": {
+                      "chartType": 2,
+                      "legend": {
+                        "isVisible": true,
+                        "position": 2
+                      },
+                      "axis": {
+                        "x": {
+                          "isVisible": true,
+                          "axisType": 2
+                        },
+                        "y": {
+                          "isVisible": true,
+                          "axisType": 1
+                        }
+                      }
+                    },
+                    "timespan": {
+                      "relative": {
+                        "duration": 24,
+                        "timeUnit": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "position": {
+            "x": 8,
+            "y": 4,
+            "colSpan": 4,
+            "rowSpan": 3
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "value": "P1D",
+                "isOptional": true
+              },
+              {
+                "name": "Metrics",
+                "value": [
+                  {
+                    "resourceMetadata": {
+                      "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                    },
+                    "name": "CpuPercentage",
+                    "aggregationType": 4,
+                    "namespace": "Microsoft.App/containerApps",
+                    "metricVisualization": {
+                      "displayName": "CPU Usage %",
+                      "resourceDisplayName": "kraftd-api"
+                    }
+                  },
+                  {
+                    "resourceMetadata": {
+                      "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                    },
+                    "name": "MemoryPercentage",
+                    "aggregationType": 4,
+                    "namespace": "Microsoft.App/containerApps",
+                    "metricVisualization": {
+                      "displayName": "Memory Usage %",
+                      "resourceDisplayName": "kraftd-api"
+                    }
+                  }
+                ],
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+            "settings": {
+              "content": {
+                "options": {
+                  "chart": {
+                    "metrics": [
+                      {
+                        "resourceMetadata": {
+                          "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                        },
+                        "name": "CpuPercentage",
+                        "aggregationType": 4,
+                        "namespace": "Microsoft.App/containerApps"
+                      },
+                      {
+                        "resourceMetadata": {
+                          "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.App/containerApps/kraftd-api"
+                        },
+                        "name": "MemoryPercentage",
+                        "aggregationType": 4,
+                        "namespace": "Microsoft.App/containerApps"
+                      }
+                    ],
+                    "title": "CPU & Memory Usage (Last 24 Hours)",
+                    "titleKind": 2,
+                    "visualization": {
+                      "chartType": 2,
+                      "legend": {
+                        "isVisible": true,
+                        "position": 2
+                      },
+                      "axis": {
+                        "x": {
+                          "isVisible": true,
+                          "axisType": 2
+                        },
+                        "y": {
+                          "isVisible": true,
+                          "axisType": 1
+                        }
+                      }
+                    },
+                    "timespan": {
+                      "relative": {
+                        "duration": 24,
+                        "timeUnit": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 7,
+            "colSpan": 6,
+            "rowSpan": 4
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "ComponentId",
+                "value": {
+                  "Subscription": "d8061784-4369-43da-995f-e901a822a523",
+                  "ResourceGroup": "KraftdRG",
+                  "Name": "kraftd-api-insights"
+                },
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "value": "P1D",
+                "isOptional": true
+              },
+              {
+                "name": "query",
+                "value": "requests\n| where timestamp > ago(24h)\n| summarize count() by bin(timestamp, 1h), resultCode\n| order by timestamp desc",
+                "isOptional": true
+              },
+              {
+                "name": "ControlProperties",
+                "value": {
+                  "query": "requests\n| where timestamp > ago(24h)\n| summarize count() by bin(timestamp, 1h), resultCode\n| order by timestamp desc"
+                },
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/AppInsightsExtension/PartType/AnalyticsGridGalPt",
+            "settings": {
+              "content": {
+                "Version": "1.0.0",
+                "ControlProperties": {
+                  "query": "requests\n| where timestamp > ago(24h)\n| summarize count() by bin(timestamp, 1h), resultCode\n| order by timestamp desc"
+                }
+              }
+            }
+          }
+        },
+        {
+          "position": {
+            "x": 6,
+            "y": 7,
+            "colSpan": 6,
+            "rowSpan": 4
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "ComponentId",
+                "value": {
+                  "Subscription": "d8061784-4369-43da-995f-e901a822a523",
+                  "ResourceGroup": "KraftdRG",
+                  "Name": "kraftd-api-insights"
+                },
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "value": "P1D",
+                "isOptional": true
+              },
+              {
+                "name": "query",
+                "value": "requests\n| where timestamp > ago(24h)\n| where resultCode >= 400\n| summarize count() by resultCode, name\n| order by count_ desc",
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/AppInsightsExtension/PartType/AnalyticsGridGalPt",
+            "settings": {
+              "content": {
+                "Version": "1.0.0",
+                "ControlProperties": {
+                  "query": "requests\n| where timestamp > ago(24h)\n| where resultCode >= 400\n| summarize count() by resultCode, name\n| order by count_ desc"
+                }
+              }
+            }
+          }
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 11,
+            "colSpan": 12,
+            "rowSpan": 3
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "value": "P1D",
+                "isOptional": true
+              },
+              {
+                "name": "AlertRules",
+                "value": [
+                  {
+                    "resourceMetadata": {
+                      "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.Insights/metricAlerts/ContainerApp-HighCPU"
+                    }
+                  },
+                  {
+                    "resourceMetadata": {
+                      "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.Insights/metricAlerts/ContainerApp-HighMemory"
+                    }
+                  },
+                  {
+                    "resourceMetadata": {
+                      "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.Insights/metricAlerts/ContainerApp-HighResponseTime"
+                    }
+                  },
+                  {
+                    "resourceMetadata": {
+                      "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.Insights/metricAlerts/ContainerApp-HighTraffic"
+                    }
+                  }
+                ],
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/HubsExtension/PartType/MonitorAlertPart",
+            "settings": {
+              "content": {
+                "options": {
+                  "alertRules": [
+                    {
+                      "resourceMetadata": {
+                        "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.Insights/metricAlerts/ContainerApp-HighCPU"
+                      }
+                    },
+                    {
+                      "resourceMetadata": {
+                        "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.Insights/metricAlerts/ContainerApp-HighMemory"
+                      }
+                    },
+                    {
+                      "resourceMetadata": {
+                        "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.Insights/metricAlerts/ContainerApp-HighResponseTime"
+                      }
+                    },
+                    {
+                      "resourceMetadata": {
+                        "id": "/subscriptions/d8061784-4369-43da-995f-e901a822a523/resourceGroups/KraftdRG/providers/Microsoft.Insights/metricAlerts/ContainerApp-HighTraffic"
+                      }
+                    }
+                  ],
+                  "title": "Active Alerts - KraftdIntel API",
+                  "titleKind": 2
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "model": {
+      "timeRange": {
+        "value": {
+          "relative": {
+            "duration": 24,
+            "timeUnit": 1
+          }
+        },
+        "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange"
+      },
+      "filterLocale": {
+        "value": "en-us"
+      },
+      "filters": {
+        "value": {
+          "MsPortalFx_TimeRange": {
+            "model": {
+              "format": "utc",
+              "granularity": "auto",
+              "relative": "24h"
+            },
+            "displayCache": {
+              "name": "UTC Time",
+              "value": "Past 24 hours"
+            },
+            "filteredPartIds": [
+              "StartboardPart-UnboundPart-0",
+              "StartboardPart-UnboundPart-1",
+              "StartboardPart-UnboundPart-2",
+              "StartboardPart-UnboundPart-3",
+              "StartboardPart-UnboundPart-4",
+              "StartboardPart-UnboundPart-5",
+              "StartboardPart-UnboundPart-6",
+              "StartboardPart-UnboundPart-7"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
