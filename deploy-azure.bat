@@ -137,7 +137,7 @@ for /f "tokens=1,* delims==" %%a in ('findstr /v "^#" backend\.env ^| findstr /v
     if "%%a"=="JWT_SECRET" set JWT_SECRET=%%b
     if "%%a"=="JWT_ALGORITHM" set JWT_ALGORITHM=%%b
     if "%%a"=="LOG_LEVEL" set LOG_LEVEL=%%b
-    if "%%a"=="CORS_ORIGINS" set CORS_ORIGINS=%%b
+    if "%%a"=="ALLOWED_ORIGINS" set ALLOWED_ORIGINS=%%b
     if "%%a"=="ENABLE_QUOTA_ENFORCEMENT" set ENABLE_QUOTA_ENFORCEMENT=%%b
 )
 
@@ -162,7 +162,7 @@ if %ERRORLEVEL% EQU 0 (
             JWT_ALGORITHM="%JWT_ALGORITHM%" ^
             ENVIRONMENT="production" ^
             LOG_LEVEL="%LOG_LEVEL%" ^
-            CORS_ORIGINS="%CORS_ORIGINS%" ^
+            ALLOWED_ORIGINS="%ALLOWED_ORIGINS%" ^
             ENABLE_QUOTA_ENFORCEMENT="%ENABLE_QUOTA_ENFORCEMENT%"
     echo [OK] Container app updated
 ) else (
@@ -186,7 +186,7 @@ if %ERRORLEVEL% EQU 0 (
             JWT_ALGORITHM="%JWT_ALGORITHM%" ^
             ENVIRONMENT="production" ^
             LOG_LEVEL="%LOG_LEVEL%" ^
-            CORS_ORIGINS="%CORS_ORIGINS%" ^
+            ALLOWED_ORIGINS="%ALLOWED_ORIGINS%" ^
             ENABLE_QUOTA_ENFORCEMENT="%ENABLE_QUOTA_ENFORCEMENT%" ^
         --registry-server %REGISTRY_URL% ^
         --registry-username %REGISTRY_USERNAME% ^
