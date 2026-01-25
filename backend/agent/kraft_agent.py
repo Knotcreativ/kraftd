@@ -106,7 +106,7 @@ class KraftdAIAgent:
             model_name = os.environ.get("MODEL_NAME", "gpt-4o")
 
             # Try Azure OpenAI first (preferred)
-            if azure_openai_endpoint and azure_openai_key:
+            if azure_openai_endpoint and azure_openai_key and azure_openai_endpoint.strip() and azure_openai_key.strip():
                 try:
                     from azure.ai.inference import ChatCompletionsClient
                     from azure.core.credentials import AzureKeyCredential
@@ -122,7 +122,7 @@ class KraftdAIAgent:
                     azure_openai_endpoint = None  # Force fallback
 
             # Fallback to GitHub Models if Azure OpenAI not available or failed
-            if not azure_openai_endpoint and github_token:
+            if (not azure_openai_endpoint or not azure_openai_endpoint.strip()) and github_token and github_token.strip():
                 try:
                     from azure.ai.inference import ChatCompletionsClient
                     from azure.core.credentials import AzureKeyCredential
@@ -136,7 +136,7 @@ class KraftdAIAgent:
                 except Exception as e:
                     logger.error(f"Failed to initialize GitHub Models client: {e}")
                     return False
-            elif not github_token and not azure_openai_endpoint:
+            elif (not azure_openai_endpoint or not azure_openai_endpoint.strip()) and (not github_token or not github_token.strip()):
                 logger.error(
                     "Neither Azure OpenAI nor GitHub token configured. "
                     "Set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, and AZURE_OPENAI_DEPLOYMENT "

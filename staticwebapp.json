@@ -15,7 +15,7 @@
     "buildCommand": "npm run build"
   },
   "environmentVariables": {
-    "VITE_API_URL": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1"
+    "VITE_API_URL": "https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io/api/v1"
   },
   "expectedUrl": "https://jolly-coast-03a4f4d03.4.azurestaticapps.net",
   "backendApiUrl": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1",

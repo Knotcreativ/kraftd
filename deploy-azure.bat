@@ -139,6 +139,14 @@ for /f "tokens=1,* delims==" %%a in ('findstr /v "^#" backend\.env ^| findstr /v
     if "%%a"=="LOG_LEVEL" set LOG_LEVEL=%%b
     if "%%a"=="CORS_ORIGINS" set CORS_ORIGINS=%%b
     if "%%a"=="ENABLE_QUOTA_ENFORCEMENT" set ENABLE_QUOTA_ENFORCEMENT=%%b
+    if "%%a"=="COSMOS_MAX_RETRIES" set COSMOS_MAX_RETRIES=%%b
+    if "%%a"=="COSMOS_TIMEOUT" set COSMOS_TIMEOUT=%%b
+    if "%%a"=="GITHUB_TOKEN" set GITHUB_TOKEN=%%b
+    if "%%a"=="MODEL_PROVIDER" set MODEL_PROVIDER=%%b
+    if "%%a"=="MODEL_NAME" set MODEL_NAME=%%b
+    if "%%a"=="AZURE_OPENAI_ENDPOINT" set AZURE_OPENAI_ENDPOINT=%%b
+    if "%%a"=="AZURE_OPENAI_API_KEY" set AZURE_OPENAI_API_KEY=%%b
+    if "%%a"=="AZURE_OPENAI_DEPLOYMENT" set AZURE_OPENAI_DEPLOYMENT=%%b
 )
 
 echo [OK] Configuration loaded
@@ -163,7 +171,15 @@ if %ERRORLEVEL% EQU 0 (
             ENVIRONMENT="production" ^
             LOG_LEVEL="%LOG_LEVEL%" ^
             CORS_ORIGINS="%CORS_ORIGINS%" ^
-            ENABLE_QUOTA_ENFORCEMENT="%ENABLE_QUOTA_ENFORCEMENT%"
+            ENABLE_QUOTA_ENFORCEMENT="%ENABLE_QUOTA_ENFORCEMENT%" ^
+            COSMOS_MAX_RETRIES="%COSMOS_MAX_RETRIES%" ^
+            COSMOS_TIMEOUT="%COSMOS_TIMEOUT%" ^
+            GITHUB_TOKEN="%GITHUB_TOKEN%" ^
+            MODEL_PROVIDER="%MODEL_PROVIDER%" ^
+            MODEL_NAME="%MODEL_NAME%" ^
+            AZURE_OPENAI_ENDPOINT="%AZURE_OPENAI_ENDPOINT%" ^
+            AZURE_OPENAI_API_KEY="%AZURE_OPENAI_API_KEY%" ^
+            AZURE_OPENAI_DEPLOYMENT="%AZURE_OPENAI_DEPLOYMENT%"
     echo [OK] Container app updated
 ) else (
     echo Creating new container app...
@@ -188,6 +204,14 @@ if %ERRORLEVEL% EQU 0 (
             LOG_LEVEL="%LOG_LEVEL%" ^
             CORS_ORIGINS="%CORS_ORIGINS%" ^
             ENABLE_QUOTA_ENFORCEMENT="%ENABLE_QUOTA_ENFORCEMENT%" ^
+            COSMOS_MAX_RETRIES="%COSMOS_MAX_RETRIES%" ^
+            COSMOS_TIMEOUT="%COSMOS_TIMEOUT%" ^
+            GITHUB_TOKEN="%GITHUB_TOKEN%" ^
+            MODEL_PROVIDER="%MODEL_PROVIDER%" ^
+            MODEL_NAME="%MODEL_NAME%" ^
+            AZURE_OPENAI_ENDPOINT="%AZURE_OPENAI_ENDPOINT%" ^
+            AZURE_OPENAI_API_KEY="%AZURE_OPENAI_API_KEY%" ^
+            AZURE_OPENAI_DEPLOYMENT="%AZURE_OPENAI_DEPLOYMENT%" ^
         --registry-server %REGISTRY_URL% ^
         --registry-username %REGISTRY_USERNAME% ^
         --registry-password %REGISTRY_PASSWORD%
