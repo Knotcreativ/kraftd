@@ -5,7 +5,7 @@ import { AuthTokens, Document, Workflow } from '../types'
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost'
     ? 'http://127.0.0.1:8000/api/v1'
-    : 'https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1')
+    : 'http://172.20.10.2:8000/api/v1')
 
 class ApiClient {
   private client: AxiosInstance

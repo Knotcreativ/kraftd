@@ -8,7 +8,7 @@ export default defineConfig({
     strictPort: false,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io',
+        target: process.env.VITE_API_URL || 'https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api/v1')
       }
