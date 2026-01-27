@@ -1,12 +1,30 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "type": "func",
-      "label": "func: host start",
-      "command": "host start",
-      "problemMatcher": "$func-powershell-watch",
-      "isBackground": true
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "func",
+			"label": "func: host start",
+			"command": "host start",
+			"problemMatcher": "$func-powershell-watch",
+			"isBackground": true
+		},
+		{
+			"label": "kraftdintel-fixes",
+			"type": "shell",
+			"command": "echo 'Starting KraftdIntel infrastructure fixes...' && echo '1. Fix backend startup issues' && echo '2. Enable Application Insights' && echo '3. Deploy alert rules' && echo '4. Standardize partition keys' && echo '5. Configure production CORS' && echo '6. Re-enable email verification' && echo '7. Complete environment variables' && echo '8. Initialize monitoring' && echo '9. Fix CI/CD env vars' && echo '10. Parameterize alerts' && echo '11. Fix test coverage' && echo '12. Update documentation'",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "kraftdintel-fixes",
+			"type": "shell",
+			"command": ".\\fix-tasks.bat",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
 }

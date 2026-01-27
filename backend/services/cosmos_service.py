@@ -6,6 +6,7 @@ Follows Microsoft best practices: https://learn.microsoft.com/en-us/azure/cosmos
 """
 
 import logging
+import time
 from typing import Optional, Any
 from functools import lru_cache
 
@@ -208,15 +209,34 @@ class CosmosService:
             raise RuntimeError("Cosmos service not initialized")
         
         try:
+            start_time = time.time()
             container = self._client.get_database_client("KraftdDB").get_container_client(container_name)
             response = container.create_item(body=item)
+            duration_ms = (time.time() - start_time) * 1000
+            
             logger.debug(f"Created item in {container_name}: {item.get('id', 'unknown')}")
+            
+            # Record successful database operation
+            try:
+                from monitoring import monitoring
+                monitoring.record_database_operation("create_item", duration_ms, True)
+            except Exception as monitoring_error:
+                logger.debug(f"Failed to record monitoring metric: {monitoring_error}")
+            
             return response
         except exceptions.CosmosResourceExistsError:
             logger.warning(f"Item already exists in {container_name}: {item.get('id', 'unknown')}")
             raise
         except Exception as e:
             logger.error(f"Error creating item in {container_name}: {e}")
+            
+            # Record failed database operation
+            try:
+                from monitoring import monitoring
+                monitoring.record_database_operation("create_item", 0, False)
+            except Exception as monitoring_error:
+                logger.debug(f"Failed to record monitoring metric: {monitoring_error}")
+            
             raise
     
     async def read_item(self, container_name: str, item_id: str, partition_key: str) -> dict:
@@ -240,15 +260,34 @@ class CosmosService:
             raise RuntimeError("Cosmos service not initialized")
         
         try:
+            start_time = time.time()
             container = self._client.get_database_client("KraftdDB").get_container_client(container_name)
             response = container.read_item(item=item_id, partition_key=partition_key)
+            duration_ms = (time.time() - start_time) * 1000
+            
             logger.debug(f"Read item from {container_name}: {item_id}")
+            
+            # Record successful database operation
+            try:
+                from monitoring import monitoring
+                monitoring.record_database_operation("read_item", duration_ms, True)
+            except Exception as monitoring_error:
+                logger.debug(f"Failed to record monitoring metric: {monitoring_error}")
+            
             return response
         except exceptions.CosmosResourceNotFoundError:
             logger.warning(f"Item not found in {container_name}: {item_id}")
             raise
         except Exception as e:
             logger.error(f"Error reading item from {container_name}: {e}")
+            
+            # Record failed database operation
+            try:
+                from monitoring import monitoring
+                monitoring.record_database_operation("read_item", 0, False)
+            except Exception as monitoring_error:
+                logger.debug(f"Failed to record monitoring metric: {monitoring_error}")
+            
             raise
     
     async def replace_item(self, container_name: str, item_id: str, item: dict) -> dict:

@@ -211,6 +211,13 @@ async def login(user_data: UserLogin, request: Request):
         except Exception as e:
             logger.error(f"Error logging failed login: {e}")
         
+        # Record failed authentication in Application Insights
+        try:
+            from monitoring import monitoring
+            monitoring.record_authentication(user_data.email, False, "password")
+        except Exception as monitoring_error:
+            logger.debug(f"Failed to record authentication monitoring: {monitoring_error}")
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
@@ -231,6 +238,13 @@ async def login(user_data: UserLogin, request: Request):
         except Exception as e:
             logger.error(f"Error logging failed login: {e}")
         
+        # Record failed authentication in Application Insights
+        try:
+            from monitoring import monitoring
+            monitoring.record_authentication(user_data.email, False, "password")
+        except Exception as monitoring_error:
+            logger.debug(f"Failed to record authentication monitoring: {monitoring_error}")
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
@@ -250,6 +264,13 @@ async def login(user_data: UserLogin, request: Request):
             )
         except Exception as e:
             logger.error(f"Error logging failed login: {e}")
+        
+        # Record failed authentication in Application Insights
+        try:
+            from monitoring import monitoring
+            monitoring.record_authentication(user_data.email, False, "password")
+        except Exception as monitoring_error:
+            logger.debug(f"Failed to record authentication monitoring: {monitoring_error}")
         
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -282,6 +303,13 @@ async def login(user_data: UserLogin, request: Request):
         )
     except Exception as e:
         logger.error(f"Error logging login audit event: {e}")
+    
+    # Record successful authentication in Application Insights
+    try:
+        from monitoring import monitoring
+        monitoring.record_authentication(user.email, True, "password")
+    except Exception as monitoring_error:
+        logger.debug(f"Failed to record authentication monitoring: {monitoring_error}")
     
     return TokenResponse(
         access_token=access_token,

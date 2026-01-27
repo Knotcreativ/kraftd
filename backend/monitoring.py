@@ -7,10 +7,6 @@ from enum import Enum
 from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry import metrics, trace
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPTraceExporter
 from opentelemetry.sdk.resources import Resource
 from pythonjsonlogger import jsonlogger
 
@@ -116,7 +112,8 @@ class StructuredLogger:
     def __init__(self, name: str):
         """Initialize structured logger"""
         self.logger = logging.getLogger(name)
-        self.logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
+        log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+        self.logger.setLevel(getattr(logging, log_level, logging.INFO))
         
         # Console handler with JSON formatting
         console_handler = logging.StreamHandler()
@@ -173,6 +170,49 @@ class StructuredLogger:
             "error_message": error_message,
             "severity": severity.value
         })
+
+
+class MonitoringMiddleware:
+    """FastAPI middleware for Application Insights telemetry"""
+    
+    def __init__(self, app):
+        self.app = app
+    
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        
+        # Only monitor enabled requests
+        if not monitoring.enabled:
+            await self.app(scope, receive, send)
+            return
+        
+        import time
+        start_time = time.time()
+        
+        # Extract request info
+        method = scope["method"]
+        path = scope["path"]
+        
+        # Create response wrapper to capture status code
+        response_started = False
+        response_status = None
+        
+        async def send_wrapper(message):
+            nonlocal response_started, response_status
+            if message["type"] == "http.response.start":
+                response_started = True
+                response_status = message["status"]
+            await send(message)
+        
+        try:
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            if response_started:
+                duration_ms = (time.time() - start_time) * 1000
+                monitoring.record_request(method, path, response_status, duration_ms)
+                logger.log_request(method, path, response_status, duration_ms)
 
 
 # Global monitoring instance

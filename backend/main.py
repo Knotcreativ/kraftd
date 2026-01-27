@@ -49,6 +49,9 @@ from config import (
     METRICS_ENABLED, UPLOAD_DIR, MAX_UPLOAD_SIZE_MB, validate_config
 )
 
+# Import monitoring and telemetry
+from monitoring import monitoring, logger as monitoring_logger, MonitoringMiddleware
+
 # Import error handling
 from models.errors import (
     KraftdHTTPException, APIErrorResponse, ErrorCode,
@@ -492,6 +495,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add Application Insights monitoring middleware
+app.add_middleware(MonitoringMiddleware)
+
 # ===== Global Exception Handlers =====
 
 @app.exception_handler(KraftdHTTPException)
@@ -507,6 +513,17 @@ async def kraftd_exception_handler(request, exc: KraftdHTTPException):
 async def global_exception_handler(request, exc: Exception):
     """Handle all unhandled exceptions with standardized error response."""
     logger.error(f"Unhandled exception in {request.url.path}: {exc}", exc_info=True)
+    
+    # Record error in Application Insights
+    try:
+        from monitoring import EventSeverity
+        monitoring.record_error(
+            error_type=type(exc).__name__,
+            error_message=str(exc),
+            severity=EventSeverity.HIGH
+        )
+    except Exception as monitoring_error:
+        logger.warning(f"Failed to record error in monitoring: {monitoring_error}")
 
     # Create standardized error response
     error_response = APIErrorResponse(
@@ -577,6 +594,22 @@ async def startup_event():
             raise RuntimeError("Configuration validation failed")
         
         logger.info(f"Configuration valid - Timeout: {REQUEST_TIMEOUT}s, Retries: {MAX_RETRIES}")
+        
+        # Initialize Application Insights monitoring
+        try:
+            if os.getenv("ENABLE_APPLICATION_INSIGHTS", "false").lower() == "true":
+                instrumentation_key = os.getenv("APPINSIGHTS_INSTRUMENTATION_KEY") or os.getenv("APPINSIGHTS_INSTRUMENTATIONKEY")
+                if instrumentation_key:
+                    monitoring_logger.info("Initializing Application Insights monitoring...")
+                    # Monitoring is already initialized as global instance
+                    monitoring_logger.info(f"[OK] Application Insights configured with instrumentation key: {instrumentation_key[:8]}...")
+                else:
+                    monitoring_logger.warning("[WARN] ENABLE_APPLICATION_INSIGHTS=true but no instrumentation key found")
+                    monitoring_logger.warning("      Set APPINSIGHTS_INSTRUMENTATION_KEY or APPINSIGHTS_INSTRUMENTATIONKEY")
+            else:
+                monitoring_logger.info("[INFO] Application Insights monitoring disabled")
+        except Exception as e:
+            monitoring_logger.error(f"[ERROR] Failed to initialize Application Insights: {e}")
         
         # Check Azure configuration
         if is_azure_configured():

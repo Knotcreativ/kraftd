@@ -33,3 +33,9 @@ scipy
 jinja2
 locust
 aiohttp
+azure-monitor-opentelemetry
+opentelemetry-distro
+opentelemetry-instrumentation
+opentelemetry-instrumentation-fastapi
+python-json-logger
+opentelemetry-exporter-otlp-proto-grpc
