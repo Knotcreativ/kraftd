@@ -276,26 +276,6 @@ class ApiClient {
     return response.data
   }
 
-  // PHASE 8: CSRF Token Management
-  async getCsrfToken(): Promise<string> {
-    try {
-      const response = await this.client.get<{ csrf_token: string }>('/auth/csrf-token')
-      this.csrfToken = response.data.csrf_token
-      return this.csrfToken
-    } catch (error) {
-      console.error('Failed to get CSRF token:', error)
-      throw error
-    }
-  }
-
-  setCsrfToken(token: string): void {
-    this.csrfToken = token
-  }
-
-  getCsrfTokenSync(): string {
-    return this.csrfToken
-  }
-
   // Phase 10: Event History endpoints
   async getEventPrices(startDate: string, endDate: string, limit: number = 100, offset: number = 0) {
     const response = await this.client.get<any>('/events/prices', {
