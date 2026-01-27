@@ -43,13 +43,15 @@ class ProfileService:
             return
         
         try:
-            self.profiles_container = await self.cosmos_service.get_container(
+            self.profiles_container = await self.cosmos_service.create_container(
                 self.DATABASE_ID,
-                self.PROFILES_CONTAINER
+                self.PROFILES_CONTAINER,
+                partition_key="/email"
             )
-            self.preferences_container = await self.cosmos_service.get_container(
+            self.preferences_container = await self.cosmos_service.create_container(
                 self.DATABASE_ID,
-                self.PREFERENCES_CONTAINER
+                self.PREFERENCES_CONTAINER,
+                partition_key="/email"
             )
             logger.info("ProfileService containers initialized")
         except Exception as e:

@@ -37,9 +37,10 @@ class UserService:
             return
 
         try:
-            self.users_container = await self.cosmos_service.get_container(
+            self.users_container = await self.cosmos_service.create_container(
                 self.DATABASE_ID,
-                self.USERS_CONTAINER
+                self.USERS_CONTAINER,
+                partition_key="/email"
             )
             logger.info("UserService initialized with Cosmos DB")
         except Exception as e:

@@ -10,7 +10,7 @@ from typing import Optional, Any
 from functools import lru_cache
 
 try:
-    from azure.cosmos import CosmosClient, exceptions
+    from azure.cosmos import CosmosClient, exceptions, PartitionKey
     COSMOS_SDK_AVAILABLE = True
 except ImportError:
     COSMOS_SDK_AVAILABLE = False
@@ -144,6 +144,49 @@ class CosmosService:
         except exceptions.CosmosResourceNotFoundError:
             logger.warning(f"Container not found: {database_id}/{container_id}")
             raise
+    
+    async def create_container(self, database_id: str, container_id: str, partition_key: str = "/id", ttl: int = None):
+        """
+        Create a new container if it doesn't exist.
+        
+        Args:
+            database_id: Database ID
+            container_id: Container ID
+            partition_key: Partition key path (default: "/id")
+            ttl: Time to live in seconds (optional)
+            
+        Returns:
+            Container reference
+        """
+        if not self._is_initialized or not self._client:
+            raise RuntimeError("Cosmos service not initialized")
+        
+        try:
+            database = self._client.get_database_client(database_id)
+            container = database.get_container_client(container_id)
+            # Test if container exists by trying to read properties
+            container.read()
+            logger.debug(f"Container already exists: {database_id}/{container_id}")
+            return container
+        except exceptions.CosmosResourceNotFoundError:
+            # Container doesn't exist, create it
+            logger.info(f"Creating container: {database_id}/{container_id}")
+            try:
+                pk = PartitionKey(path=partition_key)
+                container_props = {
+                    "id": container_id,
+                    "partitionKey": pk
+                }
+                if ttl:
+                    container_props["defaultTtl"] = ttl
+                
+                database.create_container(**container_props)
+                container = database.get_container_client(container_id)
+                logger.info(f"Created container: {database_id}/{container_id}")
+                return container
+            except Exception as e:
+                logger.error(f"Failed to create container {database_id}/{container_id}: {e}")
+                raise
     
     async def create_item(self, container_name: str, item: dict) -> dict:
         """
