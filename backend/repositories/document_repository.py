@@ -5,6 +5,7 @@ Handles all document-related database operations using repository pattern.
 """
 
 import logging
+import os
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from enum import Enum
@@ -15,7 +16,7 @@ from services.cosmos_service import get_cosmos_service
 logger = logging.getLogger(__name__)
 
 # Constants
-DATABASE_ID = "kraftdintel"
+DATABASE_ID = os.getenv("COSMOS_DATABASE", "KraftdDB")
 CONTAINER_ID = "documents"
 
 

@@ -411,38 +411,6 @@ async def logout(email: str = Depends(get_current_user_email), request: Request 
         "tokens_revoked": revoked_count
     }
 
-@router.get("/profile", response_model=UserProfile)
-async def get_profile(user_info: Tuple[str, UserRole] = Depends(get_current_user_with_role)):
-    """Get current user profile"""
-    email, role = user_info
-    # Try to get user from database first
-    try:
-        user_service = get_user_service()
-        user = await user_service.get_user_by_email(email)
-        if user:
-            return UserProfile(
-                email=user.email,
-                name=user.name,
-                organization="",  # User model doesn't have organization
-                created_at=user.created_at,
-                is_active=user.is_active
-            )
-    except Exception as e:
-        logger.warning(f"Failed to get user from database, trying in-memory: {e}")
-    
-    # Fallback to in-memory storage
-    user = users_db.get(email)
-    if user is None:
-        raise not_found_error("User", email)
-    
-    return UserProfile(
-        email=user.email,
-        name=user.name,
-        organization="",  # User model doesn't have organization
-        created_at=user.created_at,
-        is_active=user.is_active
-    )
-
 @router.get("/validate", response_model=dict)
 async def validate_token(email: str = Depends(get_current_user_email)):
     """Validate current token"""

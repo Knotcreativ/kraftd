@@ -11,6 +11,7 @@ Enables per-document isolation with rich data structure:
 """
 
 import logging
+import os
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -30,7 +31,7 @@ from models.extraction import (
 logger = logging.getLogger(__name__)
 
 # Constants
-DATABASE_ID = "kraftdintel"
+DATABASE_ID = os.getenv("COSMOS_DATABASE", "KraftdDB")
 CONTAINER_ID = "extractions"
 
 

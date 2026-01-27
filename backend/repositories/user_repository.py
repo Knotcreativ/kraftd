@@ -5,6 +5,7 @@ Handles all user-related database operations using repository pattern.
 """
 
 import logging
+import os
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -14,7 +15,7 @@ from services.cosmos_service import get_cosmos_service
 logger = logging.getLogger(__name__)
 
 # Constants
-DATABASE_ID = "kraftdintel"
+DATABASE_ID = os.getenv("COSMOS_DATABASE", "KraftdDB")
 CONTAINER_ID = "users"
 
 

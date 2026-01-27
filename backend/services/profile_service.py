@@ -4,6 +4,7 @@ Handles CRUD operations for user profiles and preferences using Cosmos DB
 """
 
 import logging
+import os
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 class ProfileService:
     """Service for managing user profiles and preferences with Cosmos DB"""
     
-    DATABASE_ID = "KraftdIntel"
+    DATABASE_ID = os.getenv("COSMOS_DATABASE", "KraftdDB")
     PROFILES_CONTAINER = "user_profiles"
     PREFERENCES_CONTAINER = "user_preferences"
     

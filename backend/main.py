@@ -431,7 +431,8 @@ async def lifespan(app: FastAPI):
         # Initialize Export Tracking Service (Three-stage recording)
         if cosmos_service and cosmos_service.is_initialized():
             try:
-                await initialize_export_tracking(cosmos_service, "KraftdIntel")
+                database_name = os.getenv("COSMOS_DATABASE", "KraftdDB")
+                await initialize_export_tracking(cosmos_service, database_name)
                 logger.info("[OK] Export tracking service initialized")
             except Exception as e:
                 logger.warning(f"[WARN] Export tracking initialization failed: {str(e)}")
