@@ -8,7 +8,7 @@ import logging
 from models.user import (
     UserRegister, UserLogin, UserProfile, TokenResponse,
     ForgotPasswordRequest, ResetPasswordRequest, PasswordResetResponse,
-    VerifyEmailRequest, VerifyEmailResponse, UserRole
+    VerifyEmailRequest, VerifyEmailResponse, UserRole, RefreshRequest
 )
 from services.auth_service import AuthService
 from services.token_service import TokenService
