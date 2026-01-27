@@ -48,7 +48,7 @@ This directory contains comprehensive load testing tools for validating KraftdIn
    $env:AZURE_SUBSCRIPTION_ID = "your-subscription-id"
 
    # Run the Azure load test
-   .\backend\tests\run_azure_load_test.ps1 -ResourceGroup "kraftdintel-rg" -LoadTestName "kraftdintel-loadtest"
+   .\backend\tests\run_azure_load_test.ps1 -ResourceGroup "KraftdRG" -LoadTestName "kraftdintel-loadtest"
    ```
 
 2. **Using JMeter directly**:
@@ -107,7 +107,7 @@ TOKEN=Bearer your-jwt-token
 
 1. **Create Azure Load Testing resource**:
    ```bash
-   az load test create --name kraftdintel-loadtest --resource-group kraftdintel-rg --location uaenorth
+   az load test create --name kraftdintel-loadtest --resource-group KraftdRG --location uaenorth
    ```
 
 2. **Configure secrets in Key Vault**:
@@ -166,13 +166,13 @@ Load tests integrate with Azure Application Insights and Azure Monitor:
 
 ```bash
 # Check Container App status
-az containerapp show --name kraftd-api --resource-group kraftdintel-rg
+az containerapp show --name kraftd-api --resource-group KraftdRG
 
 # View Application Insights metrics
 az monitor metrics list --resource /subscriptions/.../kraftd-api --metric "Requests"
 
 # Check Azure Load Testing status
-az load test run show --load-test-name kraftdintel-loadtest --resource-group kraftdintel-rg --test-run-id <run-id>
+az load test run show --load-test-name kraftdintel-loadtest --resource-group KraftdRG --test-run-id <run-id>
 ```
 
 ## CI/CD Integration
@@ -199,7 +199,7 @@ az load test run show --load-test-name kraftdintel-loadtest --resource-group kra
     azureSubscription: 'azure-subscription'
     loadTestConfigFile: 'backend/tests/azure_load_test_config.yaml'
     loadTestResource: 'kraftdintel-loadtest'
-    resourceGroup: 'kraftdintel-rg'
+    resourceGroup: 'KraftdRG'
 ```
 
 ## Best Practices

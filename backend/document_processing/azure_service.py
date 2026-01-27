@@ -8,7 +8,7 @@ for procurement documents (RFQs, quotations, POs, etc.)
 import os
 from typing import Dict, Any, Optional, List
 from azure.core.credentials import AzureKeyCredential
-from azure.ai.formrecognizer import DocumentAnalysisClient, AnalyzeResult
+from azure.ai.documentintelligence import DocumentAnalysisClient, AnalyzeResult
 
 
 class AzureDocumentIntelligenceService:

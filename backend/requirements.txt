@@ -12,7 +12,7 @@ azure-storage-blob
 azure-cosmos
 psycopg2-binary
 azure-ai-inference
-azure-ai-formrecognizer
+azure-ai-documentintelligence
 reportlab
 openai
 httpx
@@ -23,7 +23,6 @@ passlib[bcrypt]
 python-dotenv
 email-validator
 sendgrid
-sendgrid-python
 azure-communication-email
 pytest
 pytest-cov

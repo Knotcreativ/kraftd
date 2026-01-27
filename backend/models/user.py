@@ -124,7 +124,7 @@ class RefreshRequest(BaseModel):
     """Request model for token refresh"""
     refresh_token: str
 
-class VerifyEmailRequest(BaseModel):
+class ResetPasswordRequest(BaseModel):
     """Request to reset password with token"""
     token: str
     new_password: str

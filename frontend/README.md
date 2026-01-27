@@ -94,7 +94,7 @@ Create → Auto-deploys on commit
 ```powershell
 az staticwebapp create `
   --name kraftdintel-web `
-  --resource-group kraftdintel-rg `
+  --resource-group KraftdRG `
   --source https://github.com/YOUR_USERNAME/KraftdIntel `
   --app-location frontend `
   --output-location dist

@@ -204,10 +204,10 @@ Before you start, verify:
 - ✅ Azure subscription has free tier credits available
 - ✅ Azure CLI is installed: `az --version`
 - ✅ You're logged into Azure: `az account show`
-- ✅ Resource group exists: `az group show -n kraftdintel-rg`
-- ✅ App Service Plan exists: `az appservice plan show -n kraftdintel-plan -g kraftdintel-rg`
-- ✅ Container Registry exists: `az acr show -n kraftdintel`
-- ✅ Container image is pushed: `az acr repository list -n kraftdintel`
+- ✅ Resource group exists: `az group show -n KraftdRG`
+- ✅ App Service Plan exists: `az appservice plan show -n kraftd-plan -g KraftdRG`
+- ✅ Container Registry exists: `az acr show -n kraftdregistry`
+- ✅ Container image is pushed: `az acr repository list -n kraftdregistry`
 
 All should show no errors.
 
@@ -236,16 +236,16 @@ All should show no errors.
 
 ```powershell
 # View application logs
-az webapp log tail -n kraftdintel-app -g kraftdintel-rg --max-lines 100
+az webapp log tail -n kraftd-functions -g KraftdRG --max-lines 100
 
 # View configuration
-az webapp show -n kraftdintel-app -g kraftdintel-rg
+az webapp show -n kraftd-functions -g KraftdRG
 
 # View diagnostic logs
-az webapp log show -n kraftdintel-app -g kraftdintel-rg
+az webapp log show -n kraftd-functions -g KraftdRG
 
 # Check Azure Portal
-# https://portal.azure.com → kraftdintel-rg → kraftdintel-app
+# https://portal.azure.com → KraftdRG → kraftd-functions
 ```
 
 ---
