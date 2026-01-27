@@ -6,7 +6,7 @@ setlocal enabledelayedexpansion
 
 REM Configuration
 set RESOURCE_GROUP=KraftdRG
-set REGISTRY_NAME=kraftdregistry
+set REGISTRY_NAME=kraftdintel
 set LOCATION=eastus
 set ENVIRONMENT_NAME=kraftd-env
 set APP_NAME=kraftd-api
