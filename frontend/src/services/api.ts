@@ -9,7 +9,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
 
 class ApiClient {
   private client: AxiosInstance
-  private csrfToken: string = ''
 
   constructor() {
     this.client = axios.create({
@@ -18,21 +17,16 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json'
       },
-      // PHASE 8: Enable credentials to send/receive cookies
+      // Enable credentials to send/receive cookies
       withCredentials: true
     })
 
-    // Request interceptor to add auth token or CSRF token
+    // Request interceptor to add auth token
     this.client.interceptors.request.use((config) => {
-      // PHASE 8: Try to get token from localStorage (fallback for backward compatibility)
+      // Try to get token from localStorage
       const token = localStorage.getItem('accessToken')
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
-      }
-      
-      // PHASE 8: Add CSRF token to POST/PUT/DELETE requests
-      if (this.csrfToken && (config.method === 'post' || config.method === 'put' || config.method === 'delete')) {
-        config.headers['X-CSRF-Token'] = this.csrfToken
       }
       
       return config

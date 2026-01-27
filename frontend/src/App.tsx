@@ -20,22 +20,28 @@ import PreferencesPage from './pages/PreferencesPage'
 import { apiClient } from './services/api'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Loading...
+      </div>
+    )
+  }
+
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
 }
 
 function AppContent() {
-  useEffect(() => {
-    // PHASE 8: Get CSRF token on app load
-    const initializeCsrfToken = async () => {
-      try {
-        await apiClient.getCsrfToken()
-      } catch (error) {
-        console.error('Failed to initialize CSRF token:', error)
-      }
-    }
-    initializeCsrfToken()
-  }, [])
+  // CSRF token initialization removed - not implemented in backend
 
 
   return (
@@ -137,7 +143,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-        <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </ErrorBoundary>
   )
