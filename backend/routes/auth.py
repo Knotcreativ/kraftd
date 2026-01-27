@@ -290,7 +290,7 @@ async def login(user_data: UserLogin, request: Request):
     )
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(refresh_token: str, request: Request):
+async def refresh(request_data: RefreshRequest, request: Request):
     """Refresh access token using refresh token with rotation
     
     Implements refresh token rotation:
@@ -306,7 +306,7 @@ async def refresh(refresh_token: str, request: Request):
     
     # Perform token rotation
     result = TokenService.rotate_refresh_token(
-        refresh_token,
+        request_data.refresh_token,
         ip_address=client_ip,
         user_agent=user_agent,
     )

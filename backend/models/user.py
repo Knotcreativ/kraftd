@@ -94,11 +94,18 @@ class UserLogin(BaseModel):
 
 class UserProfile(BaseModel):
     """Response model for user profile"""
+    id: str
     email: str
-    name: str
-    organization: str
-    created_at: datetime
-    is_active: bool
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    bio: Optional[str] = None
+    company: Optional[str] = None
+    job_title: Optional[str] = None
+    location: Optional[str] = None
+    website: Optional[str] = None
+    created_at: str
+    updated_at: str
 
 class TokenResponse(BaseModel):
     """Response model for token responses"""
@@ -113,11 +120,11 @@ class TokenPayload(BaseModel):
     exp: int
     iat: int
 
-class ForgotPasswordRequest(BaseModel):
-    """Request for password reset email"""
-    email: EmailStr
+class RefreshRequest(BaseModel):
+    """Request model for token refresh"""
+    refresh_token: str
 
-class ResetPasswordRequest(BaseModel):
+class VerifyEmailRequest(BaseModel):
     """Request to reset password with token"""
     token: str
     new_password: str
