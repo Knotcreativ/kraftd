@@ -36,14 +36,7 @@ function AppContent() {
     }
     initializeCsrfToken()
   }, [])
-      try {
-        await apiClient.getCsrfToken()
-      } catch (error) {
-        console.error('Failed to initialize CSRF token:', error)
-      }
-    }
-    initializeCsrfToken()
-  }, [])
+
 
   return (
     <ErrorBoundary>
