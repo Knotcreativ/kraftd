@@ -1,8 +1,8 @@
 {
-  "name": "kraftdintel-web",
-  "resourceGroup": "kraftdintel-rg",
-  "region": "westeurope",
-  "sku": "Standard",
+  "name": "kraftd-frontend",
+  "resourceGroup": "KraftdRG",
+  "region": "eastus2",
+  "sku": "Free",
   "source": {
     "provider": "github",
     "owner": "Knotcreativ",
@@ -17,7 +17,7 @@
   "environmentVariables": {
     "VITE_API_URL": "https://kraftd-api.calmrock-7db6369d.uaenorth.azurecontainerapps.io/api/v1"
   },
-  "expectedUrl": "https://jolly-coast-03a4f4d03.4.azurestaticapps.net",
+  "expectedUrl": "https://green-mushroom-06da9040f.1.azurestaticapps.net",
   "backendApiUrl": "https://kraftdintel-app.nicerock-74b0737d.uaenorth.azurecontainerapps.io/api/v1",
   "status": "Updated for Next.js deployment",
   "createdAt": "2026-01-17T00:00:00Z",
