@@ -8,7 +8,8 @@ for procurement documents (RFQs, quotations, POs, etc.)
 import os
 from typing import Dict, Any, Optional, List
 from azure.core.credentials import AzureKeyCredential
-from azure.ai.documentintelligence import DocumentAnalysisClient, AnalyzeResult
+from azure.ai.documentintelligence import DocumentIntelligenceClient
+from azure.ai.documentintelligence.models import AnalyzeResult
 
 
 class AzureDocumentIntelligenceService:
@@ -26,7 +27,7 @@ class AzureDocumentIntelligenceService:
                 "Set DOCUMENTINTELLIGENCE_ENDPOINT and DOCUMENTINTELLIGENCE_API_KEY environment variables."
             )
         
-        self.client = DocumentAnalysisClient(
+        self.client = DocumentIntelligenceClient(
             endpoint=self.endpoint,
             credential=AzureKeyCredential(self.key)
         )

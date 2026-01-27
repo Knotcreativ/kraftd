@@ -62,7 +62,11 @@ async def test_blob_event_enqueues_message(monkeypatch):
     )
 
     # Invoke the blob event handler
-    from azure.functions.blob_event_handler import main as blob_main
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'azure', 'functions'))
+
+    from blob_event_handler import main as blob_main
 
     await blob_main(fake_event)
 
@@ -102,7 +106,7 @@ async def test_servicebus_worker_calls_pipeline(monkeypatch):
     payload = {"blob_url": "http://example.com/blob.pdf"}
     msg = FakeMsg(payload)
 
-    from azure.functions.servicebus_worker import main as worker_main
+    from servicebus_worker import main as worker_main
 
     await worker_main(msg)
 

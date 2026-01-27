@@ -32,3 +32,4 @@ numpy
 scipy
 jinja2
 locust
+aiohttp
